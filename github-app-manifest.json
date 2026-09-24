@@ -1,0 +1,23 @@
+{
+  "name": "ai-code-reviewer-bot",
+  "url": "https://github.com",
+  "hook_attributes": {
+    "url": "https://your-domain.vercel.app/api/webhooks/github",
+    "active": true
+  },
+  "redirect_url": "https://your-domain.vercel.app/api/auth/callback/github",
+  "callback_urls": [
+    "https://your-domain.vercel.app/api/auth/callback/github",
+    "http://localhost:3000/api/auth/callback/github"
+  ],
+  "public": false,
+  "default_permissions": {
+    "pull_requests": "write",
+    "contents": "read",
+    "metadata": "read"
+  },
+  "default_events": [
+    "pull_request"
+  ],
+  "description": "Autonomous AI assistant reviewing pull requests for bugs, security vulnerabilities, and code health in under 60 seconds."
+}
