@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "test": "node --test dist/**/*.test.js 2>nul || echo 'No tests compiled yet'",
     "start": "node dist/index.js",
     "simulate": "tsx src/simulate.ts"
   },

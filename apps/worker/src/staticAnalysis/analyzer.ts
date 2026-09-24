@@ -12,6 +12,7 @@ export interface StaticAnalysisRule {
 }
 
 export const STATIC_RULES: StaticAnalysisRule[] = [
+  // --- Cross-Language Security Rules ---
   {
     id: 'SEC-001',
     name: 'Hardcoded AWS Access Key',
@@ -32,6 +33,17 @@ export const STATIC_RULES: StaticAnalysisRule[] = [
   },
   {
     id: 'SEC-003',
+    name: 'Generic API Secret Key Assignment',
+    pattern: /(api_key|secret_key|client_secret|auth_token)\s*=\s*["'][A-Za-z0-9_\-]{16,}["']/i,
+    category: 'security',
+    severity: 'critical',
+    message: 'Hardcoded secret or authentication token detected in source assignment.',
+    suggestedFix: 'os.getenv("SECRET_KEY") or process.env.SECRET_KEY',
+  },
+
+  // --- Python Specific Rules ---
+  {
+    id: 'SEC-PY-001',
     name: 'Python Unsafe Shell Execution',
     pattern: /subprocess\.(Popen|run|call|check_output)\s*\(.*shell\s*=\s*True/i,
     category: 'security',
@@ -41,7 +53,7 @@ export const STATIC_RULES: StaticAnalysisRule[] = [
     fileExtensions: ['.py'],
   },
   {
-    id: 'SEC-004',
+    id: 'SEC-PY-002',
     name: 'Insecure Pickle Deserialization',
     pattern: /\bpickle\.(loads|load)\s*\(/,
     category: 'security',
@@ -51,7 +63,39 @@ export const STATIC_RULES: StaticAnalysisRule[] = [
     fileExtensions: ['.py'],
   },
   {
-    id: 'SEC-005',
+    id: 'SEC-PY-003',
+    name: 'Insecure PyYAML Load',
+    pattern: /\byaml\.load\s*\([^,)]*\)/,
+    category: 'security',
+    severity: 'critical',
+    message: 'yaml.load without Loader parameter is vulnerable to arbitrary code execution.',
+    suggestedFix: 'yaml.safe_load(stream)',
+    fileExtensions: ['.py'],
+  },
+  {
+    id: 'SEC-PY-004',
+    name: 'Python SQL String Formatting',
+    pattern: /(execute|executemany)\s*\(\s*(f["']|["'].*%s.*%|.*\.format\()/i,
+    category: 'security',
+    severity: 'critical',
+    message: 'SQL query constructed via string interpolation or formatting in execute(); susceptible to SQL injection.',
+    suggestedFix: 'cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))',
+    fileExtensions: ['.py'],
+  },
+  {
+    id: 'BUG-PY-001',
+    name: 'Python Mutable Default Argument',
+    pattern: /def\s+\w+\s*\([^)]*=\s*(\[\]|\{\})/i,
+    category: 'bug',
+    severity: 'warning',
+    message: 'Mutable default argument (list or dict) retains state across function calls, creating subtle state leaks.',
+    suggestedFix: 'def fn(arg=None):\n    if arg is None:\n        arg = []',
+    fileExtensions: ['.py'],
+  },
+
+  // --- JavaScript / TypeScript Specific Rules ---
+  {
+    id: 'SEC-JS-001',
     name: 'Dangerous React HTML Insertion',
     pattern: /dangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html\s*:/,
     category: 'security',
@@ -61,6 +105,46 @@ export const STATIC_RULES: StaticAnalysisRule[] = [
     fileExtensions: ['.tsx', '.jsx', '.js', '.ts'],
   },
   {
+    id: 'SEC-JS-002',
+    name: 'Insecure Eval Execution',
+    pattern: /\beval\s*\(/,
+    category: 'security',
+    severity: 'critical',
+    message: 'eval() executes arbitrary code strings and creates severe remote code execution vulnerabilities.',
+    suggestedFix: 'Refactor to use JSON.parse() or structured object mapping.',
+    fileExtensions: ['.js', '.ts', '.tsx', '.jsx'],
+  },
+  {
+    id: 'BUG-JS-001',
+    name: 'Invalid NaN Comparison',
+    pattern: /(===?|!==?)\s*NaN\b|\bNaN\s*(===?|!==?)/,
+    category: 'bug',
+    severity: 'critical',
+    message: 'Comparing value with NaN using equality operators always evaluates to false. Use Number.isNaN().',
+    suggestedFix: 'Number.isNaN(value)',
+    fileExtensions: ['.js', '.ts', '.tsx', '.jsx'],
+  },
+  {
+    id: 'BUG-JS-002',
+    name: 'Loose Equality Comparison',
+    pattern: /[^!=]==[^=]/,
+    category: 'bug',
+    severity: 'suggestion',
+    message: 'Use strict equality (===) instead of abstract equality (==) to prevent unexpected type coercion.',
+    suggestedFix: '===',
+    fileExtensions: ['.js', '.ts', '.tsx', '.jsx'],
+  },
+  {
+    id: 'PERF-001',
+    name: 'Blocking Synchronous I/O in Server Code',
+    pattern: /\bfs\.(readFileSync|writeFileSync|appendFileSync)\s*\(/,
+    category: 'performance',
+    severity: 'warning',
+    message: 'Synchronous file system operations block Node.js event loop threads, causing severe server latency spikes.',
+    suggestedFix: 'await fs.promises.readFile(path)',
+    fileExtensions: ['.js', '.ts'],
+  },
+  {
     id: 'BUG-001',
     name: 'Leftover Debugger Statement',
     pattern: /\b(debugger;|breakpoint\(\)|import\s+pdb;\s*pdb\.set_trace\(\))/,
@@ -68,15 +152,6 @@ export const STATIC_RULES: StaticAnalysisRule[] = [
     severity: 'warning',
     message: 'Debug breakpoint or debugger statement left in code.',
     suggestedFix: null,
-  },
-  {
-    id: 'BUG-002',
-    name: 'Loose Equality Comparison',
-    pattern: /[^!=]==[^=]/,
-    category: 'bug',
-    severity: 'suggestion',
-    message: 'Use strict equality (===) instead of abstract equality (==) to prevent unexpected type coercion.',
-    fileExtensions: ['.js', '.ts', '.tsx', '.jsx'],
   },
 ];
 
