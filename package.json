@@ -1,0 +1,31 @@
+{
+  "name": "ai-code-reviewer-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Code Review & PR Assistant - GitHub App & Real-time Repo Health Dashboard",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:web",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:worker": "npm run dev --workspace=apps/worker",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "test:webhook": "tsx scripts/test-webhook-e2e.ts",
+    "test:load": "tsx scripts/load-test-queue.ts",
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:push": "npm run push --workspace=packages/db",
+    "db:seed": "npm run seed --workspace=packages/db",
+    "db:studio": "npm run studio --workspace=packages/db",
+    "simulate:pr": "npm run simulate --workspace=apps/worker"
+  },
+  "devDependencies": {
+    "tsx": "^4.9.3",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

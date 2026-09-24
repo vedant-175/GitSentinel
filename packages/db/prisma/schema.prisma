@@ -1,0 +1,82 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Installation {
+  id                   Int          @id @default(autoincrement())
+  githubInstallationId BigInt       @unique @map("github_installation_id")
+  accountLogin         String       @map("account_login")
+  accountType          String       @map("account_type") // 'User' or 'Organization'
+  createdAt            DateTime     @default(now()) @map("created_at")
+  repositories         Repository[]
+
+  @@map("installations")
+}
+
+model Repository {
+  id             Int           @id @default(autoincrement())
+  installationId Int?          @map("installation_id")
+  installation   Installation? @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  githubRepoId   BigInt        @unique @map("github_repo_id")
+  fullName       String        @map("full_name") // e.g. "owner/repo"
+  defaultBranch  String?       @map("default_branch")
+  config         Json?         @default("{}") // per-repo rules: ignored globs, severity thresholds, disabled checks
+  createdAt      DateTime      @default(now()) @map("created_at")
+  pullRequests   PullRequest[]
+
+  @@map("repositories")
+}
+
+model PullRequest {
+  id             Int        @id @default(autoincrement())
+  repositoryId   Int        @map("repository_id")
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubPrNumber Int        @map("github_pr_number")
+  title          String?
+  author         String?
+  state          String?    @default("open") // 'open', 'closed', 'merged'
+  openedAt       DateTime?  @default(now()) @map("opened_at")
+  reviews        Review[]
+
+  @@unique([repositoryId, githubPrNumber])
+  @@map("pull_requests")
+}
+
+model Review {
+  id            Int           @id @default(autoincrement())
+  pullRequestId Int           @map("pull_request_id")
+  pullRequest   PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  commitSha     String        @map("commit_sha")
+  status        String        @default("pending") // 'pending', 'completed', 'failed'
+  verdict       String? // 'APPROVE', 'REQUEST_CHANGES', 'COMMENT'
+  summary       String?
+  startedAt     DateTime      @default(now()) @map("started_at")
+  completedAt   DateTime?     @map("completed_at")
+  latencyMs     Int?          @map("latency_ms")
+  issues        ReviewIssue[]
+
+  @@index([pullRequestId], name: "idx_reviews_pr")
+  @@map("reviews")
+}
+
+model ReviewIssue {
+  id           Int      @id @default(autoincrement())
+  reviewId     Int      @map("review_id")
+  review       Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  filePath     String   @map("file_path")
+  lineNumber   Int?     @map("line_number")
+  severity     String // 'critical', 'warning', 'suggestion'
+  category     String // 'bug', 'security', 'style', 'performance', 'maintainability'
+  message      String
+  suggestedFix String?  @map("suggested_fix")
+  source       String   @default("llm") // 'llm' or 'static_analysis'
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([reviewId], name: "idx_issues_review")
+  @@map("review_issues")
+}
