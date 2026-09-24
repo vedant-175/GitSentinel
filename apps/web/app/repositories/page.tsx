@@ -1,28 +1,19 @@
 import Link from 'next/link';
-import { prisma } from '@ai-reviewer/db';
 import { RepoConfig } from '@ai-reviewer/shared';
 import { FolderGit2, GitPullRequest, ArrowRight, Shield, Layers } from 'lucide-react';
 import { RepoConfigModal } from '../components/RepoConfigModal';
+import { DatabaseStatusBanner } from '../components/DatabaseStatusBanner';
+import { getRepositories } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RepositoriesPage() {
-  const repositories = await prisma.repository.findMany({
-    include: {
-      installation: true,
-      pullRequests: {
-        include: {
-          reviews: {
-            select: { id: true, issues: true },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const { data: repositories, isFallback } = await getRepositories();
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <DatabaseStatusBanner isFallback={isFallback} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>

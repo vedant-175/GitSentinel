@@ -12,6 +12,8 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { SimulateButton } from './components/SimulateButton';
+import { DatabaseStatusBanner } from './components/DatabaseStatusBanner';
+import { FALLBACK_REPOSITORIES } from '@/lib/fallback-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +56,8 @@ export default async function DashboardPage() {
     maintainability: 0,
     style: 0,
   };
+
+  let isFallback = false;
 
   try {
     repoCount = await prisma.repository.count();
@@ -99,13 +103,52 @@ export default async function DashboardPage() {
       avgLatencyMs = Math.round(sum / reviewsWithLatency.length);
     }
   } catch (err) {
-    console.warn('Database query skipped during initial build or empty db:', err);
+    console.warn('Database query skipped during initial build or empty db:', (err as Error).message);
+    isFallback = true;
+    repoCount = FALLBACK_REPOSITORIES.length;
+    const allPrs = FALLBACK_REPOSITORIES.flatMap((r) => r.pullRequests);
+    prCount = allPrs.length;
+    const allReviews = allPrs.flatMap((p) => p.reviews);
+    reviewCount = allReviews.length;
+    reviews = allReviews.map((rev) => {
+      const parentPr = allPrs.find((p) => p.reviews.some((r) => r.id === rev.id)) || allPrs[0];
+      return {
+        id: rev.id,
+        commitSha: rev.commitSha,
+        verdict: rev.verdict,
+        status: rev.status,
+        latencyMs: rev.latencyMs,
+        completedAt: rev.completedAt,
+        pullRequest: {
+          id: parentPr.id,
+          githubPrNumber: parentPr.githubPrNumber,
+          title: parentPr.title,
+          author: parentPr.author,
+          repository: {
+            id: parentPr.repository.id,
+            fullName: parentPr.repository.fullName,
+          },
+        },
+        issues: rev.issues.map((i) => ({ severity: i.severity, category: i.category })),
+      };
+    });
+
+    const fallbackIssues = allReviews.flatMap((r) => r.issues);
+    for (const issue of fallbackIssues) {
+      if (issue.severity === 'critical') criticalCount++;
+      if (issue.severity === 'warning') warningCount++;
+      if (issue.severity === 'suggestion') suggestionCount++;
+      categoryCounts[issue.category] = (categoryCounts[issue.category] || 0) + 1;
+    }
+    avgLatencyMs = 45000;
   }
 
   const totalIssues = criticalCount + warningCount + suggestionCount;
 
   return (
     <div className="space-y-8 animate-fade-in">
+      <DatabaseStatusBanner isFallback={isFallback} />
+
       {/* Top Banner / Hero */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>

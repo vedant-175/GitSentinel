@@ -1,27 +1,17 @@
-import Link from 'next/link';
-import { prisma } from '@ai-reviewer/db';
-import { GitPullRequest, ArrowRight, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
 import { SimulateButton } from '../components/SimulateButton';
 import { PullRequestFilters } from '../components/PullRequestFilters';
+import { DatabaseStatusBanner } from '../components/DatabaseStatusBanner';
+import { getPullRequests } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PullRequestsPage() {
-  const pullRequests = await prisma.pullRequest.findMany({
-    include: {
-      repository: true,
-      reviews: {
-        orderBy: { completedAt: 'desc' },
-        include: {
-          issues: true,
-        },
-      },
-    },
-    orderBy: { openedAt: 'desc' },
-  });
+  const { data: pullRequests, isFallback } = await getPullRequests();
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <DatabaseStatusBanner isFallback={isFallback} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>

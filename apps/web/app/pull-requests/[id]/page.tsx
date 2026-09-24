@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@ai-reviewer/db';
 import {
   ArrowLeft,
   GitPullRequest,
@@ -12,6 +11,8 @@ import {
   FileCheck,
 } from 'lucide-react';
 import { DiffIssueCard } from '../../components/DiffIssueCard';
+import { DatabaseStatusBanner } from '../../components/DatabaseStatusBanner';
+import { getPullRequestById } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,21 +24,7 @@ export default async function PullRequestDetailPage({
   const prId = parseInt(params.id, 10);
   if (isNaN(prId)) return notFound();
 
-  const pullRequest = await prisma.pullRequest.findUnique({
-    where: { id: prId },
-    include: {
-      repository: true,
-      reviews: {
-        orderBy: { completedAt: 'desc' },
-        include: {
-          issues: {
-            orderBy: [{ severity: 'asc' }, { filePath: 'asc' }, { lineNumber: 'asc' }],
-          },
-        },
-      },
-    },
-  });
-
+  const { data: pullRequest, isFallback } = await getPullRequestById(prId);
   if (!pullRequest) return notFound();
 
   const latestReview = pullRequest.reviews[0];
@@ -51,6 +38,8 @@ export default async function PullRequestDetailPage({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <DatabaseStatusBanner isFallback={isFallback} />
+
       {/* Back button */}
       <div>
         <Link

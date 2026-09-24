@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@ai-reviewer/db';
 import {
   FolderGit2,
   Clock,
@@ -11,6 +10,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { RepoConfigModal } from '../../components/RepoConfigModal';
+import { DatabaseStatusBanner } from '../../components/DatabaseStatusBanner';
+import { getRepositoryById } from '@/lib/data';
 import { RepoConfig } from '@ai-reviewer/shared';
 
 export const dynamic = 'force-dynamic';
@@ -23,24 +24,7 @@ export default async function RepositoryAnalyticsPage({
   const repoId = parseInt(params.id, 10);
   if (isNaN(repoId)) return notFound();
 
-  const repo = await prisma.repository.findUnique({
-    where: { id: repoId },
-    include: {
-      installation: true,
-      pullRequests: {
-        include: {
-          reviews: {
-            include: {
-              issues: true,
-            },
-            orderBy: { completedAt: 'desc' },
-          },
-        },
-        orderBy: { openedAt: 'desc' },
-      },
-    },
-  });
-
+  const { data: repo, isFallback } = await getRepositoryById(repoId);
   if (!repo) return notFound();
 
   const allReviews = repo.pullRequests.flatMap((pr) => pr.reviews);
@@ -72,6 +56,8 @@ export default async function RepositoryAnalyticsPage({
 
   return (
     <div className="space-y-8 animate-fade-in">
+      <DatabaseStatusBanner isFallback={isFallback} />
+
       {/* Back button & Repo Header */}
       <div>
         <Link
