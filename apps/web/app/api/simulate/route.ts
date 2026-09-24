@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@ai-reviewer/db';
 import { enqueueReviewJob } from '@/lib/queue';
 
+export const dynamic = 'force-dynamic';
+
 const SIMULATED_DIFF = `diff --git a/src/services/billing.ts b/src/services/billing.ts
 index 98a12bc..45d78ef 100644
 --- a/src/services/billing.ts
