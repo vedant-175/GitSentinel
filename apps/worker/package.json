@@ -30,9 +30,6 @@
     "octokit": "^3.2.1",
     "openai": "^4.47.1",
     "p-limit": "^7.3.3",
-    "@types/eslint": "^8.56.10",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.12.7",
     "pino": "^10.4.0",
     "zod": "^3.23.8"
   },
