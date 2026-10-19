@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getRepositories } from '@/lib/data';
+import { syncUserRepositories } from '@/lib/github-sync';
 import { RepositoriesView } from './RepositoriesView';
 
 export const dynamic = 'force-dynamic';
@@ -18,36 +19,20 @@ export default async function RepositoriesPage() {
     repositories = [];
   }
 
-  // If a user is logged in and DB has 0 records (e.g. serverless runtime), fetch their live GitHub repositories directly
+  // If a user is logged in and DB has 0 records, synchronize or fetch live GitHub repositories
   if (currentUserLogin && repositories.length === 0) {
     try {
-      const ghRes = await fetch(
-        `https://api.github.com/users/${encodeURIComponent(currentUserLogin)}/repos?per_page=100&sort=updated`,
-        {
-          headers: {
-            'User-Agent': 'GitSentinel-Surveillance/1.0',
-            Accept: 'application/vnd.github.v3+json',
-          },
-          next: { revalidate: 60 },
-        }
-      );
-      if (ghRes.ok) {
-        const data = await ghRes.json();
-        if (Array.isArray(data)) {
-          repositories = data.map((r: any) => ({
-            id: r.id,
-            fullName: r.full_name,
-            description: r.description || 'Public repository synchronized from GitHub.',
-            status: 'Active',
-            defaultBranch: r.default_branch || 'main',
-            prsCount: Math.min(r.open_issues_count || 0, 10),
-            findings: { high: 0, medium: 0, low: 0 },
-            updatedAt: r.updated_at,
-          }));
+      const syncResult = await syncUserRepositories(currentUserLogin);
+      if (syncResult.success) {
+        const refreshed = await getRepositories({ limit: 100 }).catch(() => null);
+        if (refreshed?.data && refreshed.data.length > 0) {
+          repositories = refreshed.data;
+        } else if (syncResult.repos && syncResult.repos.length > 0) {
+          repositories = syncResult.repos;
         }
       }
-    } catch (fetchErr) {
-      console.warn('[RepositoriesPage] Failed to fetch live repositories from GitHub API:', fetchErr);
+    } catch (syncErr) {
+      console.warn('[RepositoriesPage] Failed to sync user repositories:', syncErr);
     }
   }
 

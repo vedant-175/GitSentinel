@@ -21,13 +21,13 @@ interface SidebarProps {
   repoCount?: number;
 }
 
-export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCount = 10 }: SidebarProps) {
+export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }: SidebarProps) {
   const pathname = usePathname();
 
-  const [prCount, setPrCount] = useState<number>(initialPrCount);
-  const [repoCount, setRepoCount] = useState<number>(initialRepoCount);
+  const [prCount, setPrCount] = useState<number | undefined>(initialPrCount);
+  const [repoCount, setRepoCount] = useState<number | undefined>(initialRepoCount);
 
-  // Optionally fetch real active counts on mount
+  // Fetch real active counts on mount
   useEffect(() => {
     let isMounted = true;
     async function fetchCounts() {
@@ -37,15 +37,25 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
           fetch('/api/repositories').then((r) => (r.ok ? r.json() : null)).catch(() => null),
         ]);
         if (isMounted) {
-          if (prRes && Array.isArray(prRes.pullRequests)) {
-            setPrCount(prRes.pullRequests.length || 5);
+          const prList = Array.isArray(prRes?.data)
+            ? prRes.data
+            : Array.isArray(prRes?.pullRequests)
+            ? prRes.pullRequests
+            : null;
+          const repoList = Array.isArray(repoRes?.data)
+            ? repoRes.data
+            : Array.isArray(repoRes?.repositories)
+            ? repoRes.repositories
+            : null;
+          if (prList !== null) {
+            setPrCount(prList.length);
           }
-          if (repoRes && Array.isArray(repoRes.repositories)) {
-            setRepoCount(repoRes.repositories.length || 10);
+          if (repoList !== null) {
+            setRepoCount(repoList.length);
           }
         }
       } catch (_) {
-        // Fallback to default counts 5 & 10
+        // Ignore fetch errors
       }
     }
     fetchCounts();
@@ -80,14 +90,14 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
       href: '/pull-requests',
       icon: GitPullRequest,
       active: pathname.startsWith('/pull-requests'),
-      badge: prCount,
+      badge: typeof prCount === 'number' && prCount > 0 ? prCount : undefined,
     },
     {
       name: 'Repositories',
       href: '/repositories',
       icon: FolderGit2,
       active: pathname.startsWith('/repositories'),
-      badge: repoCount,
+      badge: typeof repoCount === 'number' && repoCount > 0 ? repoCount : undefined,
     },
     {
       name: 'AI Code Explorer',

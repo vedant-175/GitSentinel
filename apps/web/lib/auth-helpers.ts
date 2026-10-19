@@ -164,8 +164,10 @@ export async function resolveUserInstallations(
       select: { githubInstallationId: true },
     });
     accessibleIds = dbInstallations.map((i) => i.githubInstallationId);
-  } else if (session.user.login) {
-    // Local dev mode fallback by login: only match existing installations from DB
+  }
+
+  // Account login fallback if no accessible IDs were resolved yet
+  if (accessibleIds.length === 0 && session.user?.login) {
     const dbInstallations = await prisma.installation.findMany({
       where: {
         accountLogin: {

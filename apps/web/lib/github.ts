@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Octokit } from 'octokit';
 import { createAppAuth } from '@octokit/auth-app';
 
