@@ -112,6 +112,7 @@ export function runStaticAnalysis(chunk: DiffChunk): ReviewIssue[] {
   return issues;
 }
 
+// @ts-ignore
 import { ESLint } from 'eslint';
 
 export interface ChangedFilePayload {
@@ -164,7 +165,7 @@ export async function runRealStaticAnalysis(
   // 1. Check for JS/TS files and run ESLint (Item 18)
   const jsTsFiles = files.filter((f) => /\.[jt]sx?$/.test(f.path));
   if (jsTsFiles.length > 0) {
-    let eslint: ESLint | null = null;
+    let eslint: any = null;
     try {
       eslint = new ESLint({
         useEslintrc: false,

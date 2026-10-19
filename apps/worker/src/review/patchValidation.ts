@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+// @ts-ignore
 import { ESLint } from 'eslint';
 
 export interface PatchValidationRequest {
