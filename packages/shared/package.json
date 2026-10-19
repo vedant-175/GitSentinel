@@ -11,6 +11,8 @@
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
+    "@types/node": "^20.12.7",
+    "@types/picomatch": "^4.0.3",
     "gpt-tokenizer": "^4.0.0",
     "picomatch": "^2.3.2",
     "zod": "^3.23.8"
