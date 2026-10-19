@@ -7,6 +7,7 @@ import {
   Shield,
   ChevronDown,
   LogOut,
+  LogIn,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -15,7 +16,7 @@ import { useTheme } from './ThemeProvider';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
@@ -27,8 +28,9 @@ export function Navbar() {
     return null;
   }
 
-  const username = session?.user?.name || session?.user?.login || 'Armaan2104';
-  const initial = username.charAt(0).toUpperCase() || 'A';
+  const isLoggedIn = status === 'authenticated' && !!session?.user;
+  const username = session?.user?.name || session?.user?.login || 'vedant-175';
+  const initial = username.charAt(0).toUpperCase() || 'V';
 
   const navLinks = [
     { label: 'Overview', href: '/', active: pathname === '/' },
@@ -113,39 +115,54 @@ export function Navbar() {
             </svg>
           </button>
 
-          <div className="relative">
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
-            >
-              <span className="font-semibold text-slate-800 dark:text-zinc-100">{username}</span>
-              <ChevronDown className="h-3 w-3 text-slate-400 dark:text-zinc-500" />
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-lg z-50 text-xs">
-                <div className="px-2 py-1 text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
-                  Signed in as
-                </div>
-                <div className="px-2 py-1 text-slate-900 dark:text-zinc-100 font-semibold truncate">
-                  {username}
-                </div>
-                <div className="border-t border-slate-100 dark:border-zinc-800 my-1" />
+          {isLoggedIn ? (
+            <>
+              <div className="relative">
                 <button
-                  onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left font-medium"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  id="user-profile-menu-button"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
                 >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>Sign Out</span>
+                  <span className="font-semibold text-slate-800 dark:text-zinc-100">{username}</span>
+                  <ChevronDown className="h-3 w-3 text-slate-400 dark:text-zinc-500" />
                 </button>
-              </div>
-            )}
-          </div>
 
-          {/* User profile avatar circle */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 dark:bg-zinc-700 text-white font-medium text-xs shadow-sm">
-            {initial}
-          </div>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-lg z-50 text-xs">
+                    <div className="px-2 py-1 text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
+                      Signed in as
+                    </div>
+                    <div className="px-2 py-1 text-slate-900 dark:text-zinc-100 font-semibold truncate">
+                      {username}
+                    </div>
+                    <div className="border-t border-slate-100 dark:border-zinc-800 my-1" />
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/login' })}
+                      id="sign-out-button"
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left font-medium cursor-pointer"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* User profile avatar circle */}
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 dark:bg-zinc-700 text-white font-medium text-xs shadow-sm">
+                {initial}
+              </div>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              id="nav-sign-in-button"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition-colors"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span>Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
     </header>

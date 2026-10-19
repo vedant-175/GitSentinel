@@ -27,7 +27,7 @@ export function LoginForm({
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
-  const [username, setUsername] = useState('Armaan2104');
+  const [username, setUsername] = useState('vedant-175');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showDevInput, setShowDevInput] = useState(false);
@@ -39,10 +39,19 @@ export function LoginForm({
     if (!hasGithubOAuth && isDevLoginEnabled) {
       // In local dev without live GitHub OAuth client credentials, authenticate directly
       try {
-        await signIn('credentials', {
-          username: username.trim() || 'Armaan2104',
+        const res = await signIn('credentials', {
+          username: username.trim() || 'vedant-175',
           callbackUrl,
+          redirect: false,
         });
+        if (res?.error) {
+          setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please ensure host is localhost.' : res.error);
+          setLoading(false);
+        } else if (res?.url) {
+          window.location.href = res.url;
+        } else {
+          window.location.href = callbackUrl;
+        }
       } catch (err) {
         console.error('Dev sign-in failed:', err);
         setErrorMsg('Failed to sign in. Please verify local environment.');
@@ -64,11 +73,21 @@ export function LoginForm({
     e.preventDefault();
     if (!username.trim()) return;
     setLoading(true);
+    setErrorMsg(null);
     try {
-      await signIn('credentials', {
+      const res = await signIn('credentials', {
         username: username.trim(),
         callbackUrl,
+        redirect: false,
       });
+      if (res?.error) {
+        setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please ensure host is localhost.' : res.error);
+        setLoading(false);
+      } else if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        window.location.href = callbackUrl;
+      }
     } catch (err) {
       console.error('Dev sign-in failed:', err);
       setErrorMsg('Failed to sign in with specified username.');

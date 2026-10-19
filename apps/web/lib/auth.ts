@@ -32,8 +32,7 @@ export function validateAuthConfig() {
   }
 }
 
-// Immediate boot validation
-validateAuthConfig();
+// Boot validation is exported and called during provider build and server boot
 
 /**
  * Builds the authentication providers list according to security rules:
@@ -106,31 +105,38 @@ export function buildProviders() {
         }
 
         // Query installations created for this account
-        let matchingInsts = await prisma.installation.findMany({
-          where: {
-            accountLogin: {
-              equals: username,
-              mode: 'insensitive',
-            },
-          },
-          select: { githubInstallationId: true, accountLogin: true },
-        });
-
-        // Fallback: If not found (e.g. offline), ensure a local installation exists so the user can always log in
-        if (matchingInsts.length === 0) {
-          const fallbackInstId = BigInt(Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 900));
-          const fallback = await prisma.installation.create({
-            data: {
-              githubInstallationId: fallbackInstId,
-              accountLogin: username,
-              accountType: 'User',
+        let matchingInsts: Array<{ githubInstallationId: bigint; accountLogin: string }> = [];
+        try {
+          matchingInsts = await prisma.installation.findMany({
+            where: {
+              accountLogin: {
+                equals: username,
+                mode: 'insensitive',
+              },
             },
             select: { githubInstallationId: true, accountLogin: true },
           });
-          matchingInsts = [fallback];
+
+          // Fallback: If not found, ensure a local installation exists so the user can always log in
+          if (matchingInsts.length === 0) {
+            const fallbackInstId = BigInt(Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 900));
+            const fallback = await prisma.installation.create({
+              data: {
+                githubInstallationId: fallbackInstId,
+                accountLogin: username,
+                accountType: 'User',
+              },
+              select: { githubInstallationId: true, accountLogin: true },
+            });
+            matchingInsts = [fallback];
+          }
+        } catch (dbErr) {
+          console.warn(`[Auth] Database offline during login for ${username}, continuing with offline installation.`);
         }
 
-        const userInstIds = matchingInsts.map((i) => Number(i.githubInstallationId));
+        const userInstIds = matchingInsts.length > 0
+          ? matchingInsts.map((i) => Number(i.githubInstallationId))
+          : [1];
         const effectiveLogin = matchingInsts[0]?.accountLogin || username;
 
         return {
