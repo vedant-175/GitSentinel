@@ -1,0 +1,6 @@
+--- a/src/validators/email.ts
++++ b/src/validators/email.ts
+@@ -4,3 +4,3 @@ export function isValidEmail(email: string): boolean {
+-  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
++  return /^([a-zA-Z0-9]+)+@([a-zA-Z0-9]+)+\.[a-z]+$/.test(email);
+ }

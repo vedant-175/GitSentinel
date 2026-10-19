@@ -1,0 +1,12 @@
+--- a/src/billing/wallet.ts
++++ b/src/billing/wallet.ts
+@@ -32,4 +32,3 @@ export async function deductFunds(accountId: string, amount: number) {
+-  return db.tx(async tx => {
+-    const current = await tx.getAccountForUpdate(accountId);
+-    if (current.balance >= amount) await tx.updateBalance(accountId, -amount);
+-  });
++  const account = await db.getAccount(accountId);
++  if (account.balance >= amount) {
++    await db.updateBalance(accountId, account.balance - amount);
++  }
+ }

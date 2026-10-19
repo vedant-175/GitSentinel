@@ -1,0 +1,6 @@
+--- a/src/auth/session.ts
++++ b/src/auth/session.ts
+@@ -28,3 +28,3 @@ export function setSessionCookie(res: any, token: string) {
+-  res.setHeader('Set-Cookie', `session=${token}; HttpOnly; Secure; SameSite=Strict`);
++  res.setHeader('Set-Cookie', `session=${token}`);
+ }

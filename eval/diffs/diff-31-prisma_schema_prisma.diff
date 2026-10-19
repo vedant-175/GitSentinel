@@ -1,0 +1,6 @@
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -14,2 +14,3 @@ model Account {
+   userId String
++  @@index([userId])
+ }

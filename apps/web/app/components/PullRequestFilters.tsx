@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, Filter, ShieldAlert, ArrowRight, Clock, GitPullRequest } from 'lucide-react';
+import { Search, ShieldAlert, ArrowRight, Clock, GitPullRequest, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PRItem {
   id: number;
@@ -28,6 +28,8 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVerdict, setSelectedVerdict] = useState<string>('ALL');
   const [selectedRepo, setSelectedRepo] = useState<string>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Extract unique repositories
   const repoNames = Array.from(
@@ -55,6 +57,17 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
     return matchesSearch && matchesRepo && matchesVerdict;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredPRs.length / pageSize));
+  const paginatedPRs = filteredPRs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handleFilterChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-4">
       {/* Search and Filters Control Bar */}
@@ -65,7 +78,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleFilterChange(setSearchQuery, e.target.value)}
             placeholder="Filter by title, author (@username), repo, or PR #..."
             className="w-full rounded-xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
@@ -75,7 +88,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
         <div className="flex items-center gap-2">
           <select
             value={selectedVerdict}
-            onChange={(e) => setSelectedVerdict(e.target.value)}
+            onChange={(e) => handleFilterChange(setSelectedVerdict, e.target.value)}
             className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
           >
             <option value="ALL">All Verdicts</option>
@@ -88,7 +101,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
           {repoNames.length > 1 && (
             <select
               value={selectedRepo}
-              onChange={(e) => setSelectedRepo(e.target.value)}
+              onChange={(e) => handleFilterChange(setSelectedRepo, e.target.value)}
               className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none max-w-[200px] truncate"
             >
               <option value="ALL">All Repositories</option>
@@ -105,7 +118,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
       {/* Results Count */}
       <div className="flex items-center justify-between text-xs text-slate-400 font-mono px-1">
         <span>
-          Showing {filteredPRs.length} of {initialPullRequests.length} pull requests
+          Showing {paginatedPRs.length} of {filteredPRs.length} pull requests (Page {currentPage} of {totalPages})
         </span>
         {(searchQuery || selectedVerdict !== 'ALL' || selectedRepo !== 'ALL') && (
           <button
@@ -113,6 +126,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
               setSearchQuery('');
               setSelectedVerdict('ALL');
               setSelectedRepo('ALL');
+              setCurrentPage(1);
             }}
             className="text-indigo-400 hover:text-indigo-300"
           >
@@ -123,7 +137,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
 
       {/* PR Cards */}
       <div className="space-y-3">
-        {filteredPRs.map((pr) => {
+        {paginatedPRs.map((pr) => {
           const latestReview = pr.reviews[0];
           const verdict = latestReview?.verdict || 'PENDING';
           const isApproved = verdict === 'APPROVE';
@@ -203,13 +217,40 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
         {filteredPRs.length === 0 && (
           <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center text-slate-500">
             <GitPullRequest className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-            <p className="text-sm">No pull requests matching your filters.</p>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-sm font-medium text-slate-300">No pull requests matching your filters</p>
+            <p className="text-xs text-slate-500 mt-1">
               Try adjusting the search query or verdict filters.
             </p>
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-white/5 text-xs font-mono">
+          <span className="text-slate-400">
+            Page {currentPage} of {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Previous
+            </button>
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              Next <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

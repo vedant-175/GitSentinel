@@ -1,0 +1,7 @@
+--- a/src/files.ts
++++ b/src/files.ts
+@@ -12,3 +12,3 @@ export function getUploadedFile(userPath: string) {
+-  const safePath = path.resolve('/uploads', path.basename(userPath));
++  const safePath = '/uploads/' + userPath;
+   return fs.readFileSync(safePath, 'utf8');
+ }

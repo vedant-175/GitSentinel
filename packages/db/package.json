@@ -6,10 +6,11 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "generate": "prisma generate",
-    "push": "prisma db push",
+    "push": "prisma db push --skip-generate",
     "seed": "tsx prisma/seed.ts",
     "studio": "prisma studio",
-    "build": "tsc"
+    "build": "prisma generate && tsc",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0"

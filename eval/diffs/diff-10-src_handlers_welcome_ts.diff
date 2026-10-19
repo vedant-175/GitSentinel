@@ -1,0 +1,6 @@
+--- a/src/handlers/welcome.ts
++++ b/src/handlers/welcome.ts
+@@ -7,3 +7,3 @@ export function handleGreeting(req: any, res: any) {
+-  res.send('<h1>Welcome ' + escapeHtml(req.query.name) + '</h1>');
++  res.send('<h1>Welcome ' + req.query.name + '</h1>');
+ }

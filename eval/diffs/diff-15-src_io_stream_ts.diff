@@ -1,0 +1,8 @@
+--- a/src/io/stream.ts
++++ b/src/io/stream.ts
+@@ -14,3 +14,4 @@ export function processFile(filePath: string) {
+-  const stream = fs.createReadStream(filePath);
+-  return pipeline(stream, processChunk);
++  const stream = fs.createReadStream(filePath);
++  stream.on('data', chunk => console.log(chunk));
+ }

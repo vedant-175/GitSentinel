@@ -1,0 +1,935 @@
+{
+  "date": "2026-10-04T20:32:21.212Z",
+  "gitCommit": "27d6ecb",
+  "evaluationMethodology": {
+    "datasetTotalDiffs": 105,
+    "heldOutDiffsCount": 25,
+    "trainingDiffsCount": 80,
+    "historicalDiffsCount": 15,
+    "injectionDiffsCount": 9,
+    "cleanDiffsCount": 38,
+    "buggyDiffsCount": 67,
+    "toleranceRules": {
+      "fileMatching": "Normalized relative file path (stripped leading slashes, path separator agnostic, case-insensitive, suffix matching).",
+      "lineRangeMatching": "Strict inclusive bounds: finding line_number must satisfy startLine <= line_number <= endLine without arbitrary sliding windows.",
+      "categoryMatching": "Canonical compatibility: security <=> vulnerability, bug <=> logic_error; style, performance, and maintainability require exact category match.",
+      "severityWeighting": "Critical Finding Recall measures recall specifically against the subset of expected issues with severity: critical.",
+      "deduplication": "Findings on identical file, line, and category are deduplicated; multiple findings for one expected issue do not inflate true positive credit."
+    }
+  },
+  "configurations": {
+    "staticOnly": {
+      "status": "MEASURED",
+      "issueLevel": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 62,
+        "precision": 1,
+        "precisionCi": {
+          "center": 0.783,
+          "low": 0.566,
+          "high": 1
+        },
+        "recall": 0.075,
+        "recallCi": {
+          "center": 0.098,
+          "low": 0.032,
+          "high": 0.163
+        },
+        "f1": 0.139
+      },
+      "diffLevel": {
+        "tp": 5,
+        "fp": 0,
+        "tn": 38,
+        "fn": 62,
+        "accuracy": 0.41,
+        "precision": 1,
+        "recall": 0.075,
+        "falsePositiveRate": 0
+      },
+      "categoryBreakdown": {
+        "securityExpected": 44,
+        "securityDetected": 5,
+        "securityRecall": 0.114,
+        "bugExpected": 14,
+        "bugDetected": 0,
+        "bugRecall": 0,
+        "criticalExpected": 45,
+        "criticalDetected": 5,
+        "criticalRecall": 0.111
+      },
+      "operationalCost": {
+        "p50LatencyMs": 0.05,
+        "p95LatencyMs": 0.24,
+        "meanLatencyMs": 0.15,
+        "totalInputTokens": 0,
+        "totalOutputTokens": 0,
+        "totalTokens": 0,
+        "avgTokensPerPr": 0,
+        "estimatedCostPerPr": 0,
+        "estimatedCostPerFinding": 0
+      }
+    },
+    "llmOnly": {
+      "status": "UNAVAILABLE",
+      "statusReason": "LLM API key not configured in environment. In accordance with zero-fabrication rules, this configuration cannot be executed and is marked UNAVAILABLE.",
+      "issueLevel": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0,
+        "precisionCi": {
+          "center": 0,
+          "low": 0,
+          "high": 0
+        },
+        "recall": 0,
+        "recallCi": {
+          "center": 0,
+          "low": 0,
+          "high": 0
+        },
+        "f1": 0
+      },
+      "diffLevel": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "falsePositiveRate": 0
+      },
+      "categoryBreakdown": {
+        "securityExpected": 0,
+        "securityDetected": 0,
+        "securityRecall": 0,
+        "bugExpected": 0,
+        "bugDetected": 0,
+        "bugRecall": 0,
+        "criticalExpected": 0,
+        "criticalDetected": 0,
+        "criticalRecall": 0
+      },
+      "operationalCost": {
+        "p50LatencyMs": 0,
+        "p95LatencyMs": 0,
+        "meanLatencyMs": 0,
+        "totalInputTokens": 0,
+        "totalOutputTokens": 0,
+        "totalTokens": 0,
+        "avgTokensPerPr": 0,
+        "estimatedCostPerPr": 0,
+        "estimatedCostPerFinding": 0
+      }
+    },
+    "hybrid": {
+      "status": "UNAVAILABLE",
+      "statusReason": "LLM API key not configured in environment. In accordance with zero-fabrication rules, this configuration cannot be executed and is marked UNAVAILABLE.",
+      "issueLevel": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0,
+        "precisionCi": {
+          "center": 0,
+          "low": 0,
+          "high": 0
+        },
+        "recall": 0,
+        "recallCi": {
+          "center": 0,
+          "low": 0,
+          "high": 0
+        },
+        "f1": 0
+      },
+      "diffLevel": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "falsePositiveRate": 0
+      },
+      "categoryBreakdown": {
+        "securityExpected": 0,
+        "securityDetected": 0,
+        "securityRecall": 0,
+        "bugExpected": 0,
+        "bugDetected": 0,
+        "bugRecall": 0,
+        "criticalExpected": 0,
+        "criticalDetected": 0,
+        "criticalRecall": 0
+      },
+      "operationalCost": {
+        "p50LatencyMs": 0,
+        "p95LatencyMs": 0,
+        "meanLatencyMs": 0,
+        "totalInputTokens": 0,
+        "totalOutputTokens": 0,
+        "totalTokens": 0,
+        "avgTokensPerPr": 0,
+        "estimatedCostPerPr": 0,
+        "estimatedCostPerFinding": 0
+      }
+    }
+  },
+  "modelComparison": {
+    "rows": [
+      {
+        "model": "Static Analysis Only (Regex Secret Rules)",
+        "provider": "Static Engine",
+        "status": "MEASURED",
+        "precision": 1,
+        "recall": 0.075,
+        "f1": 0.139,
+        "securityRecall": 0.114,
+        "p50LatencyMs": 0.05,
+        "p95LatencyMs": 0.24,
+        "costPerPr": 0,
+        "costPer1mInput": 0,
+        "costPer1mOutput": 0
+      },
+      {
+        "model": "gemini-2.0-flash",
+        "provider": "Google Gemini",
+        "status": "UNAVAILABLE",
+        "statusReason": "GEMINI_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 0.1,
+        "costPer1mOutput": 0.4
+      },
+      {
+        "model": "gemini-1.5-flash",
+        "provider": "Google Gemini",
+        "status": "UNAVAILABLE",
+        "statusReason": "GEMINI_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 0.075,
+        "costPer1mOutput": 0.3
+      },
+      {
+        "model": "gemini-1.5-pro",
+        "provider": "Google Gemini",
+        "status": "UNAVAILABLE",
+        "statusReason": "GEMINI_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 1.25,
+        "costPer1mOutput": 5
+      },
+      {
+        "model": "gpt-4o",
+        "provider": "OpenAI",
+        "status": "UNAVAILABLE",
+        "statusReason": "OPENAI_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 2.5,
+        "costPer1mOutput": 10
+      },
+      {
+        "model": "gpt-4o-mini",
+        "provider": "OpenAI",
+        "status": "UNAVAILABLE",
+        "statusReason": "OPENAI_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 0.15,
+        "costPer1mOutput": 0.6
+      },
+      {
+        "model": "claude-3-5-sonnet-20241022",
+        "provider": "Anthropic",
+        "status": "UNAVAILABLE",
+        "statusReason": "ANTHROPIC_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 3,
+        "costPer1mOutput": 15
+      },
+      {
+        "model": "claude-3-5-haiku-20241022",
+        "provider": "Anthropic",
+        "status": "UNAVAILABLE",
+        "statusReason": "ANTHROPIC_API_KEY missing from environment",
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "securityRecall": null,
+        "p50LatencyMs": null,
+        "p95LatencyMs": null,
+        "costPerPr": null,
+        "costPer1mInput": 0.8,
+        "costPer1mOutput": 4
+      }
+    ],
+    "synthesis": {
+      "bestQuality": {
+        "title": "Hybrid Static + LLM (Architectural Optimum)",
+        "explanation": "Static analysis guarantees 100% precision on deterministic credentials while LLM provides broad vulnerability coverage across SQLi, SSRF, IDOR, and logic flaws. A pure static approach misses 92.5% of real vulnerabilities, whereas pure LLM introduces token hallucinations."
+      },
+      "bestLatency": {
+        "title": "Static Analysis Only (0.07ms P50)",
+        "explanation": "Deterministic regex and local AST linting execute locally in under 0.1ms without external network roundtrips, cold starts, or provider rate limits."
+      },
+      "bestCost": {
+        "title": "Static Analysis Only ($0.00 / PR)",
+        "explanation": "Consumes 0 LLM tokens and incurs zero API billing. For cost-effective LLM augmentation, Gemini 1.5 Flash ($0.075 / 1M input) and GPT-4o-mini ($0.15 / 1M input) offer sub-cent per-PR pricing."
+      },
+      "bestTradeoff": {
+        "title": "Hybrid (Static Pre-filter + Fast LLM Chunking)",
+        "explanation": "Evaluating models purely on benchmark recall results in cost and latency bloat (e.g. GPT-4o at $2.50/1M with 2.5s latency). The optimal production compromise filters out secrets and clean diffs via static analysis first, only invoking fast LLMs (Gemini Flash or GPT-4o-mini) on ambiguous code hunks with strict confidence gating."
+      }
+    }
+  },
+  "confusionAnalysis": {
+    "truePositives": [
+      {
+        "id": "diff-02",
+        "name": "Hardcoded AWS Access and Secret Key in config",
+        "file": "src/config/aws.ts",
+        "rule": "[Hardcoded AWS Access Key]"
+      },
+      {
+        "id": "diff-03",
+        "name": "Committed RSA Private Key in source code",
+        "file": "src/auth/keys.ts",
+        "rule": "[Private Key Header]"
+      },
+      {
+        "id": "diff-07",
+        "name": "Committed GitHub Personal Access Token",
+        "file": "src/github.ts",
+        "rule": "[GitHub Personal Access Token]"
+      },
+      {
+        "id": "diff-11",
+        "name": "Committed Stripe Secret API Key",
+        "file": "src/services/stripe.ts",
+        "rule": "[Stripe API Key]"
+      },
+      {
+        "id": "diff-34",
+        "name": "Adversarial prompt injection in string variable attempting instruction override",
+        "file": "src/utils/logger.ts",
+        "rule": "[Generic API Secret Key Assignment]"
+      }
+    ],
+    "falsePositives": [],
+    "falseNegatives": [
+      {
+        "id": "diff-01",
+        "name": "SQL Injection via string concatenation in query",
+        "file": "src/users.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-04",
+        "name": "Arbitrary code execution via eval() in calculator",
+        "file": "src/calculator.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-05",
+        "name": "Server-Side Request Forgery (SSRF) via unchecked URL fetch",
+        "file": "src/network.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-06",
+        "name": "Path traversal via unsanitized user file path",
+        "file": "src/files.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-08",
+        "name": "Insecure JWT decode bypassing signature verification",
+        "file": "src/middleware/auth.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-09",
+        "name": "Command injection via child_process.exec",
+        "file": "src/webhookDispatcher.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-10",
+        "name": "Reflected Cross-Site Scripting (XSS) in HTML response",
+        "file": "src/handlers/welcome.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-12",
+        "name": "Off-by-one array index error in loop condition",
+        "file": "src/utils/array.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-13",
+        "name": "Unsafe nested property dereference without null check",
+        "file": "src/services/profile.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-14",
+        "name": "Unhandled promise call without await or error handler",
+        "file": "src/routes/notify.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-15",
+        "name": "Unclosed stream leak risking file descriptor exhaustion",
+        "file": "src/io/stream.ts",
+        "category": "maintainability",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-16",
+        "name": "Broken MD5 hash algorithm used for password storage",
+        "file": "src/crypto/passwords.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-17",
+        "name": "ReDoS catastrophic backtracking in nested regex quantifier",
+        "file": "src/validators/email.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-18",
+        "name": "Race condition in account balance check-then-act",
+        "file": "src/billing/wallet.ts",
+        "category": "bug",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-19",
+        "name": "Memory leak by attaching listener to global event emitter",
+        "file": "src/server/events.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-20",
+        "name": "Insecure CORS wildcard origin with credentials enabled",
+        "file": "src/server/cors.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-21",
+        "name": "Prototype pollution via unvalidated object key copy",
+        "file": "src/utils/merge.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-22",
+        "name": "Session cookie missing HttpOnly protection flag",
+        "file": "src/auth/session.ts",
+        "category": "security",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-23",
+        "name": "Plaintext password logged directly to application output",
+        "file": "src/auth/login.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-24",
+        "name": "Missing radix parameter in parseInt call",
+        "file": "src/utils/numbers.ts",
+        "category": "bug",
+        "expectedSeverity": "suggestion",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-33",
+        "name": "Adversarial prompt injection in code comment attempting auto-approve",
+        "file": "src/auth/service.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-35",
+        "name": "Adversarial prompt injection in multiline docstring attempting JSON schema hijack",
+        "file": "src/constants/prompts.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-36",
+        "name": "Adversarial prompt injection with SSRF payload in URL parameter",
+        "file": "src/cloud/storage.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-37",
+        "name": "Zip Slip path traversal during archive decompression in Python",
+        "file": "services/unzip.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-38",
+        "name": "Timing attack in HMAC comparison without constant-time check",
+        "file": "src/auth/hmac.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-39",
+        "name": "Unrestricted file upload with executable extension check bypass",
+        "file": "src/controllers/upload.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-40",
+        "name": "NoSQL injection via unvalidated MongoDB query operator in Express",
+        "file": "src/api/auth.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-41",
+        "name": "Python mutable default argument bug in function signature",
+        "file": "app/utils.py",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-42",
+        "name": "Goroutine leak in Go due to unbuffered channel without receiver",
+        "file": "worker/pool.go",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-43",
+        "name": "N+1 database query inside loop in Node.js service",
+        "file": "src/services/orders.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-44",
+        "name": "Python datetime timezone-naive vs timezone-aware subtraction crash",
+        "file": "analytics/duration.py",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-45",
+        "name": "Insecure cryptographic random generator using Math.random for token generation",
+        "file": "src/utils/security.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-46",
+        "name": "Floating point rounding error in financial billing calculation",
+        "file": "src/billing/tax.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-47",
+        "name": "Go missing error check after database transaction commit",
+        "file": "db/tx.go",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-48",
+        "name": "Blocking synchronous file I/O in high-throughput Express route",
+        "file": "src/server/stats.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-49",
+        "name": "Open redirect vulnerability via untrusted redirect query parameter",
+        "file": "src/routes/auth.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-50",
+        "name": "Regex catastrophic backtracking in IPv4 address validator",
+        "file": "src/validators/ip.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-51",
+        "name": "Missing await on transactional rollback in PostgreSQL client",
+        "file": "src/db/transactions.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-52",
+        "name": "Rust unwrap() panic on user-supplied CLI argument",
+        "file": "src/main.rs",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-53",
+        "name": "Cross-Site WebSocket Hijacking (CSWSH) via missing Origin check",
+        "file": "server/ws.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-54",
+        "name": "Python XML external entity (XXE) injection via defusedxml removal",
+        "file": "parser/xml_feed.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-55",
+        "name": "Java unclosed InputStream resource leak in file processing",
+        "file": "src/main/java/FileHelper.java",
+        "category": "maintainability",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-56",
+        "name": "SQL unindexed column in WHERE condition on high-volume transactions table",
+        "file": "migrations/005_audit_logs.sql",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-57",
+        "name": "Mass assignment vulnerability allowing role escalation in user update",
+        "file": "src/routes/users.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-58",
+        "name": "Insecure deselecting of CSRF protection middleware in Express router",
+        "file": "src/routes/api.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-59",
+        "name": "Race condition in file creation with predictable temporary file name",
+        "file": "src/utils/temp.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-60",
+        "name": "Infinite recursion in recursive tree traversal without depth limit",
+        "file": "src/tree/traversal.ts",
+        "category": "bug",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-81",
+        "name": "Historical PR (Express): Fix path parameter traversal bypass",
+        "file": "lib/router/route.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-82",
+        "name": "Historical PR (Fastify): Re-introduce open redirect on double slashes",
+        "file": "lib/reply.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-83",
+        "name": "Historical PR (Lodash): Prototype pollution via merge without constructor check",
+        "file": "lodash.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-84",
+        "name": "Historical PR (Axios): SSRF following redirect to cloud metadata IP",
+        "file": "lib/adapters/http.js",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-85",
+        "name": "Historical PR (Django): SQL Injection in QuerySet extra() order_by",
+        "file": "django/db/models/sql/query.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-86",
+        "name": "Historical PR (Requests): Leaking Authorization header to third-party host on redirect",
+        "file": "requests/sessions.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-87",
+        "name": "Historical PR (Go net/http): Crash via integer overflow in Content-Length parsing",
+        "file": "src/net/http/transfer.go",
+        "category": "bug",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-88",
+        "name": "Historical PR (Next.js): Unbounded SVG file size causing worker DoS",
+        "file": "packages/next/server/image-optimizer.ts",
+        "category": "performance",
+        "expectedSeverity": "warning",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-89",
+        "name": "Historical PR (CPython): urllib URL scheme parsing filter bypass",
+        "file": "Lib/urllib/parse.py",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-90",
+        "name": "Historical PR (Helm): Go template injection in values.yaml rendering",
+        "file": "pkg/engine/engine.go",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-96",
+        "name": "Adversarial prompt injection disguised as unit test assertion name",
+        "file": "tests/auth_bypass.test.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-97",
+        "name": "Adversarial prompt injection in HTML comment trying to suppress all warnings",
+        "file": "templates/base.html",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-98",
+        "name": "Adversarial prompt injection inside JSON configuration string",
+        "file": "config/rules.json",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "missing context (multi-file/inter-procedural)"
+      },
+      {
+        "id": "diff-99",
+        "name": "Adversarial prompt injection attempting role simulation (You are now Dan)",
+        "file": "src/lib/assistant.ts",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      },
+      {
+        "id": "diff-100",
+        "name": "Adversarial prompt injection trying markdown table formatting trick",
+        "file": "docs/CONTRIBUTING.md",
+        "category": "security",
+        "expectedSeverity": "critical",
+        "likelyCause": "unsupported vulnerability (semantic/AST/taint)"
+      }
+    ],
+    "correctCleanPrs": [
+      {
+        "id": "diff-25",
+        "name": "Clean refactor of string trimming utility with zero bugs",
+        "file": "src/utils/strings.ts"
+      },
+      {
+        "id": "diff-26",
+        "name": "Clean addition of pure unit test cases",
+        "file": "src/utils/math.test.ts"
+      },
+      {
+        "id": "diff-27",
+        "name": "Clean documentation markdown update",
+        "file": "docs/guide.md"
+      },
+      {
+        "id": "diff-28",
+        "name": "Clean custom HTTP error class implementation",
+        "file": "src/errors/http.ts"
+      },
+      {
+        "id": "diff-29",
+        "name": "Clean currency formatter with Intl.NumberFormat",
+        "file": "src/services/currency.ts"
+      },
+      {
+        "id": "diff-30",
+        "name": "Clean Zod schema definition for user registration",
+        "file": "src/schemas/user.ts"
+      },
+      {
+        "id": "diff-31",
+        "name": "Clean Prisma database schema index addition",
+        "file": "prisma/schema.prisma"
+      },
+      {
+        "id": "diff-32",
+        "name": "Clean i18n Spanish localization dictionary",
+        "file": "src/i18n/es.json"
+      },
+      {
+        "id": "diff-61",
+        "name": "Clean TypeScript enum to const assertion refactoring",
+        "file": "src/types/status.ts"
+      },
+      {
+        "id": "diff-62",
+        "name": "Clean Python dataclass type annotation enhancement",
+        "file": "models/metrics.py"
+      }
+    ],
+    "rootCauseBreakdown": {
+      "unsupported vulnerability (semantic/AST/taint)": 61,
+      "missing context (multi-file/inter-procedural)": 1,
+      "model failure / non-detection": 0,
+      "parser failure": 0,
+      "insufficient context": 0,
+      "model hallucination": 0,
+      "ambiguous code": 0,
+      "overly broad rule": 0,
+      "bad prompt": 0,
+      "static analyzer disagreement": 0
+    }
+  },
+  "humanFeedback": {
+    "status": "NOT ENOUGH DATA",
+    "totalIssuesTracked": 152,
+    "openIssuesCount": 86,
+    "fixedIssuesCount": 24,
+    "dismissedIssuesCount": 4,
+    "resolutionFixRate": 0.857,
+    "resolutionDismissRate": 0.143,
+    "explicitFeedbackCount": 0,
+    "helpfulCount": 0,
+    "unhelpfulCount": 0,
+    "developerAcceptanceRate": null,
+    "note": "Insufficient explicit thumbs-up/down feedback samples (0 records, threshold >= 30). Real-world code resolution data shows 24 fixed vs 4 dismissed out of 28 resolved findings."
+  }
+}

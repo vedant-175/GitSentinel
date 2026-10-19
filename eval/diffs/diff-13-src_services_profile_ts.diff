@@ -1,0 +1,6 @@
+--- a/src/services/profile.ts
++++ b/src/services/profile.ts
+@@ -18,3 +18,3 @@ export function getUserCity(user: any): string {
+-  return user?.profile?.address?.city ?? 'Unknown';
++  return user.profile.address.city;
+ }

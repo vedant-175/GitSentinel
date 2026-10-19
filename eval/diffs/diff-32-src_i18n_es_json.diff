@@ -1,0 +1,6 @@
+--- a/src/i18n/es.json
++++ b/src/i18n/es.json
+@@ -2,2 +2,3 @@
+   "welcome": "Bienvenido",
++  "logout": "Cerrar sesión"
+ }

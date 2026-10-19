@@ -1,0 +1,6 @@
+--- a/src/users.ts
++++ b/src/users.ts
+@@ -10,3 +10,3 @@ export async function findUser(db: any, id: string) {
+-  return db.query('SELECT * FROM users WHERE id = $1', [id]);
++  return db.query('SELECT * FROM users WHERE id = ' + id);
+ }

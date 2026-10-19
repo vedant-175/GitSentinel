@@ -1,0 +1,8 @@
+--- a/src/utils/strings.ts
++++ b/src/utils/strings.ts
+@@ -5,3 +5,4 @@ export function truncate(text: string, length: number): string {
+-  if (text.length > length) return text.substring(0, length) + '...';
+-  return text;
++  if (length <= 0) return '';
++  return text.length > length ? `${text.slice(0, length)}...` : text;
+ }

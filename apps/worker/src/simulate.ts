@@ -5,6 +5,7 @@ import { processReviewJob } from './review/pipeline.js';
 import { getLLMProvider } from './review/llm.js';
 import { runStaticAnalysis } from './staticAnalysis/analyzer.js';
 import { buildPRReviewPayload } from './github/comments.js';
+import { generateDeterministicSummaryLine } from './review/sanitize.js';
 
 const SAMPLE_REALISTIC_DIFF = `diff --git a/src/controllers/auth.ts b/src/controllers/auth.ts
 index 45a1b2c..89d3e4f 100644
@@ -63,7 +64,7 @@ async function runStandaloneMemorySimulation() {
 
   const reviewPayload = buildPRReviewPayload(
     allIssues,
-    assessments[0] || 'Code changes analyzed.'
+    generateDeterministicSummaryLine(allIssues)
   );
 
   const duration = Date.now() - startTime;
@@ -137,11 +138,13 @@ async function main() {
       {
         installationId: Number(repo.installation?.githubInstallationId || 1),
         repoId: repo.id,
+        githubRepoId: Number(repo.githubRepoId || 777123999),
         prNumber: simulatedPrNumber,
         commitSha: simulatedCommitSha,
         repoFullName: repo.fullName,
         title: 'feat: Add user login query and discount math utility',
         author: 'contributor-dev',
+        receivedAt: Date.now(),
       },
       SAMPLE_REALISTIC_DIFF
     );

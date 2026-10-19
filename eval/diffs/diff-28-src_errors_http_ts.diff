@@ -1,0 +1,8 @@
+--- a/src/errors/http.ts
++++ b/src/errors/http.ts
+@@ -18,2 +18,5 @@ export class BadRequestError extends Error {
+   constructor(message: string) {
+     super(message);
++    this.name = 'BadRequestError';
++    Object.setPrototypeOf(this, new.target.prototype);
+   }

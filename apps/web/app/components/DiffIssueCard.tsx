@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { AlertCircle, AlertTriangle, Info, Check, Copy, Code2 } from 'lucide-react';
-import { Severity, Category } from '@ai-reviewer/shared';
 
 interface IssueProps {
   filePath: string;
@@ -12,6 +11,10 @@ interface IssueProps {
   message: string;
   suggestedFix?: string | null;
   source?: string;
+  certainty?: string;
+  reasoning?: string;
+  evidence?: string;
+  traceablePath?: any;
 }
 
 export function DiffIssueCard({
@@ -22,6 +25,10 @@ export function DiffIssueCard({
   message,
   suggestedFix,
   source,
+  certainty,
+  reasoning,
+  evidence,
+  traceablePath,
 }: IssueProps) {
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +55,7 @@ export function DiffIssueCard({
     <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-sm hover:border-white/20 transition-all">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider border ${badgeColor}`}
           >
@@ -58,9 +65,27 @@ export function DiffIssueCard({
           <span className="rounded-md bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-300 uppercase tracking-wider">
             {category}
           </span>
+          {certainty && (
+            <span
+              className={`rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider border ${
+                certainty === 'confirmed'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : certainty === 'probable'
+                  ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              }`}
+            >
+              {certainty}
+            </span>
+          )}
           {source === 'static_analysis' && (
             <span className="rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-medium text-purple-300 border border-purple-500/20">
               Deterministic Static Check
+            </span>
+          )}
+          {source === 'hybrid' && (
+            <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[11px] font-medium text-indigo-300 border border-indigo-500/20">
+              Hybrid Corroborated
             </span>
           )}
         </div>
@@ -77,6 +102,24 @@ export function DiffIssueCard({
 
       {/* Message */}
       <p className="pt-3 text-sm text-slate-200 leading-relaxed">{message}</p>
+
+      {/* Technical Evidence & Reasoning */}
+      {(evidence || reasoning) && (
+        <div className="mt-3 grid grid-cols-1 gap-2 text-xs">
+          {evidence && (
+            <div className="rounded-lg bg-black/40 border border-white/5 p-2.5 font-mono text-slate-300">
+              <span className="text-[10px] uppercase font-bold text-cyan-400 block mb-1">Code Evidence</span>
+              <span className="text-slate-300">{evidence}</span>
+            </div>
+          )}
+          {reasoning && (
+            <div className="rounded-lg bg-black/40 border border-white/5 p-2.5 text-slate-300">
+              <span className="text-[10px] uppercase font-bold text-indigo-400 block mb-1">Reasoning</span>
+              <p className="text-slate-300 leading-normal">{reasoning}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Suggested Fix */}
       {suggestedFix && (
@@ -104,6 +147,14 @@ export function DiffIssueCard({
           <pre className="p-3 font-mono text-xs text-emerald-200/90 overflow-x-auto whitespace-pre">
             {suggestedFix}
           </pre>
+        </div>
+      )}
+
+      {/* Verified Traceable Path */}
+      {traceablePath && (
+        <div className="mt-2.5 flex items-center gap-1.5 font-mono text-[10px] text-slate-500">
+          <span className="text-cyan-400">audit trail:</span>
+          <span>diff → evidence → reasoning → classification → severity → remediation</span>
         </div>
       )}
     </div>

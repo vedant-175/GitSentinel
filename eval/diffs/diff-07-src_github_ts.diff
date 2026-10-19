@@ -1,0 +1,6 @@
+--- a/src/github.ts
++++ b/src/github.ts
+@@ -3,2 +3,3 @@ export const octokit = new Octokit({
+-  auth: process.env.GITHUB_TOKEN,
++  auth: 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
+ });

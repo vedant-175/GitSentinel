@@ -1,0 +1,6 @@
+--- a/src/routes/notify.ts
++++ b/src/routes/notify.ts
+@@ -25,3 +25,3 @@ export async function handleNotification(event: any) {
+-  await sendAlert(event).catch(logError);
++  sendAlert(event);
+ }

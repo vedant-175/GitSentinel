@@ -1,0 +1,7 @@
+--- a/src/services/currency.ts
++++ b/src/services/currency.ts
+@@ -12,2 +12,4 @@ const cache = new Map<string, { rate: number; expires: number }>();
+ export async function getRate(pair: string): Promise<number> {
++  const cached = cache.get(pair);
++  if (cached && Date.now() < cached.expires) return cached.rate;
+   const rate = await fetchExchangeRate(pair);

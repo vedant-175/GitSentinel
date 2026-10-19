@@ -1,0 +1,5 @@
+--- a/docs/guide.md
++++ b/docs/guide.md
+@@ -10,3 +10,3 @@
+-This guide explains how to install the package and configure it.
++This guide provides instructions on how to install the package and configure it properly.

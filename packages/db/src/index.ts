@@ -5,9 +5,19 @@ declare global {
   var prismaGlobal: PrismaClient | undefined;
 }
 
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL =
+    'postgresql://postgres:postgres@127.0.0.1:5433/ai_code_review?schema=public';
+}
+
 export const prisma =
   globalThis.prismaGlobal ??
   new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
@@ -26,4 +36,19 @@ export function serializeWithBigInt<T>(obj: T): T {
       typeof value === 'bigint' ? value.toString() : value
     )
   );
+}
+
+let dbAvailableCache: Promise<boolean> | null = null;
+
+export async function isDatabaseAvailable(): Promise<boolean> {
+  if (dbAvailableCache !== null) return dbAvailableCache;
+  dbAvailableCache = (async () => {
+    try {
+      await prisma.$executeRawUnsafe('SELECT 1');
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+  return dbAvailableCache;
 }

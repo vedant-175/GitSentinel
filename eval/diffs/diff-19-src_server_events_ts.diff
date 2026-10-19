@@ -1,0 +1,6 @@
+--- a/src/server/events.ts
++++ b/src/server/events.ts
+@@ -19,3 +19,3 @@ export function onRequest(req: any, res: any) {
+-  setupGlobalListenerOnce();
++  globalEmitter.on('metric', data => res.write(data));
+ }

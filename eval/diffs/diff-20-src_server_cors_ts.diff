@@ -1,0 +1,7 @@
+--- a/src/server/cors.ts
++++ b/src/server/cors.ts
+@@ -12,3 +12,4 @@ export function setCorsHeaders(res: any) {
+-  res.setHeader('Access-Control-Allow-Origin', 'https://app.example.com');
++  res.setHeader('Access-Control-Allow-Origin', '*');
++  res.setHeader('Access-Control-Allow-Credentials', 'true');
+ }

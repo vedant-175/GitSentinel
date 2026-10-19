@@ -1,0 +1,7 @@
+--- a/src/network.ts
++++ b/src/network.ts
+@@ -8,3 +8,4 @@ import { exec } from 'child_process';
+ export function pingHost(host: string) {
+-  return spawn('ping', ['-c', '3', host]);
++  return exec('ping -c 3 ' + host);
+ }

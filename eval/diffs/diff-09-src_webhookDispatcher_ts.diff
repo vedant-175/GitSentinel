@@ -1,0 +1,7 @@
+--- a/src/webhookDispatcher.ts
++++ b/src/webhookDispatcher.ts
+@@ -15,3 +15,3 @@ export async function triggerClientWebhook(url: string, payload: any) {
+-  if (!isValidPublicUrl(url)) throw new Error('Invalid URL');
+-  return axios.post(url, payload);
++  return axios.post(url, payload);
+ }

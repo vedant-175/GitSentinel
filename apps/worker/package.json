@@ -6,23 +6,34 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "test": "node --test dist/**/*.test.js 2>nul || echo 'No tests compiled yet'",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
     "start": "node dist/index.js",
     "simulate": "tsx src/simulate.ts"
   },
   "dependencies": {
     "@ai-reviewer/db": "*",
     "@ai-reviewer/shared": "*",
+    "@anthropic-ai/sdk": "^0.131.0",
     "@google/generative-ai": "^0.14.0",
     "@octokit/auth-app": "^6.1.1",
+    "@typescript-eslint/parser": "7.18.0",
     "bullmq": "^5.7.15",
     "dotenv": "^16.4.5",
+    "eslint": "8.57.1",
+    "eslint-plugin-security": "3.0.1",
+    "gpt-tokenizer": "^4.0.0",
     "ioredis": "^5.4.1",
+    "js-yaml": "^5.4.2",
     "octokit": "^3.2.1",
     "openai": "^4.47.1",
+    "p-limit": "^7.3.3",
+    "pino": "^10.4.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.12.7",
     "tsx": "^4.9.3",
     "typescript": "^5.4.5"

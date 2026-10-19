@@ -1,10 +1,21 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { Providers } from './components/Providers';
+import { CyberChatbot } from './components/CyberChatbot';
+import { GlobalSelectionAskAi } from './components/GlobalSelectionAskAi';
 
 export const metadata: Metadata = {
-  title: 'AI Code Reviewer & PR Assistant',
-  description: 'Autonomous GitHub App reviewing pull requests for bugs, security vulnerabilities, and code health in real-time.',
+  title: 'GitSentinel — AI Code Review & Security Gate',
+  description: 'Autonomous AI PR Security, Fail-Closed Vulnerability Scanning & Fleet Telemetry.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -13,25 +24,42 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#090d16] text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
-        <div className="relative min-h-screen flex flex-col">
-          {/* Subtle Background Glow */}
-          <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-b from-indigo-600/10 via-purple-600/5 to-transparent blur-3xl pointer-events-none -z-10" />
-
-          <Navbar />
-          
-          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
-          </main>
-
-          <footer className="border-t border-white/5 py-6 text-center text-xs text-slate-500">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p>AI Code Review & PR Assistant — Built with Next.js 14, BullMQ, and PostgreSQL</p>
-              <p className="font-mono text-slate-600">Prompt-Injection Shield Active</p>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const t = localStorage.getItem('gitsentinel-theme');
+                if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-screen bg-slate-50 dark:bg-[#07090e] text-slate-900 dark:text-zinc-100 antialiased font-sans transition-colors duration-200">
+        <Providers>
+          <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#07090e]">
+            <Navbar />
+            
+            <div className="flex-1 flex w-full">
+              <Sidebar />
+              <main className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto">
+                {children}
+              </main>
             </div>
-          </footer>
-        </div>
+
+            {/* Global Interactive PR & Repo Security Copilot */}
+            <CyberChatbot />
+
+            {/* Contextual Floating 'Ask CyberOps AI' on text selection */}
+            <GlobalSelectionAskAi />
+          </div>
+        </Providers>
       </body>
     </html>
   );

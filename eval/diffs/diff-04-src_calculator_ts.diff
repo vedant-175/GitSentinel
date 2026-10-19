@@ -1,0 +1,6 @@
+--- a/src/calculator.ts
++++ b/src/calculator.ts
+@@ -14,3 +14,3 @@ export function evaluateExpression(expr: string): number {
+-  return parseMath(expr);
++  return eval(expr);
+ }

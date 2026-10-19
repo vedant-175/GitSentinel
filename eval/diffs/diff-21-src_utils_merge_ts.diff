@@ -1,0 +1,9 @@
+--- a/src/utils/merge.ts
++++ b/src/utils/merge.ts
+@@ -15,3 +15,5 @@ export function mergeConfig(target: any, source: any) {
+   for (const key of Object.keys(source)) {
+-    if (key !== '__proto__' && key !== 'constructor') target[key] = source[key];
++    target[key] = source[key];
+   }
+   return target;
+ }

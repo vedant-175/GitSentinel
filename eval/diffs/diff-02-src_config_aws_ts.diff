@@ -1,0 +1,7 @@
+--- a/src/config/aws.ts
++++ b/src/config/aws.ts
+@@ -5,2 +5,3 @@ export const s3Client = {
+   region: 'us-east-1',
++  accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
++  secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+ };

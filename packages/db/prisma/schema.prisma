@@ -8,75 +8,239 @@ generator client {
 }
 
 model Installation {
-  id                   Int          @id @default(autoincrement())
-  githubInstallationId BigInt       @unique @map("github_installation_id")
-  accountLogin         String       @map("account_login")
-  accountType          String       @map("account_type") // 'User' or 'Organization'
-  createdAt            DateTime     @default(now()) @map("created_at")
+  id                   Int                  @id @default(autoincrement())
+  githubInstallationId BigInt               @unique @map("github_installation_id")
+  accountLogin         String               @map("account_login")
+  accountType          String               @map("account_type") // 'User' or 'Organization'
+  createdAt            DateTime             @default(now()) @map("created_at")
   repositories         Repository[]
+  members              InstallationMember[]
+  auditLogs            AuditLog[]
 
+  @@index([accountLogin], name: "idx_installations_login")
+  @@index([createdAt], name: "idx_installations_created_at")
   @@map("installations")
 }
 
 model Repository {
-  id             Int           @id @default(autoincrement())
-  installationId Int?          @map("installation_id")
-  installation   Installation? @relation(fields: [installationId], references: [id], onDelete: Cascade)
-  githubRepoId   BigInt        @unique @map("github_repo_id")
-  fullName       String        @map("full_name") // e.g. "owner/repo"
-  defaultBranch  String?       @map("default_branch")
-  config         Json?         @default("{}") // per-repo rules: ignored globs, severity thresholds, disabled checks
-  createdAt      DateTime      @default(now()) @map("created_at")
-  pullRequests   PullRequest[]
+  id                 Int           @id @default(autoincrement())
+  installationId     Int           @map("installation_id")
+  installation       Installation  @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  githubRepoId       BigInt        @unique @map("github_repo_id")
+  fullName           String        @map("full_name") // e.g. "owner/repo"
+  defaultBranch      String?       @map("default_branch")
+  config             Json?         @default("{}") // per-repo rules: ignored globs, severity thresholds, disabled checks
+  organizationPolicy Json?         @default("{}") @map("organization_policy") // Phase 7 org policies
+  createdAt          DateTime      @default(now()) @map("created_at")
+  pullRequests       PullRequest[]
 
+  @@unique([installationId, githubRepoId], name: "installation_id_github_repo_id_unique")
+  @@index([installationId], name: "idx_repositories_installation")
+  @@index([installationId, id(sort: Desc)], name: "idx_repositories_inst_id")
+  @@index([fullName], name: "idx_repositories_full_name")
+  @@index([createdAt], name: "idx_repositories_created_at")
   @@map("repositories")
 }
 
 model PullRequest {
-  id             Int        @id @default(autoincrement())
-  repositoryId   Int        @map("repository_id")
-  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  githubPrNumber Int        @map("github_pr_number")
+  id             Int            @id @default(autoincrement())
+  repositoryId   Int            @map("repository_id")
+  repository     Repository     @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubPrNumber Int            @map("github_pr_number")
   title          String?
   author         String?
-  state          String?    @default("open") // 'open', 'closed', 'merged'
-  openedAt       DateTime?  @default(now()) @map("opened_at")
+  state          String?        @default("open") // 'open', 'closed', 'merged'
+  headSha        String?        @map("head_sha")
+  openedAt       DateTime?      @default(now()) @map("opened_at")
+  closedAt       DateTime?      @map("closed_at")
+  mergedAt       DateTime?      @map("merged_at")
   reviews        Review[]
+  failedReviews  FailedReview[]
 
   @@unique([repositoryId, githubPrNumber])
+  @@index([repositoryId], name: "idx_pull_requests_repo")
+  @@index([repositoryId, id(sort: Desc)], name: "idx_pull_requests_repo_id")
+  @@index([repositoryId, state, id(sort: Desc)], name: "idx_pull_requests_repo_state_id")
+  @@index([state], name: "idx_pull_requests_state")
+  @@index([openedAt], name: "idx_pull_requests_opened_at")
+  @@index([headSha], name: "idx_pull_requests_head_sha")
   @@map("pull_requests")
 }
 
 model Review {
-  id            Int           @id @default(autoincrement())
-  pullRequestId Int           @map("pull_request_id")
-  pullRequest   PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
-  commitSha     String        @map("commit_sha")
-  status        String        @default("pending") // 'pending', 'completed', 'failed'
-  verdict       String? // 'APPROVE', 'REQUEST_CHANGES', 'COMMENT'
-  summary       String?
-  startedAt     DateTime      @default(now()) @map("started_at")
-  completedAt   DateTime?     @map("completed_at")
-  latencyMs     Int?          @map("latency_ms")
-  issues        ReviewIssue[]
+  id                    Int           @id @default(autoincrement())
+  pullRequestId         Int           @map("pull_request_id")
+  pullRequest           PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  commitSha             String        @map("commit_sha")
+  status                String        @default("pending") // 'pending', 'processing', 'posting', 'completed', 'failed', 'superseded'
+  stage                 String?       @default("QUEUED") // 'QUEUED', 'FETCHING DIFF', 'STATIC ANALYSIS', 'CONTEXT BUILDING', 'AI ANALYSIS', 'VALIDATING', 'POSTING', 'COMPLETED'
+  verdict               String? // 'APPROVE', 'REQUEST_CHANGES', 'COMMENT'
+  gateVerdict           String?       @map("gate_verdict") // 'PASS', 'WARN', 'BLOCK' (Phase 7 Security Gate)
+  gateReasons           Json?         @map("gate_reasons") // string[] deterministic reasons
+  policySnapshot        Json?         @map("policy_snapshot") // Org policy applied
+  promptVersion         String?       @map("prompt_version") // Auditable review prompt version
+  staticAnalysisVersion String?       @map("static_analysis_version") // Tool versions (ESLint, Bandit, Ruff)
+  configVersion         String?       @map("config_version") // Configuration/policy hash
+  summary               String?
+  summaryStructured     Json?         @map("summary_structured")
+  contextSummary        Json?         @map("context_summary")
+  testCoverage          Json?         @map("test_coverage")
+  dependencyFindings    Json?         @map("dependency_findings")
+  sarifReport           Json?         @map("sarif_report")
+  checkRunId            BigInt?       @map("check_run_id")
+  filesAnalyzed         Int?          @default(0) @map("files_analyzed")
+  linesAnalyzed         Int?          @default(0) @map("lines_analyzed")
+  model                 String?       @map("model")
+  isPartial             Boolean?      @default(false) @map("is_partial")
+  startedAt             DateTime      @default(now()) @map("started_at")
+  completedAt           DateTime?     @map("completed_at")
+  latencyMs             Int?          @map("latency_ms")
+  issues                ReviewIssue[]
+  feedbacks             Feedback[]
 
+  @@unique([pullRequestId, commitSha])
   @@index([pullRequestId], name: "idx_reviews_pr")
+  @@index([pullRequestId, id(sort: Desc)], name: "idx_reviews_pr_id")
+  @@index([status], name: "idx_reviews_status")
+  @@index([status, startedAt], name: "idx_reviews_status_started_at")
+  @@index([startedAt], name: "idx_reviews_started_at")
+  @@index([completedAt], name: "idx_reviews_completed_at")
+  @@index([commitSha], name: "idx_reviews_commit_sha")
   @@map("reviews")
 }
 
 model ReviewIssue {
-  id           Int      @id @default(autoincrement())
-  reviewId     Int      @map("review_id")
-  review       Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  filePath     String   @map("file_path")
-  lineNumber   Int?     @map("line_number")
-  severity     String // 'critical', 'warning', 'suggestion'
-  category     String // 'bug', 'security', 'style', 'performance', 'maintainability'
-  message      String
-  suggestedFix String?  @map("suggested_fix")
-  source       String   @default("llm") // 'llm' or 'static_analysis'
-  createdAt    DateTime @default(now()) @map("created_at")
+  id                   Int        @id @default(autoincrement())
+  reviewId             Int        @map("review_id")
+  review               Review     @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  filePath             String     @map("file_path")
+  lineNumber           Int?       @map("line_number")
+  severity             String // 'critical', 'warning', 'suggestion'
+  category             String // 'bug', 'security', 'style', 'performance', 'maintainability'
+  message              String
+  suggestedFix         String?    @map("suggested_fix")
+  currentCode          String?    @map("current_code")
+  surroundingCode      String?    @map("surrounding_code")
+  cwe                  String?    @map("cwe")
+  owasp                String?    @map("owasp")
+  evidence             String?    @map("evidence")
+  impact               String?    @map("impact")
+  attackScenario       String?    @map("attack_scenario")
+  remediation          String?    @map("remediation")
+  supportingEvidence   String?    @map("supporting_evidence")
+  calibratedConfidence Float?     @map("calibrated_confidence")
+  riskScore            Float?     @map("risk_score")
+  escalationStatus     String?    @map("escalation_status") // 'STANDARD', 'ESCALATED', 'REVIEW_REQUIRED'
+  source               String     @default("llm") // 'llm', 'static_analysis', or 'dependency_scan'
+  confidence           Float?
+  fingerprint          String?
+  status               String     @default("open") // 'open', 'dismissed', 'fixed'
+  githubCommentId      BigInt?    @map("github_comment_id")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  feedbacks            Feedback[]
 
   @@index([reviewId], name: "idx_issues_review")
+  @@index([reviewId, id], name: "idx_issues_review_id")
+  @@index([reviewId, fingerprint], name: "idx_issues_review_fingerprint")
+  @@index([fingerprint], name: "idx_issues_fingerprint")
+  @@index([severity], name: "idx_issues_severity")
+  @@index([category], name: "idx_issues_category")
+  @@index([status], name: "idx_issues_status")
+  @@index([githubCommentId], name: "idx_issues_comment_id")
+  @@index([filePath], name: "idx_issues_file_path")
+  @@index([createdAt], name: "idx_issues_created_at")
   @@map("review_issues")
 }
+
+model FailedReview {
+  id            Int          @id @default(autoincrement())
+  pullRequestId Int?         @map("pull_request_id")
+  pullRequest   PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  commitSha     String       @map("commit_sha")
+  errorMessage  String       @map("error_message")
+  errorStack    String?      @map("error_stack")
+  failedAt      DateTime     @default(now()) @map("failed_at")
+  jobId         String?      @map("job_id")
+  jobData       Json?        @map("job_data")
+  resolvedAt    DateTime?    @map("resolved_at")
+
+  @@index([pullRequestId], name: "idx_failed_reviews_pr")
+  @@index([resolvedAt], name: "idx_failed_reviews_resolved")
+  @@index([resolvedAt, failedAt(sort: Desc)], name: "idx_failed_reviews_resolved_failed_at")
+  @@index([failedAt], name: "idx_failed_reviews_failed_at")
+  @@index([commitSha], name: "idx_failed_reviews_commit_sha")
+  @@index([jobId], name: "idx_failed_reviews_job_id")
+  @@map("failed_reviews")
+}
+
+model WebhookDelivery {
+  id             Int      @id @default(autoincrement())
+  deliveryId     String   @unique @map("delivery_id")
+  event          String
+  action         String?
+  repositoryId   Int?     @map("repository_id")
+  installationId BigInt?  @map("installation_id")
+  payload        Json?
+  statusCode     Int      @default(200) @map("status_code")
+  errorMessage   String?  @map("error_message")
+  receivedAt     DateTime @default(now()) @map("received_at")
+
+  @@index([deliveryId], name: "idx_webhook_delivery_id")
+  @@index([receivedAt], name: "idx_webhook_received_at")
+  @@index([installationId, receivedAt(sort: Desc)], name: "idx_webhook_installation_received_at")
+  @@index([repositoryId, receivedAt(sort: Desc)], name: "idx_webhook_repo_received_at")
+  @@map("webhook_deliveries")
+}
+
+model Feedback {
+  id        Int          @id @default(autoincrement())
+  issueId   Int?         @map("issue_id")
+  issue     ReviewIssue? @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  reviewId  Int?         @map("review_id")
+  review    Review?      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String?      @map("user_id")
+  helpful   Boolean // true = helpful/thumbs up, false = false positive/thumbs down
+  comment   String?
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  @@index([issueId], name: "idx_feedback_issue")
+  @@index([reviewId], name: "idx_feedback_review")
+  @@index([createdAt], name: "idx_feedback_created_at")
+  @@map("feedback")
+}
+
+model InstallationMember {
+  id             Int          @id @default(autoincrement())
+  installationId Int          @map("installation_id")
+  installation   Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  userLogin      String       @map("user_login")
+  role           String       @default("VIEWER") // 'OWNER', 'ADMIN', 'REVIEWER', 'VIEWER'
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@unique([installationId, userLogin], name: "installation_user_unique")
+  @@index([installationId], name: "idx_inst_members_inst")
+  @@index([userLogin], name: "idx_inst_members_user")
+  @@map("installation_members")
+}
+
+model AuditLog {
+  id             Int           @id @default(autoincrement())
+  installationId Int?          @map("installation_id")
+  installation   Installation? @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  actor          String        @map("actor") // e.g. "vedant", "system", "worker"
+  actorRole      String?       @map("actor_role") // 'OWNER', 'ADMIN', 'REVIEWER', 'VIEWER'
+  action         String        @map("action") // e.g. "repository.connected", "review.started", etc.
+  resourceType   String        @map("resource_type") // 'repository', 'review', 'issue', 'configuration'
+  resourceId     String        @map("resource_id")
+  metadata       Json?         @map("metadata") // sanitized, safe metadata (secrets redacted)
+  ipAddress      String?       @map("ip_address")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  @@index([installationId], name: "idx_audit_logs_installation")
+  @@index([action], name: "idx_audit_logs_action")
+  @@index([resourceType, resourceId], name: "idx_audit_logs_resource")
+  @@index([createdAt(sort: Desc)], name: "idx_audit_logs_created_at")
+  @@map("audit_logs")
+}
+

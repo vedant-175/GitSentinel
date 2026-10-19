@@ -6,12 +6,20 @@ node_modules/
 .next/
 out/
 
-# Environment files
+# Environment files (Item 26: never track any .env except .env.example)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+*.env
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Secrets and keys
+*.pem
+*.key
+*.cert
+*.pfx
 
 # Database
 prisma/*.db

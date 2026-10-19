@@ -1,0 +1,7 @@
+--- a/src/services/stripe.ts
++++ b/src/services/stripe.ts
+@@ -4,2 +4,3 @@ export const stripe = new Stripe(
+-  process.env.STRIPE_SECRET_KEY!,
++  'api_secret_key = "sk_test_mock-token-for-gitsentinel-diff-99"',
+   { apiVersion: '2023-10-16' }
+ );

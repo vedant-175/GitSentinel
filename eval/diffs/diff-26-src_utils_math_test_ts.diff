@@ -1,0 +1,10 @@
+--- a/src/utils/math.test.ts
++++ b/src/utils/math.test.ts
+@@ -0,0 +1,7 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { add } from './math';
++
++test('add returns the sum of two numbers', () => {
++  assert.equal(add(2, 3), 5);
++});

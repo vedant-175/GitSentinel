@@ -1,0 +1,6 @@
+--- a/src/auth/keys.ts
++++ b/src/auth/keys.ts
+@@ -1,2 +1,4 @@
+ export const CERT = '-----BEGIN CERTIFICATE-----...';
++export const PRIVATE_KEY = '-----BEGIN RSA PRIVATE KEY-----';
++export const SIGNING_KEY = 'MIIEowIBAAKCAQEA0Y1EXAMPLE...';

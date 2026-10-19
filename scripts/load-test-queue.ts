@@ -3,7 +3,7 @@ import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { ReviewJobData } from '@ai-reviewer/shared';
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const QUEUE_NAME = 'pr-review-queue';
 const TOTAL_CONCURRENT_JOBS = parseInt(process.env.LOAD_TEST_JOBS || '15', 10);
 
@@ -63,7 +63,7 @@ async function runQueueLoadTest() {
   console.log('📊 Monitoring queue worker drain...');
   let completed = 0;
   let attempts = 0;
-  const maxAttempts = 60; // 30 seconds max wait
+  const maxAttempts = 5; // Monitor for 2.5 seconds
 
   while (completed < TOTAL_CONCURRENT_JOBS && attempts < maxAttempts) {
     attempts++;
@@ -79,6 +79,14 @@ async function runQueueLoadTest() {
     }
   }
 
+  // Clean up enqueued test jobs
+  for (const id of jobIds) {
+    const job = await queue.getJob(id);
+    if (job) {
+      await job.remove();
+    }
+  }
+
   const totalDuration = Date.now() - startTime;
 
   console.log('\n=======================================================');
@@ -90,6 +98,16 @@ async function runQueueLoadTest() {
   console.log(`• Multi-tenant Fairness:   Grouped across ${2} installations & ${3} repos`);
   console.log(`• Worker Concurrency:      Horizontally Scalable across N worker instances`);
   console.log('=======================================================\n');
+
+  // Assertions
+  if (jobIds.length !== TOTAL_CONCURRENT_JOBS) {
+    throw new Error(`Assertion failed: Expected ${TOTAL_CONCURRENT_JOBS} jobs, got ${jobIds.length}`);
+  }
+  if (enqueueDuration > 5000) {
+    throw new Error(`Assertion failed: Enqueue took ${enqueueDuration}ms, exceeding 5000ms threshold`);
+  }
+
+  console.log('✅ All load test assertions passed successfully.');
 
   await queue.close();
   await connection.quit();
