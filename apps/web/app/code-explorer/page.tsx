@@ -1,3 +1,5 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { getRepositories } from '@/lib/data';
 import { CodeExplorerClient } from './CodeExplorerClient';
 
@@ -8,6 +10,9 @@ export default async function CodeExplorerPage({
 }: {
   searchParams?: { repo?: string };
 }) {
+  const session = await getServerSession(authOptions).catch(() => null);
+  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
+
   let repositories: any[] = [];
   try {
     const res = await getRepositories({ limit: 50 });
@@ -17,25 +22,41 @@ export default async function CodeExplorerPage({
     repositories = [];
   }
 
-  // Fallback repo list if DB is empty
-  const fallbackRepos = [
-    { id: 1, fullName: 'vedant-175/GitSentinel', defaultBranch: 'main' },
-    { id: 2, fullName: 'vedant-175/Smart-Internship-portal', defaultBranch: 'main' },
-    { id: 3, fullName: 'vedant-175/AI-resume-builder', defaultBranch: 'main' },
-    { id: 4, fullName: 'vedant-175/Webathon_final_submission', defaultBranch: 'main' },
-    { id: 5, fullName: 'vedant-175/Python-Programs', defaultBranch: 'main' },
-    { id: 6, fullName: 'vedant-175/website', defaultBranch: 'main' },
-    { id: 7, fullName: 'vedant-175/My-Portfolio-', defaultBranch: 'main' },
-    { id: 8, fullName: 'vedant-175/Codsoft', defaultBranch: 'main' },
-  ];
+  // If DB is empty and user is logged in, attempt to fetch live repos from GitHub
+  if (currentUserLogin && repositories.length === 0) {
+    try {
+      const ghRes = await fetch(
+        `https://api.github.com/users/${encodeURIComponent(currentUserLogin)}/repos?per_page=50&sort=updated`,
+        {
+          headers: {
+            'User-Agent': 'GitSentinel-Surveillance/1.0',
+            Accept: 'application/vnd.github.v3+json',
+          },
+          next: { revalidate: 60 },
+        }
+      );
+      if (ghRes.ok) {
+        const data = await ghRes.json();
+        if (Array.isArray(data)) {
+          repositories = data.map((r: any) => ({
+            id: r.id,
+            fullName: r.full_name,
+            defaultBranch: r.default_branch || 'main',
+            description: r.description || '',
+          }));
+        }
+      }
+    } catch (fetchErr) {
+      console.warn('[CodeExplorerPage] GitHub live fetch error:', fetchErr);
+    }
+  }
 
-  // Ensure vedant-175/website is present and prioritized
-  const defaultWebsiteRepo = {
-    id: 100,
-    fullName: 'vedant-175/website',
-    defaultBranch: 'main',
-    description: 'Production website repository with Winston security telemetry logging',
-  };
+  // Fallback repo options if completely empty
+  const fallbackRepos = [
+    { id: 1, fullName: 'facebook/react', defaultBranch: 'main', description: 'The library for web and native user interfaces' },
+    { id: 2, fullName: 'vercel/next.js', defaultBranch: 'canary', description: 'The React Framework for the Web' },
+    { id: 3, fullName: 'tailwindlabs/tailwindcss', defaultBranch: 'main', description: 'A utility-first CSS framework' },
+  ];
 
   const finalRepos =
     repositories.length > 0
@@ -47,19 +68,12 @@ export default async function CodeExplorerPage({
         }))
       : fallbackRepos;
 
-  // Prioritize vedant-175/website
-  const hasVedant = finalRepos.some((r: any) => r.fullName === 'vedant-175/website');
-  const sortedRepos = hasVedant
-    ? [
-        finalRepos.find((r: any) => r.fullName === 'vedant-175/website')!,
-        ...finalRepos.filter((r: any) => r.fullName !== 'vedant-175/website'),
-      ]
-    : [defaultWebsiteRepo, ...finalRepos];
+  const initialRepo = searchParams?.repo || finalRepos[0]?.fullName || 'facebook/react';
 
   return (
     <CodeExplorerClient
-      repositories={sortedRepos}
-      initialRepoFullName={searchParams?.repo || 'vedant-175/website'}
+      repositories={finalRepos}
+      initialRepoFullName={initialRepo}
     />
   );
 }

@@ -29,14 +29,14 @@ interface RepoScorecard {
 }
 
 const REPO_SCORECARDS: RepoScorecard[] = [
-  { name: 'vedant-175/GitSentinel', score: 98, grade: 'A+', prsScanned: 5, findings: 2, status: 'Clean' },
-  { name: 'vedant-175/Smart-Internship-portal', score: 94, grade: 'A', prsScanned: 4, findings: 3, status: 'Pass' },
-  { name: 'vedant-175/AI-resume-builder', score: 96, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
-  { name: 'vedant-175/Webathon_final_submission', score: 91, grade: 'A-', prsScanned: 6, findings: 4, status: 'Action Required' },
-  { name: 'vedant-175/Python-Programs', score: 98, grade: 'A+', prsScanned: 8, findings: 3, status: 'Clean' },
-  { name: 'vedant-175/website', score: 99, grade: 'A+', prsScanned: 2, findings: 0, status: 'Clean' },
-  { name: 'vedant-175/My-Portfolio-', score: 97, grade: 'A+', prsScanned: 2, findings: 1, status: 'Clean' },
-  { name: 'vedant-175/Codsoft', score: 95, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
+  { name: 'GitSentinel/platform', score: 98, grade: 'A+', prsScanned: 5, findings: 2, status: 'Clean' },
+  { name: 'platform/api-gateway', score: 94, grade: 'A', prsScanned: 4, findings: 3, status: 'Pass' },
+  { name: 'platform/auth-service', score: 96, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
+  { name: 'platform/data-aggregator', score: 91, grade: 'A-', prsScanned: 6, findings: 4, status: 'Action Required' },
+  { name: 'platform/worker-queue', score: 98, grade: 'A+', prsScanned: 8, findings: 3, status: 'Clean' },
+  { name: 'platform/web-dashboard', score: 99, grade: 'A+', prsScanned: 2, findings: 0, status: 'Clean' },
+  { name: 'platform/ml-analyzer', score: 97, grade: 'A+', prsScanned: 2, findings: 1, status: 'Clean' },
+  { name: 'platform/webhook-service', score: 95, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
 ];
 
 export function ReportsView() {

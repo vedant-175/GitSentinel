@@ -30,8 +30,8 @@ export function Navbar() {
   }
 
   const isLoggedIn = status === 'authenticated' && !!session?.user;
-  const username = session?.user?.name || session?.user?.login || 'vedant-175';
-  const initial = username.charAt(0).toUpperCase() || 'V';
+  const username = session?.user?.login || (session?.user as any)?.name || '';
+  const initial = username ? username.charAt(0).toUpperCase() : 'U';
 
   const navLinks = [
     { label: 'Overview', href: '/', active: pathname === '/' },

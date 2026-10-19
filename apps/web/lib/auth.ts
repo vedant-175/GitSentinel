@@ -77,7 +77,7 @@ export function buildProviders() {
         username: {
           label: 'GitHub Username',
           type: 'text',
-          placeholder: 'Enter GitHub username (e.g. vedant-175, octocat)',
+          placeholder: 'Enter GitHub username (e.g. octocat, torvalds)',
         },
       },
       async authorize(credentials, req) {

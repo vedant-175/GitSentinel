@@ -287,9 +287,8 @@ export function validateRedirectUrl(url: string, allowedHost: string): boolean {
   }
 }`,
 
-  'README.md': `# Website Repository
-
-Production source code and AI security monitoring for \`vedant-175/website\`.
+  'README.md': `# Repository Source
+Production source code and AI security monitoring.
 
 ## Features
 - Winston-based structured security telemetry logging
@@ -346,12 +345,11 @@ export function CodeExplorerClient({
   repositories,
   initialRepoFullName,
 }: CodeExplorerClientProps) {
-  // 1. Initial Repo resolution (prefer vedant-175/website if present)
+  // 1. Initial Repo resolution
   const defaultRepo =
     repositories.find((r) => r.fullName === initialRepoFullName)?.fullName ||
-    repositories.find((r) => r.fullName === 'vedant-175/website')?.fullName ||
     repositories[0]?.fullName ||
-    'vedant-175/website';
+    'platform/api-gateway';
 
   const [selectedRepo, setSelectedRepo] = useState(defaultRepo);
   const [selectedBranch, setSelectedBranch] = useState('main');

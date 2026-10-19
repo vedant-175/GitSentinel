@@ -41,12 +41,10 @@ interface CyberChatbotViewProps {
 }
 
 const AVAILABLE_REPOSITORIES = [
-  { id: 'vedant-175/GitSentinel', name: 'vedant-175/GitSentinel', desc: 'Autonomous AI Code Review & Security Gate Platform' },
-  { id: 'vedant-175/Smart-Internship-portal', name: 'vedant-175/Smart-Internship-portal', desc: 'AI-driven internship recommendation & matching portal' },
-  { id: 'vedant-175/AI-resume-builder', name: 'vedant-175/AI-resume-builder', desc: 'Full-stack AI resume generator with ATS optimization' },
-  { id: 'vedant-175/Webathon_final_submission', name: 'vedant-175/Webathon_final_submission', desc: 'Final submission hackathon prototype & architecture' },
-  { id: 'vedant-175/Python-Programs', name: 'vedant-175/Python-Programs', desc: 'Data structures, algorithms, and automated scripts in Python' },
-  { id: 'vedant-175/website', name: 'vedant-175/website', desc: 'Official developer portfolio website and interactive showcase' },
+  { id: 'GitSentinel', name: 'GitSentinel (Core Platform)', desc: 'Autonomous AI Code Review & Security Gate Platform' },
+  { id: 'api-service', name: 'api-service (Backend APIs)', desc: 'Backend microservices, rate-limiting, and database access' },
+  { id: 'auth-gateway', name: 'auth-gateway (OAuth & JWT)', desc: 'Authentication service and token management' },
+  { id: 'web-dashboard', name: 'web-dashboard (Web App)', desc: 'Developer console and PR review web interface' },
 ];
 
 const PRESET_QUERIES = [
@@ -76,8 +74,8 @@ const PRESET_QUERIES = [
   },
 ];
 
-export function CyberChatbotView({ currentUserLogin = 'vedant-175' }: CyberChatbotViewProps) {
-  const [selectedRepo, setSelectedRepo] = useState('vedant-175/GitSentinel');
+export function CyberChatbotView({ currentUserLogin = '' }: CyberChatbotViewProps) {
+  const [selectedRepo, setSelectedRepo] = useState('GitSentinel');
   const [selectedPr, setSelectedPr] = useState<string>('3');
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,7 +85,9 @@ export function CyberChatbotView({ currentUserLogin = 'vedant-175' }: CyberChatb
     {
       id: 'welcome',
       role: 'assistant',
-      content: `### Welcome to GitSentinel CyberOps AI 🛡️\n\nI am connected directly to your active repository **\`vedant-175/GitSentinel\`** with live AST analysis and zero-trust security gate telemetry.\n\nYou can ask me to:\n- **Audit code changes** for vulnerabilities (SQL Injection, Path Traversal, Secrets leak, Insecure Deserialization)\n- **Generate production-ready security patches** with syntax highlighted diffs\n- **Simulate attack vectors** and threat models\n- **Explain why a PR merge gate is blocked** and what changes will unblock it\n\nSelect a preset prompt below or ask any question about your codebase:`,
+      content: `### Welcome to GitSentinel CyberOps AI 🛡️\n\nI am connected directly to your workspace${
+        currentUserLogin ? ` for **@${currentUserLogin}**` : ''
+      } with live AST analysis and zero-trust security gate telemetry.\n\nYou can ask me to:\n- **Audit code changes** for vulnerabilities (SQL Injection, Path Traversal, Secrets leak, Insecure Deserialization)\n- **Generate production-ready security patches** with syntax highlighted diffs\n- **Simulate attack vectors** and threat models\n- **Explain why a PR merge gate is blocked** and what changes will unblock it\n\nSelect a preset prompt below or ask any question about your codebase:`,
       timestamp: 'Ready',
       provider: 'groq',
       model: 'openai/gpt-oss-120b',

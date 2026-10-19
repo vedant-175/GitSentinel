@@ -11,8 +11,11 @@ import {
   Shield,
   Heart,
   ArrowRight,
-  Terminal,
   Loader2,
+  HelpCircle,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { GitSentinelLogo } from '../components/GitSentinelLogo';
 
@@ -28,70 +31,67 @@ export function LoginForm({
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
-  const [username, setUsername] = useState('vedant-175');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showDevInput, setShowDevInput] = useState(false);
+  const [showOAuthHelp, setShowOAuthHelp] = useState(false);
 
-  const handleGitHubClick = async () => {
+  const handleGitHubOAuthClick = async () => {
     setErrorMsg(null);
     setLoading(true);
 
-    if (!hasGithubOAuth) {
-      // GitHub OAuth client credentials not set on Vercel yet; connect directly in preview mode
+    if (hasGithubOAuth) {
       try {
-        const res = await signIn('credentials', {
-          username: username.trim() || 'vedant-175',
-          callbackUrl,
-          redirect: false,
-        });
-        if (res?.error) {
-          setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please verify credentials.' : res.error);
-          setLoading(false);
-        } else if (res?.url) {
-          window.location.href = res.url;
-        } else {
-          window.location.href = callbackUrl;
-        }
-      } catch (err) {
-        console.error('Preview sign-in failed:', err);
-        setErrorMsg('Failed to sign in. Please check environment configuration.');
+        await signIn('github', { callbackUrl });
+      } catch (err: any) {
+        console.error('GitHub OAuth error:', err);
+        setErrorMsg('GitHub OAuth failed to initialize. Please verify your connection.');
         setLoading(false);
       }
       return;
     }
 
-    try {
-      await signIn('github', { callbackUrl });
-    } catch (err) {
-      console.error('GitHub sign-in error:', err);
-      setErrorMsg('GitHub OAuth failed. Please check credentials.');
-      setLoading(false);
-    }
+    // When GitHub OAuth credentials are not configured on Vercel yet:
+    setErrorMsg(
+      'GitHub OAuth App credentials (GITHUB_CLIENT_ID & GITHUB_CLIENT_SECRET) are not configured in your Vercel Environment Variables yet. Enter your GitHub handle below to connect and import your repositories directly!'
+    );
+    setShowOAuthHelp(true);
+    setLoading(false);
   };
 
-  const handleCustomUsernameSubmit = async (e: React.FormEvent) => {
+  const handleConnectByUsername = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    const cleanUser = username.trim().replace(/^@/, '');
+    if (!cleanUser) {
+      setErrorMsg('Please enter your GitHub username (e.g. your-github-handle).');
+      return;
+    }
+
     setLoading(true);
     setErrorMsg(null);
+
     try {
       const res = await signIn('credentials', {
-        username: username.trim(),
+        username: cleanUser,
         callbackUrl,
         redirect: false,
       });
+
       if (res?.error) {
-        setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please verify credentials.' : res.error);
+        setErrorMsg(
+          res.error === 'CredentialsSignin'
+            ? 'Sign-in failed. Please verify the GitHub username exists.'
+            : res.error
+        );
         setLoading(false);
       } else if (res?.url) {
         window.location.href = res.url;
       } else {
         window.location.href = callbackUrl;
       }
-    } catch (err) {
-      console.error('Dev sign-in failed:', err);
-      setErrorMsg('Failed to sign in with specified username.');
+    } catch (err: any) {
+      console.error('GitHub account sign-in failed:', err);
+      setErrorMsg('Failed to connect GitHub account. Please try again.');
       setLoading(false);
     }
   };
@@ -110,21 +110,21 @@ export function LoginForm({
         <div className="text-center">
           <h2 className="text-base font-bold text-slate-900">Sign in to GitSentinel</h2>
           <p className="text-xs text-slate-500 mt-1">
-            Connect your GitHub account to get started
+            Connect your GitHub account to review PRs and scan repositories
           </p>
         </div>
 
         {errorMsg && (
-          <div className="mt-4 p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700">
+          <div className="mt-4 p-3 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900 leading-relaxed animate-fade-in">
             {errorMsg}
           </div>
         )}
 
-        {/* Continue with GitHub Button */}
+        {/* Option 1: 1-Click GitHub OAuth Button */}
         <div className="mt-5">
           <button
             type="button"
-            onClick={handleGitHubClick}
+            onClick={handleGitHubOAuthClick}
             disabled={loading}
             className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
           >
@@ -139,7 +139,7 @@ export function LoginForm({
                 />
               </svg>
             )}
-            <span>Continue with GitHub</span>
+            <span>Continue with GitHub OAuth</span>
             <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
           </button>
         </div>
@@ -148,13 +148,89 @@ export function LoginForm({
         <div className="relative flex py-4 items-center">
           <div className="flex-grow border-t border-slate-100" />
           <span className="flex-shrink mx-3 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-            OR
+            OR CONNECT VIA USERNAME
           </span>
           <div className="flex-grow border-t border-slate-100" />
         </div>
 
+        {/* Option 2: Connect directly with GitHub username */}
+        <form onSubmit={handleConnectByUsername} className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              GitHub Username
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-mono text-xs">
+                @
+              </div>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. octocat, torvalds, or your username"
+                disabled={loading}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-8 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                required
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !username.trim()}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
+            ) : (
+              <>
+                <span>Connect GitHub & Sync Repos</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* OAuth Configuration Help Dropdown */}
+        <div className="mt-4 pt-3 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={() => setShowOAuthHelp(!showOAuthHelp)}
+            className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center justify-between w-full font-medium cursor-pointer"
+          >
+            <span className="flex items-center gap-1.5">
+              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
+              <span>How to enable 1-Click GitHub OAuth on Vercel</span>
+            </span>
+            {showOAuthHelp ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+
+          {showOAuthHelp && (
+            <div className="mt-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 space-y-2 leading-relaxed">
+              <p>
+                To enable 1-Click GitHub OAuth, create an OAuth App at{' '}
+                <a
+                  href="https://github.com/settings/developers"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 font-semibold underline inline-flex items-center gap-0.5"
+                >
+                  GitHub Developer Settings <ExternalLink className="h-2.5 w-2.5" />
+                </a>{' '}
+                and add the following to your Vercel Project Environment Variables:
+              </p>
+              <div className="font-mono text-[10px] bg-white p-2 rounded border border-slate-200 space-y-1">
+                <div><span className="text-slate-400">Homepage URL:</span> https://gitsentinel-red.vercel.app</div>
+                <div><span className="text-slate-400">Callback URL:</span> https://gitsentinel-red.vercel.app/api/auth/callback/github</div>
+                <div><span className="text-blue-600 font-bold">GITHUB_CLIENT_ID:</span> your_oauth_client_id</div>
+                <div><span className="text-blue-600 font-bold">GITHUB_CLIENT_SECRET:</span> your_oauth_client_secret</div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Privacy Highlight Box */}
-        <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 flex items-start gap-2.5">
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/70 p-3 flex items-start gap-2.5">
           <Lock className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-[11px] text-slate-600 leading-snug">
             <span className="block font-medium text-slate-800">
@@ -168,52 +244,17 @@ export function LoginForm({
         <div className="mt-4 space-y-2.5 text-xs text-slate-600">
           <div className="flex items-center gap-2.5">
             <FolderLock className="h-4 w-4 text-slate-400 shrink-0" />
-            <span>Read-only access to your repositories</span>
+            <span>Read-only access to your public repositories</span>
           </div>
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="h-4 w-4 text-slate-400 shrink-0" />
-            <span>Secure OAuth authentication with GitHub</span>
+            <span>Encrypted token authentication with GitHub</span>
           </div>
           <div className="flex items-center gap-2.5">
             <RotateCcw className="h-4 w-4 text-slate-400 shrink-0" />
             <span>Revoke access anytime from GitHub settings</span>
           </div>
         </div>
-
-        {/* Developer Custom Handle Option (if dev mode) */}
-        {isDevLoginEnabled && (
-          <div className="mt-4 pt-3 border-t border-slate-100">
-            {!showDevInput ? (
-              <button
-                type="button"
-                onClick={() => setShowDevInput(true)}
-                className="text-[11px] text-slate-400 hover:text-slate-600 flex items-center gap-1 font-medium mx-auto"
-              >
-                <Terminal className="h-3 w-3" />
-                <span>Change dev username ({username})</span>
-              </button>
-            ) : (
-              <form onSubmit={handleCustomUsernameSubmit} className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter custom GitHub handle"
-                    className="flex-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-medium text-white hover:bg-slate-700"
-                  >
-                    Set
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
 
         {/* Terms of Service & Privacy Policy */}
         <div className="mt-6 text-center text-[11px] text-slate-400">

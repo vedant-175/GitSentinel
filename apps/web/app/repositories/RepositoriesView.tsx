@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
-  ExternalLink,
+  ArrowRight,
 } from 'lucide-react';
 import { syncUserReposAction, analyseRepositoryAction } from '../actions/repo-actions';
 import { formatTimeAgo } from '@/lib/date-format';
@@ -42,7 +42,7 @@ interface RepoItem {
   lastUpdated: string;
 }
 
-// Known repository descriptions and metrics matching the user's reference UI
+// Known repository descriptions and metrics cache
 const KNOWN_REPO_METADATA: Record<
   string,
   {
@@ -51,172 +51,7 @@ const KNOWN_REPO_METADATA: Record<
     findings: { high: number; medium: number; low: number };
     lastUpdated: string;
   }
-> = {
-  'vedant-175/GitSentinel': {
-    description: 'Autonomous AI Code Review & Security Gate Platform',
-    prsCount: 5,
-    findings: { high: 2, medium: 3, low: 0 },
-    lastUpdated: 'Just now',
-  },
-  'vedant-175/Smart-Internship-portal': {
-    description: 'AI-driven internship recommendation & matching portal',
-    prsCount: 4,
-    findings: { high: 1, medium: 2, low: 1 },
-    lastUpdated: '3 hours ago',
-  },
-  'vedant-175/AI-resume-builder': {
-    description: 'Full-stack AI resume generator with ATS optimization',
-    prsCount: 3,
-    findings: { high: 0, medium: 1, low: 2 },
-    lastUpdated: '1 day ago',
-  },
-  'vedant-175/Webathon_final_submission': {
-    description: 'Final submission hackathon prototype & architecture',
-    prsCount: 6,
-    findings: { high: 1, medium: 2, low: 0 },
-    lastUpdated: '1 day ago',
-  },
-  'vedant-175/Python-Programs': {
-    description: 'Data structures, algorithms, and automated scripts in Python',
-    prsCount: 8,
-    findings: { high: 0, medium: 3, low: 1 },
-    lastUpdated: '2 days ago',
-  },
-  'vedant-175/website': {
-    description: 'Official developer portfolio website and interactive showcase',
-    prsCount: 2,
-    findings: { high: 0, medium: 1, low: 0 },
-    lastUpdated: '3 days ago',
-  },
-  'vedant-175/My-Portfolio-': {
-    description: 'Personal web portal with React, TypeScript, and modern UI',
-    prsCount: 2,
-    findings: { high: 0, medium: 0, low: 1 },
-    lastUpdated: '4 days ago',
-  },
-  'vedant-175/Codsoft': {
-    description: 'Software development internship domain projects and tasks',
-    prsCount: 3,
-    findings: { high: 0, medium: 2, low: 1 },
-    lastUpdated: '5 days ago',
-  },
-  'vedant-175/hacktoberfest2025': {
-    description: 'Open source contributions and developer tooling experiments',
-    prsCount: 1,
-    findings: { high: 0, medium: 0, low: 0 },
-    lastUpdated: '1 week ago',
-  },
-  'vedant-175/ddas': {
-    description: 'Distributed data aggregation service prototype',
-    prsCount: 2,
-    findings: { high: 1, medium: 0, low: 1 },
-    lastUpdated: '1 week ago',
-  },
-};
-
-// Fallback dataset that highlights Vedant's real portfolio repositories
-const DEMO_REPOSITORIES: RepoItem[] = [
-  {
-    id: 1,
-    fullName: 'vedant-175/GitSentinel',
-    description: 'Autonomous AI Code Review & Security Gate Platform',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 5,
-    findings: { high: 2, medium: 3, low: 0 },
-    lastUpdated: 'Just now',
-  },
-  {
-    id: 2,
-    fullName: 'vedant-175/Smart-Internship-portal',
-    description: 'AI-driven internship recommendation & matching portal',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 4,
-    findings: { high: 1, medium: 2, low: 1 },
-    lastUpdated: '3 hours ago',
-  },
-  {
-    id: 3,
-    fullName: 'vedant-175/AI-resume-builder',
-    description: 'Full-stack AI resume generator with ATS optimization',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 3,
-    findings: { high: 0, medium: 1, low: 2 },
-    lastUpdated: '1 day ago',
-  },
-  {
-    id: 4,
-    fullName: 'vedant-175/Webathon_final_submission',
-    description: 'Final submission hackathon prototype & architecture',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 6,
-    findings: { high: 1, medium: 2, low: 0 },
-    lastUpdated: '1 day ago',
-  },
-  {
-    id: 5,
-    fullName: 'vedant-175/Python-Programs',
-    description: 'Data structures, algorithms, and automated scripts in Python',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 8,
-    findings: { high: 0, medium: 3, low: 1 },
-    lastUpdated: '2 days ago',
-  },
-  {
-    id: 6,
-    fullName: 'vedant-175/website',
-    description: 'Official developer portfolio website and interactive showcase',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 2,
-    findings: { high: 0, medium: 1, low: 0 },
-    lastUpdated: '3 days ago',
-  },
-  {
-    id: 7,
-    fullName: 'vedant-175/My-Portfolio-',
-    description: 'Personal web portal with React, TypeScript, and modern UI',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 2,
-    findings: { high: 0, medium: 0, low: 1 },
-    lastUpdated: '4 days ago',
-  },
-  {
-    id: 8,
-    fullName: 'vedant-175/Codsoft',
-    description: 'Software development internship domain projects and tasks',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 3,
-    findings: { high: 0, medium: 2, low: 1 },
-    lastUpdated: '5 days ago',
-  },
-  {
-    id: 9,
-    fullName: 'vedant-175/hacktoberfest2025',
-    description: 'Open source contributions and developer tooling experiments',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 1,
-    findings: { high: 0, medium: 0, low: 0 },
-    lastUpdated: '1 week ago',
-  },
-  {
-    id: 10,
-    fullName: 'vedant-175/ddas',
-    description: 'Distributed data aggregation service prototype',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 2,
-    findings: { high: 1, medium: 0, low: 1 },
-    lastUpdated: '1 week ago',
-  },
-];
+> = {};
 
 interface RepositoriesViewProps {
   initialRepositories: any[];
@@ -225,7 +60,7 @@ interface RepositoriesViewProps {
 
 export function RepositoriesView({
   initialRepositories,
-  currentUserLogin = 'vedant-175',
+  currentUserLogin = '',
 }: RepositoriesViewProps) {
   const router = useRouter();
 
@@ -250,7 +85,7 @@ export function RepositoriesView({
       return syncedRepos;
     }
     if (!initialRepositories || initialRepositories.length === 0) {
-      return DEMO_REPOSITORIES;
+      return [];
     }
 
     return initialRepositories.map((repo: any) => {
@@ -310,7 +145,7 @@ export function RepositoriesView({
   // Aggregate Metrics for 4 Cards
   const totalReposCount = mappedRepositories.length;
   const activeReposCount = mappedRepositories.filter((r) => r.status === 'Active').length;
-  const totalPrsCount = mappedRepositories.reduce((sum, r) => sum + r.prsCount, 0) || 35;
+  const totalPrsCount = mappedRepositories.reduce((sum, r) => sum + r.prsCount, 0);
   const totalFindings = useMemo(() => {
     return mappedRepositories.reduce(
       (acc, r) => {
@@ -324,11 +159,10 @@ export function RepositoriesView({
     );
   }, [mappedRepositories]);
 
-  // Display findings count (fallback to screenshot numbers 12: 2, 5, 5 if 0)
-  const displayFindingsCount = totalFindings.total > 0 ? totalFindings.total : 12;
-  const displayHigh = totalFindings.total > 0 ? totalFindings.high : 2;
-  const displayMedium = totalFindings.total > 0 ? totalFindings.medium : 5;
-  const displayLow = totalFindings.total > 0 ? totalFindings.low : 5;
+  const displayFindingsCount = totalFindings.total;
+  const displayHigh = totalFindings.high;
+  const displayMedium = totalFindings.medium;
+  const displayLow = totalFindings.low;
 
   // Filter & Sort
   const filteredRepositories = useMemo(() => {
@@ -594,8 +428,122 @@ export function RepositoriesView({
         </div>
       </div>
 
-      {/* 4. Repositories Content (List or Grid) */}
-      {viewMode === 'list' ? (
+      {/* 4. Repositories Content (List, Grid, or Empty State) */}
+      {filteredRepositories.length === 0 ? (
+        mappedRepositories.length > 0 ? (
+          /* Case 1: Filter/Search yielded 0 matches */
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-12 text-center shadow-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500 mb-3">
+              <Search className="h-6 w-6" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">No matching repositories found</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              No repositories matched your search or status filter. Try clearing your filters.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+              }}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : currentUserLogin ? (
+          /* Case 2: User is logged in, but has 0 repos synced */
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 sm:p-12 text-center shadow-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 mb-3.5">
+              <FolderGit2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">
+              No repositories synchronized yet for @{currentUserLogin}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1.5 max-w-md mx-auto leading-relaxed">
+              GitSentinel monitors your GitHub repositories for security vulnerabilities, code smells, and automated PR reviews. Click below to synchronize your public repositories.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                disabled={syncLoading}
+                onClick={() => handleSyncAccount(currentUserLogin)}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <RefreshCw className={`h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
+                <span>{syncLoading ? 'Synchronizing from GitHub...' : `Sync @${currentUserLogin}'s Repositories`}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <Plus className="h-4 w-4 text-slate-500" />
+                <span>Import Another Account / Org</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Case 3: Visitor is NOT logged in and 0 repos loaded */
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-8 sm:p-12 text-center shadow-xs">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 text-white shadow-md shadow-slate-900/10 mb-4">
+              <FolderGit2 className="h-7 w-7 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">
+              Connect GitHub to Access Your Repositories
+            </h3>
+            <p className="text-xs text-slate-500 mt-1.5 max-w-lg mx-auto leading-relaxed">
+              Sign in with your GitHub account or enter any GitHub handle below to synchronize public repositories and enable autonomous AI security reviews.
+            </p>
+
+            {/* Quick Connect by Username Box */}
+            <div className="mt-6 max-w-md mx-auto p-4 rounded-xl border border-slate-200 bg-slate-50/70 text-left">
+              <div className="text-xs font-semibold text-slate-800 mb-1">
+                Quick Import Public Repositories
+              </div>
+              <p className="text-[11px] text-slate-500 mb-3">
+                Enter your GitHub handle to immediately pull in public repos without OAuth setup.
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSyncAccount();
+                }}
+                className="flex items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">@</span>
+                  <input
+                    type="text"
+                    value={syncTarget}
+                    onChange={(e) => setSyncTarget(e.target.value)}
+                    placeholder="e.g. torvalds, vercel, octocat"
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-7 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={syncLoading || !syncTarget.trim()}
+                  className="h-9 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${syncLoading ? 'animate-spin' : ''}`} />
+                  <span>{syncLoading ? 'Syncing...' : 'Import'}</span>
+                </button>
+              </form>
+            </div>
+
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors"
+              >
+                <span>Sign In / Connect GitHub</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        )
+      ) : viewMode === 'list' ? (
         <div className="rounded-xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -842,23 +790,25 @@ export function RepositoriesView({
 
             <div className="mt-4 space-y-4">
               {/* Option A: Quick Sync current connected account */}
-              <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4">
-                <div className="text-xs font-semibold text-slate-800">
-                  Quick Sync for Account ({currentUserLogin})
+              {currentUserLogin && (
+                <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4">
+                  <div className="text-xs font-semibold text-slate-800">
+                    Quick Sync for Account (@{currentUserLogin})
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Scan and synchronize all public repositories belonging to your active GitHub user.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={syncLoading}
+                    onClick={() => handleSyncAccount(currentUserLogin)}
+                    className="mt-3 flex items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${syncLoading ? 'animate-spin' : ''}`} />
+                    <span>{syncLoading ? 'Synchronizing...' : `Sync All '@${currentUserLogin}' Repositories`}</span>
+                  </button>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Scan and synchronize all public repositories belonging to your active GitHub user.
-                </p>
-                <button
-                  type="button"
-                  disabled={syncLoading}
-                  onClick={() => handleSyncAccount(currentUserLogin)}
-                  className="mt-3 flex items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${syncLoading ? 'animate-spin' : ''}`} />
-                  <span>{syncLoading ? 'Synchronizing...' : `Sync All '${currentUserLogin}' Repositories`}</span>
-                </button>
-              </div>
+              )}
 
               {/* Option B: Import any GitHub username or organization */}
               <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4">

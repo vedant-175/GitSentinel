@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function CyberCharbotPage() {
   const session = await getServerSession(authOptions).catch(() => null);
-  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || 'vedant-175';
+  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
 
   return <CyberChatbotView currentUserLogin={currentUserLogin} />;
 }

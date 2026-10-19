@@ -13,11 +13,16 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { prisma } from '@ai-reviewer/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { ReviewActivityChart } from './components/ReviewActivityChart';
 
 export const dynamic = 'force-dynamic';
 
 export default async function OverviewPage() {
+  const session = await getServerSession(authOptions).catch(() => null);
+  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
+
   const repoCount = 10;
   const prCount = 5;
   const findingsCount = 5;
@@ -108,36 +113,60 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {/* 2. Success Integration Banner */}
-      <div className="rounded-xl border border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20 p-3.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-slate-900 dark:text-emerald-300">GitHub integration connected</div>
-            <div className="text-xs text-slate-600 dark:text-emerald-400/80 mt-0.5">
-              Your repositories are synchronized and monitored for new pull requests.
+      {/* 2. Integration / Connect Banner */}
+      {currentUserLogin ? (
+        <div className="rounded-xl border border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20 p-3.5 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 dark:text-emerald-300">
+                Connected as @{currentUserLogin}
+              </div>
+              <div className="text-xs text-slate-600 dark:text-emerald-400/80 mt-0.5">
+                Your repositories are synchronized and monitored for automated code security audits.
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-4">
-          <Link
-            href="/repositories"
-            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
-          >
-            <span>Manage integration</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-          <button
-            type="button"
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/repositories"
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
+            >
+              <span>Manage repositories</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-blue-200/90 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/20 p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-xs">
+              <FolderGit2 className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 dark:text-blue-200">
+                Connect your GitHub Account
+              </div>
+              <div className="text-xs text-slate-600 dark:text-blue-300/80 mt-0.5">
+                Sign in with GitHub or connect your username to synchronize repositories and start automated AI security gates.
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-1.5 shadow-xs transition-colors"
+            >
+              <span>Connect GitHub</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* 3. Four Metric Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

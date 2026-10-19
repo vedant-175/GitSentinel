@@ -137,18 +137,18 @@ const DEMO_SETTINGS: SettingsData = {
   installation: {
     id: 1,
     githubInstallationId: '182272425',
-    accountLogin: 'vedant-175',
-    accountType: 'User',
+    accountLogin: 'organization',
+    accountType: 'Organization',
     createdAt: '2026-01-15T00:00:00Z',
     repositories: [
-      { id: 1, fullName: 'vedant-175/api-service', defaultBranch: 'main' },
-      { id: 2, fullName: 'vedant-175/web-dashboard', defaultBranch: 'main' },
-      { id: 3, fullName: 'vedant-175/RockPaperScissor.py', defaultBranch: 'main' },
+      { id: 1, fullName: 'organization/api-service', defaultBranch: 'main' },
+      { id: 2, fullName: 'organization/web-dashboard', defaultBranch: 'main' },
+      { id: 3, fullName: 'organization/auth-gateway', defaultBranch: 'main' },
     ],
   },
   selectedRepository: {
     id: 1,
-    fullName: 'vedant-175/api-service',
+    fullName: 'organization/api-service',
     defaultBranch: 'main',
     config: {
       severity_threshold: 'suggestion',
@@ -278,10 +278,10 @@ const DEMO_SETTINGS: SettingsData = {
     configHistory: [
       {
         id: 101,
-        actor: 'vedant-175',
+        actor: 'admin',
         actorRole: 'ADMIN',
         action: 'policy.updated',
-        resourceId: 'vedant-175/api-service',
+        resourceId: 'organization/api-service',
         metadata: { changed: 'severityThreshold -> suggestion' },
         createdAt: '2026-10-18T14:20:00Z',
       },

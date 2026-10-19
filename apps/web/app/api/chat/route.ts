@@ -89,7 +89,7 @@ ${iss.suggestedFix || 'None'}
         contextStr = `
 PULL REQUEST CONTEXT:
 - Title: "Add rate limiting middleware and user lookup"
-- Repository: "vedant-175/GitSentinel"
+- Repository: "GitSentinel/platform"
 - PR Number: #3
 - Security Gate Verdict: BLOCK (MERGE BLOCKED)
 - Detected Vulnerabilities (1 Critical Issue):
@@ -109,7 +109,7 @@ const user = await prisma.user.findUnique({
         contextStr = `
 PULL REQUEST CONTEXT:
 - Title: "Full stack authentication and token generation"
-- Repository: "vedant-175/Smart-Internship-portal"
+- Repository: "platform/api-gateway"
 - PR Number: #5
 - Security Gate Verdict: BLOCK
 - Detected Vulnerabilities (1 High Issue):
@@ -126,7 +126,7 @@ JWT_SECRET = os.environ.get("JWT_SECRET")
         contextStr = `
 PULL REQUEST CONTEXT:
 - Title: "File upload and document download route"
-- Repository: "vedant-175/Webathon_final_submission"
+- Repository: "platform/auth-service"
 - PR Number: #6
 - Security Gate Verdict: BLOCK
 - Detected Vulnerabilities (1 High Issue):
