@@ -4,6 +4,7 @@
     "web": {
       "root": "apps/web",
       "framework": "nextjs",
+      "buildCommand": "npm run build --workspace=@ai-reviewer/db && npm run build --workspace=@ai-reviewer/shared && next build",
       "bindings": [
         {
           "type": "service",
@@ -16,6 +17,7 @@
     "worker": {
       "root": "apps/worker",
       "runtime": "node",
+      "buildCommand": "npm run build --workspace=@ai-reviewer/db && npm run build --workspace=@ai-reviewer/shared && tsc",
       "entrypoint": "src/index.ts"
     }
   },
