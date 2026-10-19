@@ -6,7 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid or missing JSON payload' }, { status: 400 });
+    }
     const { prId, repoId, message, messages = [] } = body;
 
     const userMessage = (message || (messages[messages.length - 1]?.content) || '').trim();
@@ -199,6 +204,9 @@ ${contextStr}`,
                 usedKey: maskApiKey(apiKey),
               });
             }
+          } else {
+            const errBody = await response.text().catch(() => '');
+            console.warn(`[Chat API] Groq attempt with key ${maskApiKey(apiKey)} returned HTTP ${response.status}:`, errBody);
           }
         } catch (groqErr: any) {
           console.warn(`[Chat API] Groq attempt with key ${maskApiKey(apiKey)} failed:`, groqErr.message);
@@ -258,6 +266,9 @@ ${contextStr}`;
                 usedKey: maskApiKey(apiKey),
               });
             }
+          } else {
+            const errBody = await response.text().catch(() => '');
+            console.warn(`[Chat API] Gemini attempt with key ${maskApiKey(apiKey)} returned HTTP ${response.status}:`, errBody);
           }
         } catch (geminiErr: any) {
           console.warn(`[Chat API] Gemini attempt with key ${maskApiKey(apiKey)} failed:`, geminiErr.message);

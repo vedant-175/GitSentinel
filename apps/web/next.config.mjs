@@ -21,6 +21,15 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000'],
     },
   },
+  async redirects() {
+    return [
+      {
+        source: '/cybercharbot',
+        destination: '/cyberchatbot',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

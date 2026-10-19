@@ -99,7 +99,7 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
       name: 'CyberChatbot',
       href: '/cyberchatbot',
       icon: MessageSquareText,
-      active: pathname.startsWith('/cyberchatbot') || pathname.startsWith('/chatbot'),
+      active: pathname.startsWith('/cyberchatbot') || pathname.startsWith('/chatbot') || pathname.startsWith('/cybercharbot'),
     },
   ];
 
