@@ -518,7 +518,7 @@ export function CodeExplorerClient({
 
     // Check comment
     if (line.trim().startsWith('//')) {
-      return <span className="text-slate-400 italic">{line}</span>;
+      return <span className="text-slate-400 dark:text-zinc-500 italic">{line}</span>;
     }
 
     const tokens = line.split(/(\s+|[(),;:{}[\]'"])/);
@@ -528,35 +528,35 @@ export function CodeExplorerClient({
         {tokens.map((token, i) => {
           if (/^(import|from|const|export|new|function|return|typeof|async|await)$/.test(token)) {
             return (
-              <span key={i} className="text-purple-600 font-semibold">
+              <span key={i} className="text-purple-600 dark:text-purple-400 font-semibold">
                 {token}
               </span>
             );
           }
           if (/^('.*?'|".*?")$/.test(token)) {
             return (
-              <span key={i} className="text-red-500 font-medium">
+              <span key={i} className="text-red-500 dark:text-rose-400 font-medium">
                 {token}
               </span>
             );
           }
           if (/^(createLogger|format|transports|path|logError|logSecurityEvent|Console|File|combine|timestamp|errors|json|colorize|simple|join)$/.test(token)) {
             return (
-              <span key={i} className="text-blue-600 font-medium">
+              <span key={i} className="text-blue-600 dark:text-sky-400 font-medium">
                 {token}
               </span>
             );
           }
           if (/^(true|false|null|undefined)$/.test(token)) {
             return (
-              <span key={i} className="text-amber-600 font-medium">
+              <span key={i} className="text-amber-600 dark:text-amber-400 font-medium">
                 {token}
               </span>
             );
           }
           if (/^\d+$/.test(token)) {
             return (
-              <span key={i} className="text-emerald-600">
+              <span key={i} className="text-emerald-600 dark:text-emerald-400">
                 {token}
               </span>
             );
