@@ -11,6 +11,7 @@ import {
   Plus,
   ArrowRight,
 } from 'lucide-react';
+import { prisma } from '@ai-reviewer/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getRepositories, getPullRequests } from '@/lib/data';
@@ -150,6 +151,52 @@ export default async function OverviewPage() {
       updated: pr.updatedAt ? formatTimeAgo(pr.updatedAt) : 'Recently',
     };
   });
+
+  // 5. Compute real 7-day review activity synced with current date and time
+  const now = new Date();
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+  const dailyCountsMap = new Map<string, number>();
+  const chartDays: Array<{ key: string; label: string }> = [];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    const label = `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    chartDays.push({ key, label });
+    dailyCountsMap.set(key, 0);
+  }
+
+  try {
+    const recentReviews = await prisma.review.findMany({
+      where: {
+        startedAt: { gte: sevenDaysAgo },
+      },
+      select: { startedAt: true },
+    });
+
+    for (const r of recentReviews) {
+      if (r.startedAt) {
+        const rd = new Date(r.startedAt);
+        const key = `${rd.getFullYear()}-${String(rd.getMonth() + 1).padStart(2, '0')}-${String(rd.getDate()).padStart(2, '0')}`;
+        if (dailyCountsMap.has(key)) {
+          dailyCountsMap.set(key, (dailyCountsMap.get(key) || 0) + 1);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[OverviewPage] Failed to fetch recent review activity:', err);
+  }
+
+  const reviewActivityData = chartDays.map(({ key, label }) => ({
+    date: label,
+    reviews: dailyCountsMap.get(key) || 0,
+  }));
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-12 animate-fade-in">
@@ -326,7 +373,7 @@ export default async function OverviewPage() {
             </button>
           </div>
 
-          <ReviewActivityChart />
+          <ReviewActivityChart data={reviewActivityData} />
         </div>
 
         {/* Findings by severity breakdown */}

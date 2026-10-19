@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -11,21 +11,62 @@ import {
   Tooltip,
 } from 'recharts';
 
-const data = [
-  { date: 'Nov 16', reviews: 3 },
-  { date: 'Nov 17', reviews: 5 },
-  { date: 'Nov 18', reviews: 4 },
-  { date: 'Nov 19', reviews: 3 },
-  { date: 'Nov 20', reviews: 5 },
-  { date: 'Nov 21', reviews: 7 },
-  { date: 'Nov 22', reviews: 4 },
-];
+export interface ReviewActivityPoint {
+  date: string;
+  reviews: number;
+}
 
-export function ReviewActivityChart() {
+interface ReviewActivityChartProps {
+  data?: ReviewActivityPoint[];
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+/**
+ * Builds the last 7 calendar days dynamically ending on the current date and time.
+ */
+export function generateCurrent7Days(): ReviewActivityPoint[] {
+  const now = new Date();
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    const label = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+    return {
+      date: label,
+      reviews: 0,
+    };
+  });
+}
+
+export function ReviewActivityChart({ data }: ReviewActivityChartProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const chartData = useMemo(() => {
+    if (data && data.length > 0) {
+      return data;
+    }
+    return generateCurrent7Days();
+  }, [data]);
+
+  const maxVal = Math.max(6, ...chartData.map((d) => d.reviews));
+  const tickStep = Math.ceil(maxVal / 3);
+  const domainMax = tickStep * 3;
+  const ticks = [0, tickStep, tickStep * 2, domainMax];
+
+  if (!mounted) {
+    return (
+      <div className="w-full h-48 mt-3 flex items-center justify-center bg-slate-50/50 dark:bg-zinc-900/30 rounded-lg animate-pulse" />
+    );
+  }
+
   return (
     <div className="w-full h-48 mt-3">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
           <defs>
             <linearGradient id="reviewAreaGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#2563eb" stopOpacity={0.18} />
@@ -46,8 +87,8 @@ export function ReviewActivityChart() {
             fontSize={11}
             tickLine={false}
             axisLine={false}
-            domain={[0, 9]}
-            ticks={[0, 3, 6, 9]}
+            domain={[0, domainMax]}
+            ticks={ticks}
           />
           <Tooltip
             contentStyle={{
