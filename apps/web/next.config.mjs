@@ -16,7 +16,7 @@ const nextConfig = {
     return config;
   },
   experimental: {
-    serverComponentsExternalPackages: ['bullmq', 'ioredis'],
+    serverComponentsExternalPackages: ['bullmq', 'ioredis', 'pino'],
     serverActions: {
       allowedOrigins: ['localhost:3000'],
     },
