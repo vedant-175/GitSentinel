@@ -24,9 +24,7 @@ export function validateAuthConfig() {
   if (
     process.env.ENABLE_DEV_LOGIN === 'true' &&
     process.env.NODE_ENV !== 'development' &&
-    process.env.NEXT_PHASE !== 'phase-production-build' &&
-    clientId &&
-    clientSecret
+    process.env.NEXT_PHASE !== 'phase-production-build'
   ) {
     throw new Error(
       'FATAL: ENABLE_DEV_LOGIN=true is strictly forbidden when NODE_ENV is not "development". Boot aborted.'
@@ -62,12 +60,10 @@ export function buildProviders() {
 
   const providers: any[] = [github];
 
-  // Enable Developer/Preview Credentials login when explicitly configured OR when OAuth credentials are not set
+  // Enable Developer/Preview Credentials login when explicitly configured in dev mode OR on unconfigured Vercel preview
   const isDevLoginEnabled =
-    process.env.ENABLE_DEV_LOGIN === 'true' ||
-    process.env.NODE_ENV === 'development' ||
-    !clientId ||
-    !clientSecret;
+    (process.env.ENABLE_DEV_LOGIN === 'true' && process.env.NODE_ENV === 'development') ||
+    (Boolean(process.env.VERCEL) && (!clientId || !clientSecret));
 
   if (isDevLoginEnabled) {
     const creds = CredentialsProvider({
@@ -92,10 +88,10 @@ export function buildProviders() {
           host === '127.0.0.1' ||
           host === '[::1]' ||
           host === '::1';
-        const isVercelHost = host.endsWith('.vercel.app') || Boolean(process.env.VERCEL);
+        const isVercelHost = host.endsWith('.vercel.app') && Boolean(process.env.VERCEL);
 
-        if (!isLocalhost && !isVercelHost && clientId && clientSecret) {
-          throw new Error('Dev credentials login is only permitted on localhost or when GitHub OAuth is unconfigured');
+        if (!isLocalhost && !isVercelHost) {
+          throw new Error('Dev credentials login is only permitted on localhost');
         }
 
         const username = credentials?.username?.trim();

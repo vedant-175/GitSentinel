@@ -115,11 +115,11 @@ describe('Fairness Integration Test with Real BullMQ Worker and Real Redis (Item
     );
 
     // Enqueue 4 noisy jobs first, then 1 quiet job at the tail
-    await queue.add('noisy', { jobName: 'noisy-1', installationId: noisyInstallationId });
-    await queue.add('noisy', { jobName: 'noisy-2', installationId: noisyInstallationId });
-    await queue.add('noisy', { jobName: 'noisy-3', installationId: noisyInstallationId });
-    await queue.add('noisy', { jobName: 'noisy-4', installationId: noisyInstallationId });
-    await queue.add('quiet', { jobName: 'quiet-1', installationId: quietInstallationId });
+    await queue.add('noisy', { jobName: 'noisy-1', installationId: noisyInstallationId, workDurationMs: 120 });
+    await queue.add('noisy', { jobName: 'noisy-2', installationId: noisyInstallationId, workDurationMs: 120 });
+    await queue.add('noisy', { jobName: 'noisy-3', installationId: noisyInstallationId, workDurationMs: 120 });
+    await queue.add('noisy', { jobName: 'noisy-4', installationId: noisyInstallationId, workDurationMs: 120 });
+    await queue.add('quiet', { jobName: 'quiet-1', installationId: quietInstallationId, workDurationMs: 20 });
 
     // Wait until all 5 jobs are completed (or timeout after 10 seconds)
     const startTime = Date.now();

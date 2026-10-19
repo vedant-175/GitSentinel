@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic';
 export default async function CodeExplorerPage({
   searchParams,
 }: {
-  searchParams?: { repo?: string };
+  searchParams?: Promise<{ repo?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const session = await getServerSession(authOptions).catch(() => null);
   const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
 
@@ -68,7 +69,7 @@ export default async function CodeExplorerPage({
         }))
       : fallbackRepos;
 
-  const initialRepo = searchParams?.repo || finalRepos[0]?.fullName || 'facebook/react';
+  const initialRepo = resolvedSearchParams?.repo || finalRepos[0]?.fullName || 'facebook/react';
 
   return (
     <CodeExplorerClient

@@ -20,14 +20,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 1. Rate limiting
   const rateLimitResponse = await checkApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const reviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const reviewId = parseInt(id, 10);
     if (isNaN(reviewId)) {
       return NextResponse.json({ error: 'Invalid review ID' }, { status: 400 });
     }
@@ -79,13 +80,14 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const rateLimitResponse = await checkApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const reviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const reviewId = parseInt(id, 10);
     if (isNaN(reviewId)) {
       return NextResponse.json({ error: 'Invalid review ID' }, { status: 400 });
     }

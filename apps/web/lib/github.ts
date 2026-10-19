@@ -15,7 +15,7 @@ export function getInstallationOctokit(installationId: number): Octokit | null {
   const appId = process.env.GITHUB_APP_ID;
   const rawPrivateKey = process.env.GITHUB_PRIVATE_KEY;
 
-  if (!appId || !rawPrivateKey) {
+  if (!appId || !rawPrivateKey || !rawPrivateKey.includes('PRIVATE KEY')) {
     return null;
   }
 
@@ -23,6 +23,12 @@ export function getInstallationOctokit(installationId: number): Octokit | null {
   const privateKey = rawPrivateKey.includes('\\n')
     ? rawPrivateKey.replace(/\\n/g, '\n')
     : rawPrivateKey;
+
+  try {
+    crypto.createPrivateKey(privateKey);
+  } catch {
+    return null;
+  }
 
   return new Octokit({
     authStrategy: createAppAuth,

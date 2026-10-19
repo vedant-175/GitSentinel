@@ -7,13 +7,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const rateLimitResponse = await checkApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const failedReviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const failedReviewId = parseInt(id, 10);
     if (isNaN(failedReviewId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
@@ -71,13 +72,14 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const rateLimitResponse = await checkApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const failedReviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const failedReviewId = parseInt(id, 10);
     if (isNaN(failedReviewId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }

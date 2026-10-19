@@ -28,10 +28,12 @@ export default async function RepositoryAnalyticsPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams?: { tab?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ tab?: string }>;
 }) {
-  const repoId = parseInt(params.id, 10);
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const repoId = parseInt(id, 10);
   if (isNaN(repoId)) return notFound();
 
   const { data: repo } = await getRepositoryById(repoId);
@@ -119,7 +121,7 @@ export default async function RepositoryAnalyticsPage({
       </div>
 
       <RepoViewTabs
-        initialTab={searchParams?.tab || 'analytics'}
+        initialTab={resolvedSearchParams?.tab || 'analytics'}
         codebaseContent={codebaseNode}
         issuesCount={allIssues.length}
         healthScore={healthReport.overallScore}

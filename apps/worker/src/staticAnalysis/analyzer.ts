@@ -112,7 +112,6 @@ export function runStaticAnalysis(chunk: DiffChunk): ReviewIssue[] {
   return issues;
 }
 
-// @ts-ignore
 import { ESLint } from 'eslint';
 
 export interface ChangedFilePayload {

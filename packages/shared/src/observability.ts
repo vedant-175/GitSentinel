@@ -3,7 +3,6 @@ import {
   StageExecutionStatus,
   ObservabilityErrorCategory,
   StageTimingRecord,
-  ReviewLifecycleTrace,
 } from './types.js';
 
 export const REVIEW_LIFECYCLE_STAGES: readonly ReviewLifecycleStage[] = [

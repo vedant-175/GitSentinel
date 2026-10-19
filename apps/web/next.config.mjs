@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@ai-reviewer/db', '@ai-reviewer/shared'],
+  serverExternalPackages: ['bullmq', 'ioredis', 'pino'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -16,7 +17,6 @@ const nextConfig = {
     return config;
   },
   experimental: {
-    serverComponentsExternalPackages: ['bullmq', 'ioredis', 'pino'],
     serverActions: {
       allowedOrigins: ['localhost:3000'],
     },

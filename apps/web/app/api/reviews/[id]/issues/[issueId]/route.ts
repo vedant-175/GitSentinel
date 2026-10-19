@@ -25,7 +25,7 @@ const UpdateIssueStatusSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; issueId: string } }
+  { params }: { params: Promise<{ id: string; issueId: string }> }
 ) {
   // 1. Rate limiting (60 req/min for issue updates)
   const rateLimitResponse = await checkIssueUpdateRateLimit(req);
@@ -43,8 +43,9 @@ export async function PATCH(
   }
 
   // 3. Identifier validation
-  const reviewId = parseInt(params.id, 10);
-  const issueId = parseInt(params.issueId, 10);
+  const { id, issueId: rawIssueId } = await params;
+  const reviewId = parseInt(id, 10);
+  const issueId = parseInt(rawIssueId, 10);
 
   if (isNaN(reviewId) || isNaN(issueId)) {
     return NextResponse.json(

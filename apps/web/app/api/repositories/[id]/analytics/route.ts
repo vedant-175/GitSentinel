@@ -8,14 +8,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 1. Rate limiting
   const rateLimitResponse = await checkApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const repoId = parseInt(params.id, 10);
+    const { id } = await params;
+    const repoId = parseInt(id, 10);
     if (isNaN(repoId)) {
       return NextResponse.json({ error: 'Invalid repository ID' }, { status: 400 });
     }

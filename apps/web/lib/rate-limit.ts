@@ -31,7 +31,8 @@ export function getClientIp(req: NextRequest): string {
   }
 
   // If running in an environment that provides direct IP on Request
-  if (req.ip) return req.ip;
+  const maybeIp = (req as unknown as { ip?: string }).ip;
+  if (maybeIp) return maybeIp;
 
   // Fallback to loopback in direct connection mode
   return '127.0.0.1';

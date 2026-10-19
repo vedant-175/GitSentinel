@@ -40,6 +40,11 @@
     "tsx": "^4.9.3",
     "typescript": "^5.4.5"
   },
+  "overrides": {
+    "braces": "^3.0.3",
+    "postcss": "^8.5.3",
+    "source-map-js": "^1.2.2"
+  },
   "engines": {
     "node": ">=20.0.0"
   }

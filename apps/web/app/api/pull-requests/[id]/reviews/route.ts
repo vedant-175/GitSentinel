@@ -20,13 +20,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const rateLimitResponse = await checkApiRateLimit(req, 120, 60);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const prId = parseInt(params.id, 10);
+    const { id } = await params;
+    const prId = parseInt(id, 10);
     if (isNaN(prId)) {
       return NextResponse.json({ error: 'Bad Request', message: 'Invalid pull request ID' }, { status: 400 });
     }
@@ -66,7 +67,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 1. Rate limiting (10 req/min for expensive review rerun)
   const rateLimitResponse = await checkReviewRerunRateLimit(req);
@@ -84,7 +85,8 @@ export async function POST(
   }
 
   // 3. Validation
-  const prId = parseInt(params.id, 10);
+  const { id } = await params;
+  const prId = parseInt(id, 10);
   if (isNaN(prId)) {
     return NextResponse.json(
       { error: 'Bad Request', message: 'Invalid pull request ID' },

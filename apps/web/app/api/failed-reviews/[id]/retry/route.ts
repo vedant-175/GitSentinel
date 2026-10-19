@@ -23,14 +23,15 @@ import { recordAuditLog } from '@/lib/audit';
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 1. Rate limiting (10 req/min for expensive review retry)
   const rateLimitResponse = await checkFailedReviewRetryRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const failedReviewId = parseInt(params.id, 10);
+    const { id } = await params;
+    const failedReviewId = parseInt(id, 10);
     if (isNaN(failedReviewId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }

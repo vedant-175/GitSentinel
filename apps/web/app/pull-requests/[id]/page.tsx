@@ -46,9 +46,10 @@ function getEvaluationBenchmarkData() {
 export default async function PullRequestDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const prId = parseInt(params.id, 10);
+  const { id } = await params;
+  const prId = parseInt(id, 10);
   if (isNaN(prId)) return notFound();
 
   try {
