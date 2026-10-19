@@ -40,3 +40,9 @@ Thumbs.db
 dist/
 build/
 *.tsbuildinfo
+
+# Coverage & Caches
+coverage/
+.turbo/
+.vercel/
+.eslintcache
