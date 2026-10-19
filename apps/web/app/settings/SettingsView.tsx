@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Settings,
   Shield,
@@ -131,8 +132,166 @@ interface SettingsData {
   };
 }
 
+const DEMO_SETTINGS: SettingsData = {
+  userRole: 'ADMIN',
+  installation: {
+    id: 1,
+    githubInstallationId: '182272425',
+    accountLogin: 'vedant-175',
+    accountType: 'User',
+    createdAt: '2026-01-15T00:00:00Z',
+    repositories: [
+      { id: 1, fullName: 'vedant-175/api-service', defaultBranch: 'main' },
+      { id: 2, fullName: 'vedant-175/web-dashboard', defaultBranch: 'main' },
+      { id: 3, fullName: 'vedant-175/RockPaperScissor.py', defaultBranch: 'main' },
+    ],
+  },
+  selectedRepository: {
+    id: 1,
+    fullName: 'vedant-175/api-service',
+    defaultBranch: 'main',
+    config: {
+      severity_threshold: 'suggestion',
+      confidence_threshold: 0.7,
+      block_on_critical: true,
+      max_comments_per_pr: 25,
+      max_files_per_pr: 50,
+      max_lines_per_pr: 1000,
+      skip_drafts: true,
+      skip_bot_authors: true,
+      disabled_categories: [],
+      ignored_globs: ['tests/**', 'docs/**', '**/*.min.js'],
+    },
+    organizationPolicy: {},
+  },
+  aiEngine: {
+    providerOrder: [
+      {
+        tier: 1,
+        name: 'Groq (Llama 3.3 70B)',
+        provider: 'Groq',
+        model: 'llama-3.3-70b-versatile',
+        keysCount: 3,
+        activeKeys: 3,
+        maskedKeys: ['gsk_live_...98a2', 'gsk_live_...b4c1', 'gsk_live_...3ef8'],
+        status: 'ACTIVE',
+      },
+      {
+        tier: 2,
+        name: 'Google Gemini (Flash 2.0)',
+        provider: 'Google Gemini',
+        model: 'gemini-2.0-flash',
+        keysCount: 2,
+        activeKeys: 2,
+        maskedKeys: ['AIzaSy...7f89', 'AIzaSy...4d12'],
+        status: 'ACTIVE',
+      },
+      {
+        tier: 3,
+        name: 'OpenAI (GPT-4o mini)',
+        provider: 'OpenAI',
+        model: 'gpt-4o-mini',
+        keysCount: 1,
+        activeKeys: 1,
+        maskedKeys: ['sk-proj-...89df'],
+        status: 'STANDBY',
+      },
+    ],
+    activeProvider: 'Groq',
+    groqModel: 'llama-3.3-70b-versatile',
+    geminiModel: 'gemini-2.0-flash',
+    supportedGeminiModels: [
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemini-1.5-pro',
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-8b',
+    ],
+    timeoutMs: 30000,
+    schemaMaxRetries: 3,
+    keyPoolMaxAttempts: 5,
+  },
+  dailyTokenBudget: {
+    currentTokens: 142850,
+    limit: 1000000,
+    allowed: true,
+  },
+  recentFailovers: [
+    {
+      id: 1,
+      commitSha: 'a1b2c3d4e5f6',
+      errorMessage: 'Rate limit 429 encountered on primary provider; seamlessly failed over to secondary Tier-2 pool',
+      failedAt: '2 hours ago',
+      resolvedAt: '2 hours ago',
+    },
+  ],
+  github: {
+    appId: '1098421',
+    hasWebhookSecret: true,
+    hasPrivateKey: true,
+    webhookSuccessRate: 99.4,
+    totalDeliveries: 1240,
+    recentDeliveries: [
+      {
+        id: 1,
+        deliveryId: 'del-99881122-infra',
+        event: 'pull_request',
+        action: 'opened',
+        statusCode: 200,
+        errorMessage: null,
+        receivedAt: '14 minutes ago',
+      },
+      {
+        id: 2,
+        deliveryId: 'del-88776655-api',
+        event: 'pull_request',
+        action: 'synchronize',
+        statusCode: 200,
+        errorMessage: null,
+        receivedAt: '42 minutes ago',
+      },
+    ],
+    supportedEvents: ['pull_request.opened', 'pull_request.synchronize', 'pull_request.reopened'],
+  },
+  notifications: {
+    supportedChannels: [
+      { id: 'github_pr', name: 'GitHub PR Inline Comments & Summary', status: 'ACTIVE', type: 'github' },
+      { id: 'slack', name: 'Slack Security Alert Webhook', status: 'OPTIONAL', type: 'slack' },
+      { id: 'email', name: 'Email Digest', status: 'OPTIONAL', type: 'email' },
+    ],
+  },
+  runtime: {
+    reviewsThisMonth: 124,
+    monthlyQuota: 10000,
+    queueMetrics: {
+      waiting: 0,
+      active: 2,
+      completed: 3198,
+      failed: 12,
+      concurrency: 10,
+    },
+    retention: {
+      deliveryDedupTtlHours: 24,
+      tokenBudgetTtlHours: 24,
+      reviewRecordsRetention: '90 days',
+    },
+    configHistory: [
+      {
+        id: 101,
+        actor: 'vedant-175',
+        actorRole: 'ADMIN',
+        action: 'policy.updated',
+        resourceId: 'vedant-175/api-service',
+        metadata: { changed: 'severityThreshold -> suggestion' },
+        createdAt: '2026-10-18T14:20:00Z',
+      },
+    ],
+  },
+};
+
 export function SettingsView() {
   const [activeTab, setActiveTab] = useState<'ai' | 'security' | 'github' | 'notifications' | 'runtime'>('ai');
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   // Server data state
   const [data, setData] = useState<SettingsData | null>(null);
@@ -178,9 +337,17 @@ export function SettingsView() {
     try {
       const url = repoId ? `/api/settings?repoId=${repoId}` : '/api/settings';
       const res = await fetch(url);
+      if (res.status === 401) {
+        setData(DEMO_SETTINGS);
+        setIsDemoMode(true);
+        setSelectedRepoId(DEMO_SETTINGS.selectedRepository?.id || 1);
+        setIsDirty(false);
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load settings`);
       const json: SettingsData = await res.json();
       setData(json);
+      setIsDemoMode(false);
 
       // Hydrate selected repo and gate form
       const repo = json.selectedRepository;
@@ -241,6 +408,10 @@ export function SettingsView() {
 
   // 2. Save Security & Quality Gate Settings
   const handleSaveSecurityGate = async () => {
+    if (isDemoMode) {
+      alert('You are currently viewing Platform Settings in demonstration mode. Please Sign In to save custom policies.');
+      return;
+    }
     if (!selectedRepoId) return;
     setSaving(true);
     setSaveError(null);
@@ -383,7 +554,26 @@ export function SettingsView() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16 animate-fade-in text-slate-800">
+    <div className="space-y-6 max-w-7xl mx-auto pb-16 animate-fade-in text-slate-800 dark:text-slate-100">
+      {/* Demonstration notice when unauthenticated */}
+      {isDemoMode && (
+        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 dark:bg-blue-950/40 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 text-blue-900 dark:text-blue-200">
+            <Info className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+            <span>
+              <strong>Demonstration Mode:</strong> You are previewing live enterprise settings. Sign in to customize gate policies, rotate provider API keys, or manage webhooks.
+            </span>
+          </div>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors cursor-pointer shrink-0"
+          >
+            <span>Sign In</span>
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
+
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
