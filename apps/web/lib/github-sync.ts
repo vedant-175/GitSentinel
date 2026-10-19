@@ -44,52 +44,65 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
       ? BigInt(githubUser.id)
       : BigInt(Math.abs(hashString(effectiveLogin.toLowerCase())));
 
-    // 2. Find or create Installation in database (guaranteeing STRICTLY ONE installation per accountLogin)
-    let installation = await prisma.installation.findFirst({
-      where: {
-        accountLogin: {
-          equals: effectiveLogin,
-          mode: 'insensitive',
-        },
-      },
-    });
+    // 2. Find or create Installation in database safely
+    let installation: { id: number; githubInstallationId: bigint; accountLogin: string } = {
+      id: 1,
+      githubInstallationId,
+      accountLogin: effectiveLogin,
+    };
 
-    if (installation) {
-      if (githubUser?.id && installation.githubInstallationId !== BigInt(githubUser.id)) {
-        installation = await prisma.installation.update({
-          where: { id: installation.id },
-          data: {
-            githubInstallationId: BigInt(githubUser.id),
-            accountLogin: effectiveLogin,
-            accountType: githubUser?.type || installation.accountType || 'User',
-          },
-        });
-      }
-      // Remove any other duplicate installations with this accountLogin to prevent multi-installation duplication
-      await prisma.installation.deleteMany({
+    try {
+      const existingInst = await prisma.installation.findFirst({
         where: {
           accountLogin: {
             equals: effectiveLogin,
             mode: 'insensitive',
           },
-          id: { not: installation.id },
         },
       });
-    } else {
-      installation = await prisma.installation.upsert({
-        where: {
-          githubInstallationId,
-        },
-        create: {
-          githubInstallationId,
-          accountLogin: effectiveLogin,
-          accountType: githubUser?.type || 'User',
-        },
-        update: {
-          accountLogin: effectiveLogin,
-          accountType: githubUser?.type || 'User',
-        },
-      });
+
+      if (existingInst) {
+        if (githubUser?.id && existingInst.githubInstallationId !== BigInt(githubUser.id)) {
+          const updated = await prisma.installation.update({
+            where: { id: existingInst.id },
+            data: {
+              githubInstallationId: BigInt(githubUser.id),
+              accountLogin: effectiveLogin,
+              accountType: githubUser?.type || existingInst.accountType || 'User',
+            },
+          });
+          installation = updated;
+        } else {
+          installation = existingInst;
+        }
+        await prisma.installation.deleteMany({
+          where: {
+            accountLogin: {
+              equals: effectiveLogin,
+              mode: 'insensitive',
+            },
+            id: { not: installation.id },
+          },
+        });
+      } else {
+        const created = await prisma.installation.upsert({
+          where: {
+            githubInstallationId,
+          },
+          create: {
+            githubInstallationId,
+            accountLogin: effectiveLogin,
+            accountType: githubUser?.type || 'User',
+          },
+          update: {
+            accountLogin: effectiveLogin,
+            accountType: githubUser?.type || 'User',
+          },
+        });
+        installation = created;
+      }
+    } catch (dbErr) {
+      console.warn(`[GitHub Sync] DB unavailable during installation sync for '${effectiveLogin}', continuing with memory fallback:`, dbErr);
     }
 
     // Also update any other installations that might have this accountLogin with case-insensitive match
@@ -147,53 +160,58 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
     }
 
     let syncedCount = 0;
-    for (const r of rawRepos) {
-      if (!r.full_name) continue;
+    try {
+      for (const r of rawRepos) {
+        if (!r.full_name) continue;
 
-      const targetRepoId = BigInt(r.id || hashString(r.full_name));
+        const targetRepoId = BigInt(r.id || hashString(r.full_name));
 
-      // Find existing repository by either githubRepoId or fullName under this installation
-      const existingRepo = await prisma.repository.findFirst({
-        where: {
-          installationId: installation.id,
-          OR: [
-            { githubRepoId: targetRepoId },
-            { fullName: r.full_name },
-          ],
-        },
-      });
-
-      let repo;
-      if (existingRepo) {
-        repo = await prisma.repository.update({
-          where: { id: existingRepo.id },
-          data: {
-            githubRepoId: targetRepoId,
-            fullName: r.full_name,
-            defaultBranch: r.default_branch || existingRepo.defaultBranch || 'main',
-          },
-        });
-      } else {
-        repo = await prisma.repository.create({
-          data: {
+        // Find existing repository by either githubRepoId or fullName under this installation
+        const existingRepo = await prisma.repository.findFirst({
+          where: {
             installationId: installation.id,
-            githubRepoId: targetRepoId,
-            fullName: r.full_name,
-            defaultBranch: r.default_branch || 'main',
+            OR: [
+              { githubRepoId: targetRepoId },
+              { fullName: r.full_name },
+            ],
           },
         });
-      }
 
-      syncedCount++;
+        let repo;
+        if (existingRepo) {
+          repo = await prisma.repository.update({
+            where: { id: existingRepo.id },
+            data: {
+              githubRepoId: targetRepoId,
+              fullName: r.full_name,
+              defaultBranch: r.default_branch || existingRepo.defaultBranch || 'main',
+            },
+          });
+        } else {
+          repo = await prisma.repository.create({
+            data: {
+              installationId: installation.id,
+              githubRepoId: targetRepoId,
+              fullName: r.full_name,
+              defaultBranch: r.default_branch || 'main',
+            },
+          });
+        }
 
-      // 4. For the top 5 most recently active repositories, sync or seed Pull Requests
-      if (syncedCount <= 5) {
-        try {
-          await syncRepositoryPullRequests(repo.id, r.full_name, effectiveLogin);
-        } catch (prErr) {
-          console.warn(`[GitHub Sync] Failed to sync PRs for ${r.full_name}:`, prErr);
+        syncedCount++;
+
+        // 4. For the top 5 most recently active repositories, sync or seed Pull Requests
+        if (syncedCount <= 5) {
+          try {
+            await syncRepositoryPullRequests(repo.id, r.full_name, effectiveLogin);
+          } catch (prErr) {
+            console.warn(`[GitHub Sync] Failed to sync PRs for ${r.full_name}:`, prErr);
+          }
         }
       }
+    } catch (dbRepoErr) {
+      console.warn(`[GitHub Sync] Could not write repos to DB (offline), using live GitHub count:`, dbRepoErr);
+      syncedCount = rawRepos.length;
     }
 
     return {

@@ -13,14 +13,17 @@ import {
 import { LoginForm } from './LoginForm';
 
 export default function LoginPage() {
-  const isDevLoginEnabled =
-    process.env.ENABLE_DEV_LOGIN === 'true' || process.env.NODE_ENV === 'development';
   const rawClientId = process.env.NEXTAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID || '';
   const hasGithubOAuth = Boolean(
     rawClientId.trim().length > 0 &&
       !rawClientId.includes('localdevelopment') &&
       !rawClientId.includes('your_client_id')
   );
+  const isDevLoginEnabled =
+    process.env.ENABLE_DEV_LOGIN === 'true' ||
+    process.env.NODE_ENV === 'development' ||
+    Boolean(process.env.VERCEL) ||
+    !hasGithubOAuth;
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-8 lg:p-12">

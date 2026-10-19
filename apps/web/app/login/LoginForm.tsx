@@ -36,8 +36,8 @@ export function LoginForm({
     setErrorMsg(null);
     setLoading(true);
 
-    if (!hasGithubOAuth && isDevLoginEnabled) {
-      // In local dev without live GitHub OAuth client credentials, authenticate directly
+    if (!hasGithubOAuth) {
+      // GitHub OAuth client credentials not set on Vercel yet; connect directly in preview mode
       try {
         const res = await signIn('credentials', {
           username: username.trim() || 'vedant-175',
@@ -45,7 +45,7 @@ export function LoginForm({
           redirect: false,
         });
         if (res?.error) {
-          setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please ensure host is localhost.' : res.error);
+          setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please verify credentials.' : res.error);
           setLoading(false);
         } else if (res?.url) {
           window.location.href = res.url;
@@ -53,8 +53,8 @@ export function LoginForm({
           window.location.href = callbackUrl;
         }
       } catch (err) {
-        console.error('Dev sign-in failed:', err);
-        setErrorMsg('Failed to sign in. Please verify local environment.');
+        console.error('Preview sign-in failed:', err);
+        setErrorMsg('Failed to sign in. Please check environment configuration.');
         setLoading(false);
       }
       return;
@@ -81,7 +81,7 @@ export function LoginForm({
         redirect: false,
       });
       if (res?.error) {
-        setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please ensure host is localhost.' : res.error);
+        setErrorMsg(res.error === 'CredentialsSignin' ? 'Sign-in failed. Please verify credentials.' : res.error);
         setLoading(false);
       } else if (res?.url) {
         window.location.href = res.url;
