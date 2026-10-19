@@ -15,7 +15,7 @@ import { prisma } from '@ai-reviewer/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getRepositories, getPullRequests } from '@/lib/data';
-import { syncUserRepositories } from '@/lib/github-sync';
+import { syncUserRepositories, syncUserPullRequests } from '@/lib/github-sync';
 import { formatTimeAgo } from '@/lib/date-format';
 import { ReviewActivityChart } from './components/ReviewActivityChart';
 
@@ -78,6 +78,19 @@ export default async function OverviewPage() {
     console.warn('[OverviewPage] Failed to fetch pull requests:', err);
   }
 
+  // If user is logged in and DB has 0 pull requests, auto-sync user's real PRs from GitHub
+  if (currentUserLogin && pullRequests.length === 0) {
+    try {
+      await syncUserPullRequests(currentUserLogin);
+      const refreshedPrs = await getPullRequests({ limit: 50 }).catch(() => null);
+      if (refreshedPrs?.data && refreshedPrs.data.length > 0) {
+        pullRequests = refreshedPrs.data;
+      }
+    } catch (syncPrErr) {
+      console.warn('[OverviewPage] Failed to auto-sync user pull requests:', syncPrErr);
+    }
+  }
+
   const repoCount = repositories.length;
   const prCount = pullRequests.length;
 
@@ -137,18 +150,18 @@ export default async function OverviewPage() {
     const repoShort = repoParts[1] || repoParts[0];
 
     return {
-      id: pr.number || pr.id,
+      id: pr.githubPrNumber || pr.number || pr.id,
       dbId: pr.id,
       repo: repoShort,
       repoFullName: pr.repository?.fullName || repoShort,
-      title: pr.title,
+      title: pr.title || `PR #${pr.githubPrNumber || pr.id}`,
       author,
       authorInitial,
       authorBg,
       status,
       statusVariant,
       findings: issuesCount,
-      updated: pr.updatedAt ? formatTimeAgo(pr.updatedAt) : 'Recently',
+      updated: pr.openedAt ? formatTimeAgo(pr.openedAt) : (pr.updatedAt ? formatTimeAgo(pr.updatedAt) : 'Recently'),
     };
   });
 
