@@ -97,15 +97,9 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
     },
     {
       name: 'CyberChatbot',
-      href: '#',
+      href: '/cyberchatbot',
       icon: MessageSquareText,
-      active: false,
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
-        const chatBtn = document.querySelector('[data-chat-toggle]') as HTMLElement;
-        if (chatBtn) chatBtn.click();
-      },
+      active: pathname.startsWith('/cyberchatbot') || pathname.startsWith('/chatbot'),
     },
   ];
 
@@ -158,7 +152,6 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
             <Link
               key={item.name}
               href={item.href}
-              onClick={item.onClick}
               className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group cursor-pointer ${
                 isActive
                   ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-zinc-900 dark:text-white dark:border-zinc-800/50'

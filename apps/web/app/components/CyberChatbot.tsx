@@ -193,7 +193,7 @@ How can I assist you with this codebase or security review today?`,
     { label: '📋 Summarize PR', query: 'Summarize all the findings in this PR' },
   ];
 
-  if (pathname === '/login') return null;
+  if (pathname === '/login' || pathname === '/cyberchatbot' || pathname === '/chatbot') return null;
 
   return (
     <>
