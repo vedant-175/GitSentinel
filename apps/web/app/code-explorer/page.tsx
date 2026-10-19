@@ -19,14 +19,14 @@ export default async function CodeExplorerPage({
 
   // Fallback repo list if DB is empty
   const fallbackRepos = [
-    { id: 1, fullName: 'Santlaj/RockPaperScissor.py', defaultBranch: 'main' },
-    { id: 2, fullName: 'Santlaj/hackathon', defaultBranch: 'main' },
-    { id: 3, fullName: 'Santlaj/Chatbot', defaultBranch: 'main' },
-    { id: 4, fullName: 'Santlaj/Webathon_final_submission', defaultBranch: 'main' },
-    { id: 5, fullName: 'Santlaj/DSA_Leetcode', defaultBranch: 'main' },
-    { id: 6, fullName: 'Santlaj/santlaj.github.io', defaultBranch: 'main' },
-    { id: 7, fullName: 'Santlaj/Smart-Internship-Portal', defaultBranch: 'main' },
-    { id: 8, fullName: 'Santlaj/infra-setup', defaultBranch: 'main' },
+    { id: 1, fullName: 'vedant-175/GitSentinel', defaultBranch: 'main' },
+    { id: 2, fullName: 'vedant-175/Smart-Internship-portal', defaultBranch: 'main' },
+    { id: 3, fullName: 'vedant-175/AI-resume-builder', defaultBranch: 'main' },
+    { id: 4, fullName: 'vedant-175/Webathon_final_submission', defaultBranch: 'main' },
+    { id: 5, fullName: 'vedant-175/Python-Programs', defaultBranch: 'main' },
+    { id: 6, fullName: 'vedant-175/website', defaultBranch: 'main' },
+    { id: 7, fullName: 'vedant-175/My-Portfolio-', defaultBranch: 'main' },
+    { id: 8, fullName: 'vedant-175/Codsoft', defaultBranch: 'main' },
   ];
 
   // Ensure vedant-175/website is present and prioritized

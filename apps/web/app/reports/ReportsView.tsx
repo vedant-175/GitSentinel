@@ -29,14 +29,14 @@ interface RepoScorecard {
 }
 
 const REPO_SCORECARDS: RepoScorecard[] = [
-  { name: 'Santlaj/RockPaperScissor.py', score: 96, grade: 'A', prsScanned: 3, findings: 3, status: 'Pass' },
-  { name: 'Santlaj/hackathon', score: 91, grade: 'A-', prsScanned: 5, findings: 4, status: 'Action Required' },
-  { name: 'Santlaj/Chatbot', score: 94, grade: 'A', prsScanned: 4, findings: 3, status: 'Pass' },
-  { name: 'Santlaj/Webathon_final_submission', score: 89, grade: 'B+', prsScanned: 6, findings: 5, status: 'Action Required' },
-  { name: 'Santlaj/DSA_Leetcode', score: 98, grade: 'A+', prsScanned: 8, findings: 5, status: 'Clean' },
-  { name: 'Santlaj/santlaj.github.io', score: 97, grade: 'A+', prsScanned: 2, findings: 1, status: 'Clean' },
-  { name: 'Santlaj/Smart-Internship-Portal', score: 92, grade: 'A-', prsScanned: 7, findings: 5, status: 'Pass' },
-  { name: 'Santlaj/infra-setup', score: 100, grade: 'A+', prsScanned: 0, findings: 0, status: 'Clean' },
+  { name: 'vedant-175/GitSentinel', score: 98, grade: 'A+', prsScanned: 5, findings: 2, status: 'Clean' },
+  { name: 'vedant-175/Smart-Internship-portal', score: 94, grade: 'A', prsScanned: 4, findings: 3, status: 'Pass' },
+  { name: 'vedant-175/AI-resume-builder', score: 96, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
+  { name: 'vedant-175/Webathon_final_submission', score: 91, grade: 'A-', prsScanned: 6, findings: 4, status: 'Action Required' },
+  { name: 'vedant-175/Python-Programs', score: 98, grade: 'A+', prsScanned: 8, findings: 3, status: 'Clean' },
+  { name: 'vedant-175/website', score: 99, grade: 'A+', prsScanned: 2, findings: 0, status: 'Clean' },
+  { name: 'vedant-175/My-Portfolio-', score: 97, grade: 'A+', prsScanned: 2, findings: 1, status: 'Clean' },
+  { name: 'vedant-175/Codsoft', score: 95, grade: 'A', prsScanned: 3, findings: 2, status: 'Pass' },
 ];
 
 export function ReportsView() {

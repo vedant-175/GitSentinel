@@ -52,112 +52,124 @@ const KNOWN_REPO_METADATA: Record<
     lastUpdated: string;
   }
 > = {
-  'Santlaj/RockPaperScissor.py': {
-    description: 'Simple Python game with security improvements',
-    prsCount: 3,
-    findings: { high: 1, medium: 2, low: 0 },
-    lastUpdated: '2 hours ago',
-  },
-  'Santlaj/hackathon': {
-    description: 'Hackathon project with full stack implementation',
+  'vedant-175/GitSentinel': {
+    description: 'Autonomous AI Code Review & Security Gate Platform',
     prsCount: 5,
-    findings: { high: 2, medium: 1, low: 1 },
-    lastUpdated: '5 hours ago',
+    findings: { high: 2, medium: 3, low: 0 },
+    lastUpdated: 'Just now',
   },
-  'Santlaj/Chatbot': {
-    description: 'AI powered chatbot for code review',
+  'vedant-175/Smart-Internship-portal': {
+    description: 'AI-driven internship recommendation & matching portal',
     prsCount: 4,
+    findings: { high: 1, medium: 2, low: 1 },
+    lastUpdated: '3 hours ago',
+  },
+  'vedant-175/AI-resume-builder': {
+    description: 'Full-stack AI resume generator with ATS optimization',
+    prsCount: 3,
     findings: { high: 0, medium: 1, low: 2 },
     lastUpdated: '1 day ago',
   },
-  'Santlaj/Webathon_final_submission': {
-    description: 'Final submission for webathon event',
+  'vedant-175/Webathon_final_submission': {
+    description: 'Final submission hackathon prototype & architecture',
     prsCount: 6,
-    findings: { high: 2, medium: 3, low: 0 },
+    findings: { high: 1, medium: 2, low: 0 },
     lastUpdated: '1 day ago',
   },
-  'Santlaj/DSA_Leetcode': {
-    description: 'Data structures and algorithms solutions',
+  'vedant-175/Python-Programs': {
+    description: 'Data structures, algorithms, and automated scripts in Python',
     prsCount: 8,
-    findings: { high: 0, medium: 4, low: 1 },
+    findings: { high: 0, medium: 3, low: 1 },
     lastUpdated: '2 days ago',
   },
-  'Santlaj/santlaj.github.io': {
-    description: 'Personal portfolio website',
+  'vedant-175/website': {
+    description: 'Official developer portfolio website and interactive showcase',
     prsCount: 2,
     findings: { high: 0, medium: 1, low: 0 },
     lastUpdated: '3 days ago',
   },
-  'Santlaj/Smart-Internship-Portal': {
-    description: 'Internship portal with AI recommendations',
-    prsCount: 7,
-    findings: { high: 2, medium: 1, low: 2 },
+  'vedant-175/My-Portfolio-': {
+    description: 'Personal web portal with React, TypeScript, and modern UI',
+    prsCount: 2,
+    findings: { high: 0, medium: 0, low: 1 },
     lastUpdated: '4 days ago',
   },
-  'Santlaj/infra-setup': {
-    description: 'Infrastructure and deployment configurations',
-    prsCount: 0,
-    findings: { high: 0, medium: 0, low: 0 },
+  'vedant-175/Codsoft': {
+    description: 'Software development internship domain projects and tasks',
+    prsCount: 3,
+    findings: { high: 0, medium: 2, low: 1 },
     lastUpdated: '5 days ago',
+  },
+  'vedant-175/hacktoberfest2025': {
+    description: 'Open source contributions and developer tooling experiments',
+    prsCount: 1,
+    findings: { high: 0, medium: 0, low: 0 },
+    lastUpdated: '1 week ago',
+  },
+  'vedant-175/ddas': {
+    description: 'Distributed data aggregation service prototype',
+    prsCount: 2,
+    findings: { high: 1, medium: 0, low: 1 },
+    lastUpdated: '1 week ago',
   },
 };
 
-// Fallback dataset that perfectly mirrors the screenshot if no DB repos exist
+// Fallback dataset that highlights Vedant's real portfolio repositories
 const DEMO_REPOSITORIES: RepoItem[] = [
   {
     id: 1,
-    fullName: 'Santlaj/RockPaperScissor.py',
-    description: 'Simple Python game with security improvements',
-    status: 'Active',
-    defaultBranch: 'main',
-    prsCount: 3,
-    findings: { high: 1, medium: 2, low: 0 },
-    lastUpdated: '2 hours ago',
-  },
-  {
-    id: 2,
-    fullName: 'Santlaj/hackathon',
-    description: 'Hackathon project with full stack implementation',
+    fullName: 'vedant-175/GitSentinel',
+    description: 'Autonomous AI Code Review & Security Gate Platform',
     status: 'Active',
     defaultBranch: 'main',
     prsCount: 5,
-    findings: { high: 2, medium: 1, low: 1 },
-    lastUpdated: '5 hours ago',
+    findings: { high: 2, medium: 3, low: 0 },
+    lastUpdated: 'Just now',
   },
   {
-    id: 3,
-    fullName: 'Santlaj/Chatbot',
-    description: 'AI powered chatbot for code review',
+    id: 2,
+    fullName: 'vedant-175/Smart-Internship-portal',
+    description: 'AI-driven internship recommendation & matching portal',
     status: 'Active',
     defaultBranch: 'main',
     prsCount: 4,
+    findings: { high: 1, medium: 2, low: 1 },
+    lastUpdated: '3 hours ago',
+  },
+  {
+    id: 3,
+    fullName: 'vedant-175/AI-resume-builder',
+    description: 'Full-stack AI resume generator with ATS optimization',
+    status: 'Active',
+    defaultBranch: 'main',
+    prsCount: 3,
     findings: { high: 0, medium: 1, low: 2 },
     lastUpdated: '1 day ago',
   },
   {
     id: 4,
-    fullName: 'Santlaj/Webathon_final_submission',
-    description: 'Final submission for webathon event',
+    fullName: 'vedant-175/Webathon_final_submission',
+    description: 'Final submission hackathon prototype & architecture',
     status: 'Active',
     defaultBranch: 'main',
     prsCount: 6,
-    findings: { high: 2, medium: 3, low: 0 },
+    findings: { high: 1, medium: 2, low: 0 },
     lastUpdated: '1 day ago',
   },
   {
     id: 5,
-    fullName: 'Santlaj/DSA_Leetcode',
-    description: 'Data structures and algorithms solutions',
+    fullName: 'vedant-175/Python-Programs',
+    description: 'Data structures, algorithms, and automated scripts in Python',
     status: 'Active',
     defaultBranch: 'main',
     prsCount: 8,
-    findings: { high: 0, medium: 4, low: 1 },
+    findings: { high: 0, medium: 3, low: 1 },
     lastUpdated: '2 days ago',
   },
   {
     id: 6,
-    fullName: 'Santlaj/santlaj.github.io',
-    description: 'Personal portfolio website',
+    fullName: 'vedant-175/website',
+    description: 'Official developer portfolio website and interactive showcase',
     status: 'Active',
     defaultBranch: 'main',
     prsCount: 2,
@@ -166,23 +178,43 @@ const DEMO_REPOSITORIES: RepoItem[] = [
   },
   {
     id: 7,
-    fullName: 'Santlaj/Smart-Internship-Portal',
-    description: 'Internship portal with AI recommendations',
+    fullName: 'vedant-175/My-Portfolio-',
+    description: 'Personal web portal with React, TypeScript, and modern UI',
     status: 'Active',
     defaultBranch: 'main',
-    prsCount: 7,
-    findings: { high: 2, medium: 1, low: 2 },
+    prsCount: 2,
+    findings: { high: 0, medium: 0, low: 1 },
     lastUpdated: '4 days ago',
   },
   {
     id: 8,
-    fullName: 'Santlaj/infra-setup',
-    description: 'Infrastructure and deployment configurations',
+    fullName: 'vedant-175/Codsoft',
+    description: 'Software development internship domain projects and tasks',
     status: 'Active',
     defaultBranch: 'main',
-    prsCount: 0,
-    findings: { high: 0, medium: 0, low: 0 },
+    prsCount: 3,
+    findings: { high: 0, medium: 2, low: 1 },
     lastUpdated: '5 days ago',
+  },
+  {
+    id: 9,
+    fullName: 'vedant-175/hacktoberfest2025',
+    description: 'Open source contributions and developer tooling experiments',
+    status: 'Active',
+    defaultBranch: 'main',
+    prsCount: 1,
+    findings: { high: 0, medium: 0, low: 0 },
+    lastUpdated: '1 week ago',
+  },
+  {
+    id: 10,
+    fullName: 'vedant-175/ddas',
+    description: 'Distributed data aggregation service prototype',
+    status: 'Active',
+    defaultBranch: 'main',
+    prsCount: 2,
+    findings: { high: 1, medium: 0, low: 1 },
+    lastUpdated: '1 week ago',
   },
 ];
 
@@ -193,7 +225,7 @@ interface RepositoriesViewProps {
 
 export function RepositoriesView({
   initialRepositories,
-  currentUserLogin = 'Santlaj',
+  currentUserLogin = 'vedant-175',
 }: RepositoriesViewProps) {
   const router = useRouter();
 
@@ -207,12 +239,16 @@ export function RepositoriesView({
   const [syncTarget, setSyncTarget] = useState('');
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [syncedRepos, setSyncedRepos] = useState<RepoItem[] | null>(null);
 
   // Analysis loading states per repo
   const [analysingId, setAnalysingId] = useState<number | null>(null);
 
   // Map database repositories or fallback
   const mappedRepositories: RepoItem[] = useMemo(() => {
+    if (syncedRepos && syncedRepos.length > 0) {
+      return syncedRepos;
+    }
     if (!initialRepositories || initialRepositories.length === 0) {
       return DEMO_REPOSITORIES;
     }
@@ -269,7 +305,7 @@ export function RepositoriesView({
         lastUpdated,
       };
     });
-  }, [initialRepositories]);
+  }, [initialRepositories, syncedRepos]);
 
   // Aggregate Metrics for 4 Cards
   const totalReposCount = mappedRepositories.length;
@@ -355,6 +391,9 @@ export function RepositoriesView({
     try {
       const res = await syncUserReposAction(userToSync);
       if (res.success) {
+        if ((res as any).repos && (res as any).repos.length > 0) {
+          setSyncedRepos((res as any).repos);
+        }
         setSyncFeedback({
           type: 'success',
           message: res.message || `Successfully synced ${res.reposCount ?? 0} repositories for '${userToSync}'!`,

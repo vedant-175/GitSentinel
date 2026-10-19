@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function RepositoriesPage() {
   const session = await getServerSession(authOptions).catch(() => null);
-  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || 'Santlaj';
+  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || 'vedant-175';
 
   let repositories: any[] = [];
   try {
