@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from './ThemeProvider';
+import { GitSentinelLogo } from './GitSentinelLogo';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -46,9 +47,7 @@ export function Navbar() {
       <div className="flex h-16 w-full items-center justify-between px-6">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
-            <Shield className="h-4 w-4 fill-white text-blue-600" />
-          </div>
+          <GitSentinelLogo className="h-8 w-8 group-hover:scale-105 transition-transform" />
           <div className="flex flex-col">
             <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
               GitSentinel

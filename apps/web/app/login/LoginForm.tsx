@@ -14,6 +14,7 @@ import {
   Terminal,
   Loader2,
 } from 'lucide-react';
+import { GitSentinelLogo } from '../components/GitSentinelLogo';
 
 interface LoginFormProps {
   isDevLoginEnabled?: boolean;
@@ -99,9 +100,7 @@ export function LoginForm({
     <div className="w-full max-w-md mx-auto flex flex-col items-center">
       {/* 1. Brand Logo & Title */}
       <div className="flex flex-col items-center text-center">
-        <div className="h-12 w-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 mb-3">
-          <Shield className="h-6 w-6 fill-white text-blue-600" />
-        </div>
+        <GitSentinelLogo className="h-12 w-12 rounded-2xl shadow-md shadow-blue-500/25 mb-3" />
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">GitSentinel</h1>
         <p className="text-xs text-slate-500 mt-0.5">AI Code Review & Security Platform</p>
       </div>
