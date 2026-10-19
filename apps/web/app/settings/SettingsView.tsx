@@ -578,15 +578,15 @@ export function SettingsView() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Platform & Security Policy Settings
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200/60 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              <Shield className="h-3 w-3 text-blue-600" />
+            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-400">
+              <Shield className="h-3 w-3 text-blue-600 dark:text-blue-400" />
               Role: {data.userRole}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Enterprise multi-model AI orchestration, fail-closed security gates, GitHub webhook telemetry, and runtime budgets.
           </p>
         </div>
@@ -595,18 +595,18 @@ export function SettingsView() {
         {activeTab === 'security' && (
           <div className="flex items-center gap-3">
             {isDirty && (
-              <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/50 px-2.5 py-1 rounded-lg">
                 Unsaved changes
               </span>
             )}
             {saveSuccess && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 animate-fade-in">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Policies updated!</span>
               </span>
             )}
             {saveError && (
-              <span className="text-xs font-semibold text-red-600 max-w-xs truncate" title={saveError}>
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400 max-w-xs truncate" title={saveError}>
                 {saveError}
               </span>
             )}
@@ -624,11 +624,11 @@ export function SettingsView() {
       </div>
 
       {/* 2. Primary Navigation Tabs */}
-      <div className="flex border-b border-slate-200 text-xs font-medium text-slate-600 gap-6 overflow-x-auto no-scrollbar">
+      <div className="flex border-b border-slate-200 dark:border-zinc-800 text-xs font-medium text-slate-600 dark:text-zinc-400 gap-6 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('ai')}
           className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'ai' ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent hover:text-slate-900'
+            activeTab === 'ai' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Cpu className="h-4 w-4" />
@@ -638,7 +638,7 @@ export function SettingsView() {
         <button
           onClick={() => setActiveTab('security')}
           className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'security' ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent hover:text-slate-900'
+            activeTab === 'security' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Shield className="h-4 w-4" />
@@ -648,7 +648,7 @@ export function SettingsView() {
         <button
           onClick={() => setActiveTab('github')}
           className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'github' ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent hover:text-slate-900'
+            activeTab === 'github' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Github className="h-4 w-4" />
@@ -658,7 +658,7 @@ export function SettingsView() {
         <button
           onClick={() => setActiveTab('notifications')}
           className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'notifications' ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent hover:text-slate-900'
+            activeTab === 'notifications' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Bell className="h-4 w-4" />
@@ -668,7 +668,7 @@ export function SettingsView() {
         <button
           onClick={() => setActiveTab('runtime')}
           className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'runtime' ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent hover:text-slate-900'
+            activeTab === 'runtime' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Activity className="h-4 w-4" />
@@ -682,15 +682,15 @@ export function SettingsView() {
       {activeTab === 'ai' && (
         <div className="space-y-6 animate-fade-in">
           {/* Active Provider Topology Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Configured Multi-Tier Provider Topology</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Configured Multi-Tier Provider Topology</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
                   Worker executes strict cascading fallback: Primary KeyPool ➔ Secondary KeyPool ➔ Deterministic Offline Gate.
                 </p>
               </div>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-0.5 text-xs font-semibold">
+              <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 text-xs font-semibold">
                 Autonomous Failover Active
               </span>
             </div>
@@ -699,46 +699,46 @@ export function SettingsView() {
               {data.aiEngine.providerOrder.map((provider) => (
                 <div
                   key={provider.tier}
-                  className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 flex flex-col justify-between"
+                  className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 p-4 space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+                      <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                         Tier {provider.tier}
                       </span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           provider.status === 'healthy'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
                         }`}
                       >
                         {provider.status.toUpperCase()}
                       </span>
                     </div>
-                    <h4 className="text-xs font-bold text-slate-900">{provider.name}</h4>
-                    <div className="text-[11px] font-mono text-slate-600 bg-white border border-slate-200 rounded p-1.5 break-all">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">{provider.name}</h4>
+                    <div className="text-[11px] font-mono text-slate-600 dark:text-zinc-300 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded p-1.5 break-all">
                       {provider.model}
                     </div>
-                    <div className="text-xs text-slate-500 space-y-1 pt-1">
+                    <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1 pt-1">
                       <div className="flex justify-between">
                         <span>Configured Keys:</span>
-                        <span className="font-semibold text-slate-800">{provider.keysCount}</span>
+                        <span className="font-semibold text-slate-800 dark:text-zinc-200">{provider.keysCount}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Active (Ready):</span>
-                        <span className="font-semibold text-emerald-600">{provider.activeKeys}</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{provider.activeKeys}</span>
                       </div>
                     </div>
                   </div>
 
                   {provider.provider !== 'deterministic-cyberops' && (
-                    <div className="pt-2 border-t border-slate-200/70">
+                    <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => handleValidateCredential(provider.provider as any)}
                         disabled={validatingCredentials === provider.provider}
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
                       >
                         {validatingCredentials === provider.provider ? (
                           <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -758,14 +758,14 @@ export function SettingsView() {
               <div
                 className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 animate-fade-in ${
                   credentialValidationResult.success
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-red-50 border-red-200 text-red-800'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-300'
                 }`}
               >
                 {credentialValidationResult.success ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                 )}
                 <div>
                   <span className="font-bold">
@@ -784,37 +784,37 @@ export function SettingsView() {
           {/* Masked Credentials & Execution Bounds */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Masked Keys Audit */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Key className="h-4 w-4 text-slate-700" />
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-zinc-800 pb-2">
+                <Key className="h-4 w-4 text-slate-700 dark:text-zinc-300" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   Masked Credential Registry
                 </h3>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
                 Plaintext API keys are never stored in database tables or delivered to client browsers.
               </p>
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <span className="font-semibold text-slate-700">Groq KeyPool (5 Registered Keys):</span>
+                  <span className="font-semibold text-slate-700 dark:text-zinc-300">Groq KeyPool (5 Registered Keys):</span>
                   <div className="grid grid-cols-1 gap-1.5 mt-1">
                     {data.aiEngine.providerOrder[0]?.maskedKeys.map((k, i) => (
-                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 px-2.5 py-1 rounded border border-slate-200 text-slate-600">
+                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 dark:bg-zinc-900 px-2.5 py-1 rounded border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300">
                         <span>Key #{i + 1}: {k}</span>
-                        <span className="text-[10px] text-emerald-600 font-sans font-bold">READY</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-bold">READY</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <span className="font-semibold text-slate-700">Gemini KeyPool (5 Registered Keys):</span>
+                  <span className="font-semibold text-slate-700 dark:text-zinc-300">Gemini KeyPool (5 Registered Keys):</span>
                   <div className="grid grid-cols-1 gap-1.5 mt-1">
                     {data.aiEngine.providerOrder[1]?.maskedKeys.map((k, i) => (
-                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 px-2.5 py-1 rounded border border-slate-200 text-slate-600">
+                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 dark:bg-zinc-900 px-2.5 py-1 rounded border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300">
                         <span>Key #{i + 1}: {k}</span>
-                        <span className="text-[10px] text-emerald-600 font-sans font-bold">READY</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-bold">READY</span>
                       </div>
                     ))}
                   </div>
@@ -823,31 +823,31 @@ export function SettingsView() {
             </div>
 
             {/* Bounded Retries & Budget */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Sliders className="h-4 w-4 text-slate-700" />
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-zinc-800 pb-2">
+                <Sliders className="h-4 w-4 text-slate-700 dark:text-zinc-300" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   Timeout & Token Quota Limits
                 </h3>
               </div>
 
               <div className="space-y-3 text-xs">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
                   <div>
-                    <span className="font-semibold text-slate-800">Enforced LLM Request Timeout</span>
-                    <p className="text-[11px] text-slate-400">Hard timeout on individual file review calls</p>
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Enforced LLM Request Timeout</span>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500">Hard timeout on individual file review calls</p>
                   </div>
-                  <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded">
+                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100 bg-slate-100 dark:bg-zinc-900 px-2.5 py-1 rounded">
                     {data.aiEngine.timeoutMs}ms
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
                   <div>
-                    <span className="font-semibold text-slate-800">Schema Validation Retry Bound</span>
-                    <p className="text-[11px] text-slate-400">Retries before failing over on malformed JSON</p>
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Schema Validation Retry Bound</span>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500">Retries before failing over on malformed JSON</p>
                   </div>
-                  <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded">
+                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100 bg-slate-100 dark:bg-zinc-900 px-2.5 py-1 rounded">
                     {data.aiEngine.schemaMaxRetries} attempts
                   </span>
                 </div>
@@ -855,12 +855,12 @@ export function SettingsView() {
                 {/* Daily Token Budget Bar */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-slate-800">Daily Installation Token Quota</span>
-                    <span className="font-mono text-slate-600">
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Daily Installation Token Quota</span>
+                    <span className="font-mono text-slate-600 dark:text-zinc-400">
                       {data.dailyTokenBudget.currentTokens.toLocaleString()} / {data.dailyTokenBudget.limit.toLocaleString()} tokens
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         data.dailyTokenBudget.currentTokens / data.dailyTokenBudget.limit > 0.8
@@ -875,7 +875,7 @@ export function SettingsView() {
                       }}
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
                     Resets automatically daily via Redis 48h rolling window.
                   </span>
                 </div>
@@ -884,40 +884,40 @@ export function SettingsView() {
           </div>
 
           {/* Failover History */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Recent Provider Failover & Resolution History
             </h3>
             {data.recentFailovers.length === 0 ? (
-              <p className="text-xs text-slate-400 py-3 text-center">
+              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">
                 No recent provider failovers recorded. All reviews completed through Tier 1.
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 font-semibold">
+                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
                       <th className="pb-2">Failed Commit</th>
                       <th className="pb-2">Error / Failover Cause</th>
                       <th className="pb-2">Timestamp</th>
                       <th className="pb-2">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
                     {data.recentFailovers.map((failover) => (
-                      <tr key={failover.id} className="hover:bg-slate-50/60">
-                        <td className="py-2.5 font-mono text-blue-600">{failover.commitSha.slice(0, 7)}</td>
-                        <td className="py-2.5 text-slate-700 max-w-md truncate" title={failover.errorMessage}>
+                      <tr key={failover.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
+                        <td className="py-2.5 font-mono text-blue-600 dark:text-blue-400">{failover.commitSha.slice(0, 7)}</td>
+                        <td className="py-2.5 text-slate-700 dark:text-zinc-300 max-w-md truncate" title={failover.errorMessage}>
                           {failover.errorMessage}
                         </td>
-                        <td className="py-2.5 text-slate-400">{new Date(failover.failedAt).toLocaleTimeString()}</td>
+                        <td className="py-2.5 text-slate-400 dark:text-zinc-500">{new Date(failover.failedAt).toLocaleTimeString()}</td>
                         <td className="py-2.5">
                           {failover.resolvedAt ? (
-                            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold">
+                            <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded text-[10px] font-bold">
                               Resolved
                             </span>
                           ) : (
-                            <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-bold">
+                            <span className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded text-[10px] font-bold">
                               Logged
                             </span>
                           )}
@@ -938,15 +938,15 @@ export function SettingsView() {
       {activeTab === 'security' && (
         <div className="space-y-6 animate-fade-in">
           {/* Target Repository Selector */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                 Configuring Repository:
               </span>
               <select
                 value={selectedRepoId || ''}
                 onChange={(e) => handleRepoChange(parseInt(e.target.value, 10))}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-2xs focus:border-blue-500 focus:outline-none cursor-pointer"
+                className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-zinc-100 shadow-2xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none cursor-pointer"
               >
                 {data.installation?.repositories.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -956,15 +956,15 @@ export function SettingsView() {
               </select>
             </div>
 
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-zinc-400">
               Settings update both in-database `Repository.config` and `organizationPolicy`.
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Gate Strictness & Severities */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2">
                 Blocking Thresholds & Severity
               </h3>
 
@@ -972,8 +972,8 @@ export function SettingsView() {
                 {/* Block Critical Security */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-slate-900 block">Block on Critical Security Findings</label>
-                    <span className="text-[11px] text-slate-500">
+                    <label className="font-semibold text-slate-900 dark:text-white block">Block on Critical Security Findings</label>
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">
                       Automatically issues BLOCK gate verdict if CWE/OWASP vulnerabilities with risk &ge; 80 detected.
                     </span>
                   </div>
@@ -984,20 +984,20 @@ export function SettingsView() {
                       handleFieldChange();
                       setBlockCritical(e.target.checked);
                     }}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
                 </div>
 
                 {/* Minimum Blocking Severity */}
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-900 block">Minimum Blocking Severity Threshold</label>
+                  <label className="font-semibold text-slate-900 dark:text-white block">Minimum Blocking Severity Threshold</label>
                   <select
                     value={severityThreshold}
                     onChange={(e) => {
                       handleFieldChange();
                       setSeverityThreshold(e.target.value as any);
                     }}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                   >
                     <option value="critical">Critical (Block only on severe exploits)</option>
                     <option value="warning">Warning (Require developer review on bugs & security)</option>
@@ -1008,8 +1008,8 @@ export function SettingsView() {
                 {/* Confidence Threshold */}
                 <div className="space-y-1">
                   <div className="flex justify-between font-semibold">
-                    <span>Minimum Calibrated Confidence</span>
-                    <span className="font-mono text-blue-600">{Math.round(confidenceThreshold * 100)}%</span>
+                    <span className="text-slate-800 dark:text-zinc-200">Minimum Calibrated Confidence</span>
+                    <span className="font-mono text-blue-600 dark:text-blue-400">{Math.round(confidenceThreshold * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -1023,21 +1023,21 @@ export function SettingsView() {
                     }}
                     className="w-full accent-blue-600 cursor-pointer"
                   />
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
                     Filters out speculative LLM hallucinations below this score.
                   </span>
                 </div>
 
                 {/* Incomplete Analysis Fallback Behavior */}
-                <div className="space-y-1 pt-2 border-t border-slate-100">
-                  <label className="font-semibold text-slate-900 block">Behavior when Analysis is Incomplete</label>
+                <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                  <label className="font-semibold text-slate-900 dark:text-white block">Behavior when Analysis is Incomplete</label>
                   <select
                     value={incompleteBehavior}
                     onChange={(e) => {
                       handleFieldChange();
                       setIncompleteBehavior(e.target.value as any);
                     }}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                   >
                     <option value="WARN">WARN (Log warning; allow merge with note)</option>
                     <option value="BLOCK">BLOCK (Fail-closed: block PR merge until retried)</option>
@@ -1048,8 +1048,8 @@ export function SettingsView() {
             </div>
 
             {/* Scope & Size Gates */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2">
                 PR Scope & Notification Budgets
               </h3>
 
@@ -1057,8 +1057,8 @@ export function SettingsView() {
                 {/* Max Comments */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-slate-900 block">Max Comments per PR</label>
-                    <span className="text-[11px] text-slate-500">Prevents review fatigue on large diffs</span>
+                    <label className="font-semibold text-slate-900 dark:text-white block">Max Comments per PR</label>
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Prevents review fatigue on large diffs</span>
                   </div>
                   <input
                     type="number"
@@ -1069,15 +1069,15 @@ export function SettingsView() {
                       handleFieldChange();
                       setMaxComments(parseInt(e.target.value, 10));
                     }}
-                    className="w-20 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-right font-mono"
+                    className="w-20 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
                   />
                 </div>
 
                 {/* Max Files per PR */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-slate-900 block">Max Files per PR</label>
-                    <span className="text-[11px] text-slate-500">Exceeding triggers partial scan</span>
+                    <label className="font-semibold text-slate-900 dark:text-white block">Max Files per PR</label>
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Exceeding triggers partial scan</span>
                   </div>
                   <input
                     type="number"
@@ -1088,15 +1088,15 @@ export function SettingsView() {
                       handleFieldChange();
                       setMaxFiles(parseInt(e.target.value, 10));
                     }}
-                    className="w-20 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-right font-mono"
+                    className="w-20 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
                   />
                 </div>
 
                 {/* Max Lines per PR */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-slate-900 block">Max Changed Lines</label>
-                    <span className="text-[11px] text-slate-500">Large diff cut-off safeguard</span>
+                    <label className="font-semibold text-slate-900 dark:text-white block">Max Changed Lines</label>
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Large diff cut-off safeguard</span>
                   </div>
                   <input
                     type="number"
@@ -1107,14 +1107,14 @@ export function SettingsView() {
                       handleFieldChange();
                       setMaxLines(parseInt(e.target.value, 10));
                     }}
-                    className="w-24 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-right font-mono"
+                    className="w-24 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
                   />
                 </div>
 
                 {/* Skip Drafts & Bots */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-800">Skip Draft PRs</span>
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Skip Draft PRs</span>
                     <input
                       type="checkbox"
                       checked={skipDrafts}
@@ -1122,11 +1122,11 @@ export function SettingsView() {
                         handleFieldChange();
                         setSkipDrafts(e.target.checked);
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-800">Skip Bot Authors (Dependabot, Renovate)</span>
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Skip Bot Authors (Dependabot, Renovate)</span>
                     <input
                       type="checkbox"
                       checked={skipBotAuthors}
@@ -1134,7 +1134,7 @@ export function SettingsView() {
                         handleFieldChange();
                         setSkipBotAuthors(e.target.checked);
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                   </div>
                 </div>
@@ -1145,11 +1145,11 @@ export function SettingsView() {
           {/* Enabled Categories & Ignored Globs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Enabled Categories */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Audited Issue Categories
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
                 Uncheck categories to disable reporting. In-repo .aireview.yml cannot override disabled checks.
               </p>
 
@@ -1163,8 +1163,8 @@ export function SettingsView() {
                       onClick={() => toggleCategory(cat)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                         isEnabled
-                          ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-2xs'
-                          : 'bg-slate-100 border-slate-200 text-slate-400 line-through'
+                          ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 shadow-2xs'
+                          : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-400 dark:text-zinc-500 line-through'
                       }`}
                     >
                       {cat.toUpperCase()} {isEnabled ? '✓' : '✕'}
@@ -1175,11 +1175,11 @@ export function SettingsView() {
             </div>
 
             {/* Ignored Globs */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-2">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-2">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Ignored File Patterns (Globs)
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
                 Comma-separated glob patterns. Broad wildcards (e.g. `**`) are rejected automatically.
               </p>
               <textarea
@@ -1189,7 +1189,7 @@ export function SettingsView() {
                   handleFieldChange();
                   setIgnoredGlobsText(e.target.value);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 p-2.5 text-xs font-mono text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
             </div>
           </div>
@@ -1197,20 +1197,21 @@ export function SettingsView() {
       )}
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* SECTION 3: GITHUB & WEBHOOKS                                              */}
       {/* ========================================================================= */}
       {activeTab === 'github' && (
         <div className="space-y-6 animate-fade-in">
           {/* Connection Status Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-3">
-                <Github className="h-6 w-6 text-slate-900" />
+                <Github className="h-6 w-6 text-slate-900 dark:text-white" />
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     GitHub App Installation: {data.installation?.accountLogin || 'Connected App'}
                   </h3>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-zinc-400">
                     Installation ID: {data.installation?.githubInstallationId} • Account Type: {data.installation?.accountType}
                   </span>
                 </div>
@@ -1220,50 +1221,50 @@ export function SettingsView() {
                 type="button"
                 onClick={handleTestGithub}
                 disabled={testingGithub}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
               >
-                {testingGithub ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5 text-blue-600" />}
+                {testingGithub ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
                 <span>{testingGithub ? 'Checking...' : 'Test Connection'}</span>
               </button>
             </div>
 
             {/* Test result banner */}
             {githubTestResult && (
-              <div className={`p-3 rounded-xl border text-xs ${githubTestResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <div className={`p-3 rounded-xl border text-xs ${githubTestResult.success ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-300'}`}>
                 <span className="font-bold">{githubTestResult.success ? '✓ GitHub App Verified' : '✕ Verification Failed'}:</span> {githubTestResult.message}
               </div>
             )}
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">24h Delivery Success</span>
-                <span className="text-lg font-bold text-emerald-600">{data.github.webhookSuccessRate}%</span>
+              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">24h Delivery Success</span>
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{data.github.webhookSuccessRate}%</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Total Webhooks Processed</span>
-                <span className="text-lg font-bold text-slate-900">{data.github.totalDeliveries}</span>
+              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">Total Webhooks Processed</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">{data.github.totalDeliveries}</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Monitored Repositories</span>
-                <span className="text-lg font-bold text-blue-600">{data.installation?.repositories.length || 0}</span>
+              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">Monitored Repositories</span>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{data.installation?.repositories.length || 0}</span>
               </div>
             </div>
           </div>
 
           {/* Webhook Delivery Logs Table */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Recent Ingress Webhook Deliveries (`WebhookDelivery`)
             </h3>
 
             {data.github.recentDeliveries.length === 0 ? (
-              <p className="text-xs text-slate-400 py-3 text-center">No recent deliveries recorded in database.</p>
+              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">No recent deliveries recorded in database.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 font-semibold">
+                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
                       <th className="pb-2">Delivery ID</th>
                       <th className="pb-2">Event</th>
                       <th className="pb-2">Action</th>
@@ -1271,18 +1272,18 @@ export function SettingsView() {
                       <th className="pb-2">Received</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
                     {data.github.recentDeliveries.map((del) => (
-                      <tr key={del.id} className="hover:bg-slate-50/60">
-                        <td className="py-2 font-mono text-slate-600 truncate max-w-[120px]">{del.deliveryId}</td>
-                        <td className="py-2 font-semibold text-slate-900">{del.event}</td>
-                        <td className="py-2 text-slate-600">{del.action || '-'}</td>
+                      <tr key={del.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
+                        <td className="py-2 font-mono text-slate-600 dark:text-zinc-400 truncate max-w-[120px]">{del.deliveryId}</td>
+                        <td className="py-2 font-semibold text-slate-900 dark:text-white">{del.event}</td>
+                        <td className="py-2 text-slate-600 dark:text-zinc-400">{del.action || '-'}</td>
                         <td className="py-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${del.statusCode >= 200 && del.statusCode < 300 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${del.statusCode >= 200 && del.statusCode < 300 ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400'}`}>
                             HTTP {del.statusCode}
                           </span>
                         </td>
-                        <td className="py-2 text-slate-400">{new Date(del.receivedAt).toLocaleTimeString()}</td>
+                        <td className="py-2 text-slate-400 dark:text-zinc-500">{new Date(del.receivedAt).toLocaleTimeString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1298,11 +1299,11 @@ export function SettingsView() {
       {/* ========================================================================= */}
       {activeTab === 'notifications' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Configured Notification Channels</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Configured Notification Channels</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
                   Surfaces supported in-app review feedback vs. unattached external dispatchers.
                 </p>
               </div>
@@ -1311,17 +1312,17 @@ export function SettingsView() {
                 type="button"
                 onClick={handleTestNotification}
                 disabled={testingNotification}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
               >
-                {testingNotification ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5 text-blue-600" />}
+                {testingNotification ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
                 <span>Send Test Alert</span>
               </button>
             </div>
 
             {/* Test result banner */}
             {notificationTestResult && (
-              <div className="p-3 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div className="p-3 rounded-xl border bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{notificationTestResult.message} Dispatched to: {notificationTestResult.deliveredTo}</span>
               </div>
             )}
@@ -1331,21 +1332,21 @@ export function SettingsView() {
               {data.notifications.supportedChannels.map((channel) => (
                 <div
                   key={channel.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50"
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50"
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900">{channel.name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full ${channel.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">{channel.name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full ${channel.status === 'ACTIVE' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
                         {channel.status}
                       </span>
                     </div>
                     {channel.note && (
-                      <p className="text-[11px] text-amber-700 font-medium">⚠️ {channel.note}</p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">⚠️ {channel.note}</p>
                     )}
                   </div>
 
-                  <span className="text-[11px] font-mono text-slate-400 capitalize">{channel.type}</span>
+                  <span className="text-[11px] font-mono text-slate-400 dark:text-zinc-500 capitalize">{channel.type}</span>
                 </div>
               ))}
             </div>
@@ -1360,63 +1361,63 @@ export function SettingsView() {
         <div className="space-y-6 animate-fade-in">
           {/* Runtime Metrics Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Reviews Completed (Month)</span>
-              <span className="text-xl font-bold text-slate-900 mt-1 block">{data.runtime.reviewsThisMonth} / {data.runtime.monthlyQuota}</span>
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Reviews Completed (Month)</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.reviewsThisMonth} / {data.runtime.monthlyQuota}</span>
             </div>
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Active Queue Workers</span>
-              <span className="text-xl font-bold text-blue-600 mt-1 block">{data.runtime.queueMetrics.concurrency} concurrent</span>
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Active Queue Workers</span>
+              <span className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 block">{data.runtime.queueMetrics.concurrency} concurrent</span>
             </div>
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Pending Queue Depth</span>
-              <span className="text-xl font-bold text-slate-900 mt-1 block">{data.runtime.queueMetrics.waiting} waiting</span>
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Pending Queue Depth</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.queueMetrics.waiting} waiting</span>
             </div>
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Deduplication Lock TTL</span>
-              <span className="text-xl font-bold text-slate-900 mt-1 block">{data.runtime.retention.deliveryDedupTtlHours} hours</span>
+            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Deduplication Lock TTL</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.retention.deliveryDedupTtlHours} hours</span>
             </div>
           </div>
 
           {/* Pre-Push Review CLI Defaults */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Developer Pre-Push Review Hook Defaults
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               Developers can execute static gate audits locally before pushing branches to GitHub:
             </p>
-            <div className="bg-slate-900 text-slate-100 p-3 rounded-xl font-mono text-xs overflow-x-auto">
+            <div className="bg-slate-900 dark:bg-black text-slate-100 p-3 rounded-xl font-mono text-xs overflow-x-auto border border-transparent dark:border-zinc-800">
               <code>npm run review:pre-push -- --strict --fail-on-critical</code>
             </div>
           </div>
 
           {/* Configuration History Audit Table */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Policy & Configuration Change Audit Trail (`AuditLog`)
             </h3>
 
             {data.runtime.configHistory.length === 0 ? (
-              <p className="text-xs text-slate-400 py-3 text-center">No configuration changes logged yet.</p>
+              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">No configuration changes logged yet.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 font-semibold">
+                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
                       <th className="pb-2">Actor</th>
                       <th className="pb-2">Role</th>
                       <th className="pb-2">Action</th>
                       <th className="pb-2">Timestamp</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
                     {data.runtime.configHistory.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50/60">
-                        <td className="py-2.5 font-semibold text-slate-800">{item.actor}</td>
-                        <td className="py-2.5 text-blue-600 font-medium">{item.actorRole || 'ADMIN'}</td>
-                        <td className="py-2.5 font-mono text-slate-600">{item.action}</td>
-                        <td className="py-2.5 text-slate-400">{new Date(item.createdAt).toLocaleString()}</td>
+                      <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
+                        <td className="py-2.5 font-semibold text-slate-800 dark:text-zinc-200">{item.actor}</td>
+                        <td className="py-2.5 text-blue-600 dark:text-blue-400 font-medium">{item.actorRole || 'ADMIN'}</td>
+                        <td className="py-2.5 font-mono text-slate-600 dark:text-zinc-400">{item.action}</td>
+                        <td className="py-2.5 text-slate-400 dark:text-zinc-500">{new Date(item.createdAt).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>

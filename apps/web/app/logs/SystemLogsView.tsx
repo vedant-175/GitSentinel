@@ -281,10 +281,10 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
       {/* 1. Header & Global Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             System Logs
           </h1>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Monitor system activity, worker execution, API requests, and review pipeline events in real time.
           </p>
         </div>
@@ -296,17 +296,17 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
             <button
               type="button"
               onClick={() => setIsAutoRefreshDropdownOpen(!isAutoRefreshDropdownOpen)}
-              className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             >
-              <RefreshCw className={`h-3.5 w-3.5 text-slate-500 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 text-slate-500 dark:text-zinc-400 ${isLoading ? 'animate-spin' : ''}`} />
               <span>
                 {autoRefreshInterval > 0 ? `Auto-refresh (${autoRefreshInterval}s)` : 'Auto-refresh (Off)'}
               </span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-0.5" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 ml-0.5" />
             </button>
 
             {isAutoRefreshDropdownOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 text-xs">
+              <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-1 shadow-lg z-30 text-xs">
                 {[
                   { label: 'Off', val: 0 },
                   { label: 'Every 5s', val: 5 },
@@ -320,8 +320,8 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                       setAutoRefreshInterval(item.val);
                       setIsAutoRefreshDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 hover:bg-slate-50 font-medium ${
-                      autoRefreshInterval === item.val ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-slate-700'
+                    className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 font-medium ${
+                      autoRefreshInterval === item.val ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/40' : 'text-slate-700 dark:text-zinc-200'
                     }`}
                   >
                     {item.label}
@@ -335,9 +335,9 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
           <a
             href="/api/system-logs/export"
             download
-            className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+            className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            <Download className="h-3.5 w-3.5 text-slate-500" />
+            <Download className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
             <span>Export Logs</span>
           </a>
 
@@ -346,9 +346,9 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
             <button
               type="button"
               onClick={() => setIsTimeframeDropdownOpen(!isTimeframeDropdownOpen)}
-              className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             >
-              <Calendar className="h-3.5 w-3.5 text-slate-500" />
+              <Calendar className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
               <span>
                 {selectedTimeframe === '1h'
                   ? 'Last 1 hour'
@@ -358,11 +358,11 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                   ? 'Last 30 days'
                   : 'Last 24 hours'}
               </span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 ml-0.5" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 ml-0.5" />
             </button>
 
             {isTimeframeDropdownOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-40 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 text-xs">
+              <div className="absolute right-0 top-full mt-1.5 w-40 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-1 shadow-lg z-30 text-xs">
                 {[
                   { label: 'Last 1 hour', val: '1h' },
                   { label: 'Last 24 hours', val: '24h' },
@@ -376,8 +376,8 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                       setSelectedTimeframe(item.val);
                       setIsTimeframeDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 hover:bg-slate-50 font-medium ${
-                      selectedTimeframe === item.val ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-slate-700'
+                    className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 font-medium ${
+                      selectedTimeframe === item.val ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/40' : 'text-slate-700 dark:text-zinc-200'
                     }`}
                   >
                     {item.label}
@@ -392,88 +392,88 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
       {/* 2. Top 5 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Card 1: Total Events */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50">
               <FileText className="h-4 w-4" />
             </div>
-            <span className="text-xs font-semibold text-slate-600">Total Events</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Total Events</span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {stats.totalEventsFormatted}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+          <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
             <span>{stats.eventsTrend}</span>
           </div>
         </div>
 
         {/* Card 2: Successful Jobs */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
               <CheckCircle2 className="h-4 w-4" />
             </div>
-            <span className="text-xs font-semibold text-slate-600">Successful Jobs</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Successful Jobs</span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {stats.successfulJobsFormatted}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-medium">
+          <div className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
             {stats.successRate}
           </div>
         </div>
 
         {/* Card 3: Failed Jobs */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50">
               <AlertTriangle className="h-4 w-4" />
             </div>
-            <span className="text-xs font-semibold text-slate-600">Failed Jobs</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Failed Jobs</span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {stats.failedJobsFormatted}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-medium">
+          <div className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
             {stats.failureRate}
           </div>
         </div>
 
         {/* Card 4: Avg. Duration */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50">
               <Clock className="h-4 w-4" />
             </div>
-            <span className="text-xs font-semibold text-slate-600">Avg. Duration</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Avg. Duration</span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {stats.avgDuration}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-medium">
+          <div className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
             {stats.p95Duration}
           </div>
         </div>
 
         {/* Card 5: Active Workers */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50">
               <Database className="h-4 w-4" />
             </div>
-            <span className="text-xs font-semibold text-slate-600">Active Workers</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Active Workers</span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {stats.activeWorkers}
           </div>
-          <div className="mt-1 text-[11px] text-slate-400 font-medium">
+          <div className="mt-1 text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
             {stats.workersSubtext}
           </div>
         </div>
       </div>
 
       {/* 3. Category Tabs */}
-      <div className="border-b border-slate-200 flex items-center gap-6 overflow-x-auto no-scrollbar">
+      <div className="border-b border-slate-200 dark:border-zinc-800 flex items-center gap-6 overflow-x-auto no-scrollbar">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -482,12 +482,12 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
               type="button"
               onClick={() => handleTabChange(tab.id)}
               className={`pb-3 text-xs font-semibold whitespace-nowrap transition-colors relative cursor-pointer ${
-                isActive ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800'
+                isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white'
               }`}
             >
               <span>{tab.label}</span>
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full" />
               )}
             </button>
           );
@@ -498,13 +498,13 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-zinc-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search logs (e.g. repository, PR #, error message, worker id...)"
-            className="h-9.5 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="h-9.5 w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-9 pr-3 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
         </div>
 
@@ -513,7 +513,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
-            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-semibold text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-3 pr-8 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer"
           >
             <option value="ALL">All Levels</option>
             <option value="INFO">INFO</option>
@@ -521,7 +521,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
             <option value="WARN">WARN</option>
             <option value="ERROR">ERROR</option>
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
         </div>
 
         {/* Filter: Components */}
@@ -529,7 +529,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
           <select
             value={selectedComponent}
             onChange={(e) => setSelectedComponent(e.target.value)}
-            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-semibold text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-3 pr-8 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer"
           >
             <option value="ALL">All Components</option>
             <option value="worker">worker</option>
@@ -541,7 +541,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
             <option value="queue">queue</option>
             <option value="system">system</option>
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
         </div>
 
         {/* Filter: Repositories */}
@@ -549,7 +549,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
           <select
             value={selectedRepository}
             onChange={(e) => setSelectedRepository(e.target.value)}
-            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-semibold text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="h-9.5 w-full appearance-none rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-3 pr-8 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer"
           >
             <option value="ALL">All Repositories</option>
             {repositories.map((repo) => (
@@ -558,25 +558,25 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
               </option>
             ))}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
         </div>
 
         {/* Clear Button */}
         <button
           type="button"
           onClick={handleClearFilters}
-          className="h-9.5 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-600 shadow-xs transition-colors cursor-pointer"
+          className="h-9.5 px-3 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-xs font-semibold text-slate-600 dark:text-zinc-300 shadow-xs transition-colors cursor-pointer"
         >
           Clear
         </button>
       </div>
 
       {/* 5. Logs Table */}
-      <div className="rounded-xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-slate-200/80 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/60 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                 <th className="py-3 pl-4 pr-3">Time (IST)</th>
                 <th className="py-3 px-3">Level</th>
                 <th className="py-3 px-3">Component</th>
@@ -586,10 +586,10 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                 <th className="py-3 pr-4 pl-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-xs text-slate-400 dark:text-zinc-500">
                     No log events found matching the specified filters.
                   </td>
                 </tr>
@@ -598,13 +598,13 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                   <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                    className="hover:bg-slate-50/80 dark:hover:bg-zinc-900/40 transition-colors group cursor-pointer"
                   >
                     {/* Time (IST) */}
                     <td className="py-3 pl-4 pr-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {renderTimeStatusIcon(log.level)}
-                        <span className="font-mono text-xs text-slate-600 font-medium">
+                        <span className="font-mono text-xs text-slate-600 dark:text-zinc-400 font-medium">
                           {log.timestamp}
                         </span>
                       </div>
@@ -617,7 +617,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
 
                     {/* Component */}
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-zinc-300">
                         {renderComponentIcon(log.component)}
                         <span className="text-xs">{log.component}</span>
                       </div>
@@ -635,7 +635,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                           <Link
                             href={`/repositories`}
                             onClick={(e) => e.stopPropagation()}
-                            className="font-medium text-blue-600 hover:underline"
+                            className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
                           >
                             {log.repo}
                           </Link>
@@ -643,16 +643,16 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                             <Link
                               href={`/pull-requests`}
                               onClick={(e) => e.stopPropagation()}
-                              className="font-medium text-blue-600 hover:underline"
+                              className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
                             >
                               #{log.prNumber}
                             </Link>
                           ) : (
-                            <span className="text-slate-400">-</span>
+                            <span className="text-slate-400 dark:text-zinc-500">-</span>
                           )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-400 dark:text-zinc-500">
                           <span>-</span>
                           <span>-</span>
                         </div>
@@ -660,7 +660,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                     </td>
 
                     {/* Duration */}
-                    <td className="py-3 px-3 text-right font-mono text-xs text-slate-600 whitespace-nowrap">
+                    <td className="py-3 px-3 text-right font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap">
                       {log.duration}
                     </td>
 
@@ -669,7 +669,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                       <button
                         type="button"
                         onClick={() => setSelectedLog(log)}
-                        className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                         title="View details"
                       >
                         <MoreHorizontal className="h-4 w-4" />
@@ -683,7 +683,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
         </div>
 
         {/* 6. Pagination Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 dark:border-zinc-800 text-xs text-slate-500 dark:text-zinc-400">
           <div>
             Showing {(pagination.page - 1) * pagination.pageSize + 1}–
             {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{' '}
@@ -696,16 +696,16 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
               type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
             >
-              <ChevronLeft className="h-3.5 w-3.5 text-slate-600" />
+              <ChevronLeft className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-300" />
             </button>
 
             {/* Page number buttons */}
             {paginationRange.map((p, idx) => {
               if (p === '...') {
                 return (
-                  <span key={`dots-${idx}`} className="px-1 text-slate-400">
+                  <span key={`dots-${idx}`} className="px-1 text-slate-400 dark:text-zinc-500">
                     ...
                   </span>
                 );
@@ -721,7 +721,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                   className={`flex h-7 min-w-[28px] px-1.5 items-center justify-center rounded-lg border text-xs font-semibold cursor-pointer transition-colors ${
                     isActive
                       ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800'
                   }`}
                 >
                   {pageNum}
@@ -734,9 +734,9 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
               type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
             >
-              <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+              <ChevronRight className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-300" />
             </button>
           </div>
         </div>
@@ -744,19 +744,19 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
 
       {/* 7. Log Details Modal (Drawer) */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 {renderLevelBadge(selectedLog.level)}
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   Log Event #{selectedLog.id}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -764,42 +764,42 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
 
             {/* Metadata Overview */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <span className="text-slate-400 text-[10px] uppercase font-bold">Component</span>
-                <p className="font-bold text-slate-900 mt-0.5">{selectedLog.component}</p>
+              <div className="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-bold">Component</span>
+                <p className="font-bold text-slate-900 dark:text-white mt-0.5">{selectedLog.component}</p>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <span className="text-slate-400 text-[10px] uppercase font-bold">Time (IST)</span>
-                <p className="font-bold text-slate-900 mt-0.5 truncate">{selectedLog.timestamp}</p>
+              <div className="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-bold">Time (IST)</span>
+                <p className="font-bold text-slate-900 dark:text-white mt-0.5 truncate">{selectedLog.timestamp}</p>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <span className="text-slate-400 text-[10px] uppercase font-bold">Repository</span>
-                <p className="font-bold text-blue-600 mt-0.5 truncate">
+              <div className="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-bold">Repository</span>
+                <p className="font-bold text-blue-600 dark:text-blue-400 mt-0.5 truncate">
                   {selectedLog.repo || 'N/A'}
                 </p>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <span className="text-slate-400 text-[10px] uppercase font-bold">Duration</span>
-                <p className="font-bold text-slate-900 mt-0.5">{selectedLog.duration}</p>
+              <div className="p-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
+                <span className="text-slate-400 dark:text-zinc-500 text-[10px] uppercase font-bold">Duration</span>
+                <p className="font-bold text-slate-900 dark:text-white mt-0.5">{selectedLog.duration}</p>
               </div>
             </div>
 
             {/* Message Body */}
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs">
-              <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">
+            <div className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-xs">
+              <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-zinc-500 font-bold block mb-1">
                 Event Message:
               </span>
-              <p className="font-semibold text-slate-900">{selectedLog.message}</p>
+              <p className="font-semibold text-slate-900 dark:text-zinc-100">{selectedLog.message}</p>
             </div>
 
             {/* JSON Metadata Payload */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 font-medium">
                 <span>Structured Metadata (JSON):</span>
                 <button
                   type="button"
                   onClick={handleCopyDetails}
-                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                  className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold cursor-pointer"
                 >
                   {copied ? (
                     <>
@@ -814,16 +814,16 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                   )}
                 </button>
               </div>
-              <pre className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-900 p-3.5 text-[11px] font-mono text-emerald-400">
+              <pre className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-900 dark:bg-black p-3.5 text-[11px] font-mono text-emerald-400">
                 {JSON.stringify(selectedLog.metadata || selectedLog, null, 2)}
               </pre>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
+            <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-zinc-800 text-white text-xs font-semibold hover:bg-slate-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
               >
                 Close
               </button>

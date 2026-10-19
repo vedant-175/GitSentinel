@@ -202,11 +202,11 @@ How can I assist you with this codebase or security review today?`,
         data-chat-toggle="true"
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-3 rounded-[20px] border border-slate-200/90 bg-white px-5 py-3 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.1),0_8px_10px_-6px_rgba(15,23,42,0.06)] hover:shadow-[0_14px_28px_-5px_rgba(15,23,42,0.14)] hover:border-slate-300 active:scale-[0.98] transition-all cursor-pointer select-none group"
+        className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-3 rounded-[20px] border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-5 py-3 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.1),0_8px_10px_-6px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.5)] hover:shadow-[0_14px_28px_-5px_rgba(15,23,42,0.14)] hover:border-slate-300 dark:hover:border-zinc-700 active:scale-[0.98] transition-all cursor-pointer select-none group"
         aria-label="Ask GitSentinel AI"
       >
         {/* Speech Bubble Icon with 3 Dots inside */}
-        <div className="flex items-center justify-center text-slate-800 transition-colors">
+        <div className="flex items-center justify-center text-slate-800 dark:text-zinc-200 transition-colors">
           <svg
             className="h-5 w-5 stroke-[2]"
             viewBox="0 0 24 24"
@@ -223,15 +223,15 @@ How can I assist you with this codebase or security review today?`,
         </div>
 
         {/* Label Text */}
-        <span className="text-[14.5px] font-semibold tracking-tight text-slate-800">
+        <span className="text-[14.5px] font-semibold tracking-tight text-slate-800 dark:text-zinc-100">
           Ask GitSentinel AI
         </span>
 
         {/* Thin Vertical Divider */}
-        <div className="h-5 w-px bg-slate-200 mx-0.5" />
+        <div className="h-5 w-px bg-slate-200 dark:bg-zinc-800 mx-0.5" />
 
         {/* Chevron Up / Down Icon */}
-        <div className="text-slate-800 flex items-center justify-center">
+        <div className="text-slate-800 dark:text-zinc-200 flex items-center justify-center">
           {isOpen ? (
             <ChevronDown className="h-4.5 w-4.5 stroke-[2.2]" />
           ) : (
@@ -247,33 +247,33 @@ How can I assist you with this codebase or security review today?`,
             isExpanded
               ? 'inset-4 md:inset-8 rounded-2xl'
               : 'bottom-22 right-6 w-full max-w-lg h-[580px] rounded-2xl'
-          } border border-slate-200 bg-white shadow-2xl shadow-slate-300/60 overflow-hidden animate-fade-in`}
+          } border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl shadow-slate-300/60 dark:shadow-black/70 overflow-hidden animate-fade-in`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800/80 bg-slate-50/70 dark:bg-zinc-900/80 px-4 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/60">
-                <Shield className="h-4 w-4 fill-blue-600/20" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/50">
+                <Shield className="h-4 w-4 fill-blue-600/20 dark:fill-blue-400/20" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-900">GitSentinel AI</span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">GitSentinel AI</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/50 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 dark:text-emerald-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     LIVE
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-500 font-medium">
+                <div className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium">
                   {prId ? `PR #${prId}` : repoFullName ? repoFullName : 'AI Security Copilot'}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 text-slate-400">
+            <div className="flex items-center gap-1 text-slate-400 dark:text-zinc-500">
               <button
                 type="button"
                 onClick={handleClearHistory}
-                className="rounded-lg p-1.5 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 title="Clear chat history"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -281,7 +281,7 @@ How can I assist you with this codebase or security review today?`,
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="rounded-lg p-1.5 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 title={isExpanded ? 'Minimize' : 'Maximize'}
               >
                 {isExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
@@ -289,7 +289,7 @@ How can I assist you with this codebase or security review today?`,
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1.5 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -298,14 +298,14 @@ How can I assist you with this codebase or security review today?`,
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-2 bg-slate-50/40 border-b border-slate-100 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-2 bg-slate-50/40 dark:bg-zinc-900/50 border-b border-slate-100 dark:border-zinc-800 no-scrollbar">
             {quickPrompts.map((p, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSendMessage(p.query)}
                 disabled={loading}
-                className="whitespace-nowrap rounded-lg bg-white border border-slate-200/90 hover:border-blue-400 hover:text-blue-600 px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+                className="whitespace-nowrap rounded-lg bg-white dark:bg-zinc-850 border border-slate-200/90 dark:border-zinc-800 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-zinc-300 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {p.label}
               </button>
@@ -313,14 +313,14 @@ How can I assist you with this codebase or security review today?`,
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-slate-50/20">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-slate-50/20 dark:bg-zinc-950/40">
             {messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {m.role === 'assistant' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100 mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 mt-0.5">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
@@ -329,7 +329,7 @@ How can I assist you with this codebase or security review today?`,
                   className={`relative max-w-[85%] rounded-2xl p-3.5 leading-relaxed text-xs shadow-2xs ${
                     m.role === 'user'
                       ? 'bg-blue-600 text-white font-medium rounded-tr-xs'
-                      : 'bg-white border border-slate-200 text-slate-800 rounded-tl-xs'
+                      : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-100 rounded-tl-xs'
                   }`}
                 >
                   <div className="whitespace-pre-wrap select-text leading-relaxed">
@@ -337,19 +337,19 @@ How can I assist you with this codebase or security review today?`,
                   </div>
 
                   {m.role === 'assistant' && (
-                    <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                    <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
                       <span suppressHydrationWarning className="font-mono">
                         {m.provider ? `Model: ${m.provider}` : m.timestamp}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleCopy(m.content, m.id)}
-                        className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer"
+                        className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                       >
                         {copiedId === m.id ? (
                           <>
-                            <Check className="h-3 w-3 text-emerald-600" />
-                            <span className="text-emerald-600 font-semibold">Copied</span>
+                            <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied</span>
                           </>
                         ) : (
                           <>
@@ -363,7 +363,7 @@ How can I assist you with this codebase or security review today?`,
                 </div>
 
                 {m.role === 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-200 text-slate-700 mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 mt-0.5">
                     <User className="h-4 w-4" />
                   </div>
                 )}
@@ -371,7 +371,7 @@ How can I assist you with this codebase or security review today?`,
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 text-blue-600 text-xs font-medium pl-1">
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-medium pl-1">
                 <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                 <span>GitSentinel AI analyzing repository context...</span>
               </div>
@@ -385,7 +385,7 @@ How can I assist you with this codebase or security review today?`,
               e.preventDefault();
               handleSendMessage();
             }}
-            className="border-t border-slate-100 bg-white p-3 flex items-center gap-2"
+            className="border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 flex items-center gap-2"
           >
             <input
               type="text"
@@ -393,12 +393,12 @@ How can I assist you with this codebase or security review today?`,
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about this code, PR #, security vulnerabilities, or fixes..."
               disabled={loading}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              className="flex-1 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all disabled:opacity-40 cursor-pointer shadow-xs"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all disabled:opacity-40 cursor-pointer shadow-xs"
             >
               <Send className="h-4 w-4" />
             </button>

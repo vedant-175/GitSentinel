@@ -568,14 +568,14 @@ export function CodeExplorerClient({
   };
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto pb-24 animate-fade-in text-slate-800">
+    <div className="space-y-4 max-w-[1600px] mx-auto pb-24 animate-fade-in text-slate-800 dark:text-zinc-200">
       {/* 1. Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             AI Code Explorer
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
             Browse repository source code, inspect files, and run AI-powered security analysis.
           </p>
         </div>
@@ -583,19 +583,19 @@ export function CodeExplorerClient({
         {/* Repository Analytics Link */}
         <Link
           href={`/repositories/${currentRepoObj?.id || 100}`}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-colors self-start sm:self-center"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-slate-50 dark:hover:bg-zinc-900 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-2xs transition-colors self-start sm:self-center"
         >
           <span>Repository Analytics</span>
-          <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+          <ExternalLink className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
         </Link>
       </div>
 
       {/* 2. Top Filter Controls Bar */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
         {/* Repo Selector Card */}
-        <div className="md:col-span-4 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs flex items-center justify-between">
+        <div className="md:col-span-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2.5 shadow-2xs flex items-center justify-between">
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            <div className="text-slate-900 shrink-0">
+            <div className="text-slate-900 dark:text-white shrink-0">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path
                   fillRule="evenodd"
@@ -605,7 +605,7 @@ export function CodeExplorerClient({
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <span className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+              <span className="block text-[10px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
                 Repository
               </span>
               <div className="relative">
@@ -615,59 +615,59 @@ export function CodeExplorerClient({
                     setSelectedRepo(e.target.value);
                     setSelectedFilePath('src/utils/logger.ts');
                   }}
-                  className="w-full appearance-none bg-transparent pr-6 text-xs font-semibold text-slate-900 focus:outline-none cursor-pointer truncate"
+                  className="w-full appearance-none bg-transparent pr-6 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none cursor-pointer truncate"
                 >
                   {repositories.map((r) => (
-                    <option key={r.id} value={r.fullName}>
+                    <option key={r.id} value={r.fullName} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">
                       {r.fullName}
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Branch / Commit Card */}
-        <div className="md:col-span-3 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs flex items-center justify-between">
+        <div className="md:col-span-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2.5 shadow-2xs flex items-center justify-between">
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            <div className="text-slate-600 shrink-0">
+            <div className="text-slate-600 dark:text-zinc-400 shrink-0">
               <GitBranch className="h-4.5 w-4.5" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+              <span className="block text-[10px] font-medium text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
                 Branch / Commit
               </span>
               <div className="relative">
                 <select
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full appearance-none bg-transparent pr-6 text-xs font-semibold text-slate-900 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent pr-6 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                 >
-                  <option value="main">main</option>
-                  <option value="master">master</option>
-                  <option value="dev">dev</option>
-                  <option value="feat/security-audit">feat/security-audit</option>
+                  <option value="main" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">main</option>
+                  <option value="master" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">master</option>
+                  <option value="dev" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">dev</option>
+                  <option value="feat/security-audit" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">feat/security-audit</option>
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Search Files Card */}
-        <div className="md:col-span-5 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-2xs flex items-center gap-2">
-          <Search className="h-4 w-4 text-slate-400 shrink-0" />
+        <div className="md:col-span-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 shadow-2xs flex items-center gap-2">
+          <Search className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0" />
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search files and folders..."
-            className="w-full bg-transparent text-xs text-slate-900 placeholder-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none"
           />
-          <kbd className="hidden sm:inline-flex items-center justify-center h-5 w-5 text-[11px] font-mono text-slate-400 bg-slate-100 border border-slate-200 rounded shrink-0">
+          <kbd className="hidden sm:inline-flex items-center justify-center h-5 w-5 text-[11px] font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded shrink-0">
             /
           </kbd>
         </div>
@@ -676,26 +676,26 @@ export function CodeExplorerClient({
       {/* 3. Main Three-Column Workspace */}
       <div
         className={`grid grid-cols-1 lg:grid-cols-12 gap-4 transition-all ${
-          isFullscreen ? 'fixed inset-0 z-50 bg-slate-50 p-6 overflow-hidden' : ''
+          isFullscreen ? 'fixed inset-0 z-50 bg-slate-50 dark:bg-zinc-950 p-6 overflow-hidden' : ''
         }`}
       >
         {/* Left Column: Files Tree Panel */}
-        <div className="lg:col-span-3 rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden flex flex-col h-[720px]">
+        <div className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs overflow-hidden flex flex-col h-[720px]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 px-4 py-3 bg-white dark:bg-zinc-950">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Files
               </span>
-              <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-mono text-slate-600">
-                <GitBranch className="h-3 w-3 text-slate-400" />
+              <div className="flex items-center gap-1 rounded-md border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2 py-0.5 text-[11px] font-mono text-slate-600 dark:text-zinc-300">
+                <GitBranch className="h-3 w-3 text-slate-400 dark:text-zinc-500" />
                 <span>{selectedBranch}</span>
-                <ChevronDown className="h-3 w-3 text-slate-400 ml-0.5" />
+                <ChevronDown className="h-3 w-3 text-slate-400 dark:text-zinc-500 ml-0.5" />
               </div>
             </div>
             <button
               type="button"
-              className="rounded-lg border border-slate-200 p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+              className="rounded-lg border border-slate-200 dark:border-zinc-800 p-1 text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
               title="Add File / Options"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -708,12 +708,12 @@ export function CodeExplorerClient({
             <div>
               <div
                 onClick={() => toggleFolder('root')}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900 cursor-pointer font-medium"
               >
                 {expandedFolders['root'] ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                 )}
                 {expandedFolders['root'] ? (
                   <FolderOpen className="h-4 w-4 text-blue-500 shrink-0" />
@@ -732,19 +732,19 @@ export function CodeExplorerClient({
                         <div key={item.id}>
                           <div
                             onClick={() => toggleFolder(item.path)}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer"
+                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900 cursor-pointer"
                           >
                             {isFolderOpen ? (
-                              <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <ChevronDown className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                             ) : (
-                              <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                             )}
                             {isFolderOpen ? (
                               <FolderOpen className="h-4 w-4 text-blue-500 shrink-0" />
                             ) : (
                               <Folder className="h-4 w-4 text-blue-500 shrink-0" />
                             )}
-                            <span className="font-medium text-slate-700">{item.name}</span>
+                            <span className="font-medium text-slate-700 dark:text-zinc-300">{item.name}</span>
                           </div>
 
                           {isFolderOpen && item.children && (
@@ -756,19 +756,19 @@ export function CodeExplorerClient({
                                     <div key={sub.id}>
                                       <div
                                         onClick={() => toggleFolder(sub.path)}
-                                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900 cursor-pointer"
                                       >
                                         {isSubOpen ? (
-                                          <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                          <ChevronDown className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                                         ) : (
-                                          <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                          <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                                         )}
                                         {isSubOpen ? (
                                           <FolderOpen className="h-4 w-4 text-blue-500 shrink-0" />
                                         ) : (
                                           <Folder className="h-4 w-4 text-blue-500 shrink-0" />
                                         )}
-                                        <span className="font-medium text-slate-700">
+                                        <span className="font-medium text-slate-700 dark:text-zinc-300">
                                           {sub.name}
                                         </span>
                                       </div>
@@ -784,11 +784,11 @@ export function CodeExplorerClient({
                                                 onClick={() => handleSelectFile(file.path)}
                                                 className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                                                   isSelected
-                                                    ? 'bg-blue-50 text-blue-700 font-medium'
-                                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                                    ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium'
+                                                    : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
                                                 }`}
                                               >
-                                                <span className="flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-blue-600 bg-blue-100/70 shrink-0">
+                                                <span className="flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-950/80 shrink-0">
                                                   TS
                                                 </span>
                                                 <span className="truncate">{file.name}</span>
@@ -809,11 +809,11 @@ export function CodeExplorerClient({
                                     onClick={() => handleSelectFile(sub.path)}
                                     className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                                       isSelected
-                                        ? 'bg-blue-50 text-blue-700 font-medium'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium'
+                                        : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
                                     }`}
                                   >
-                                    <span className="flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-blue-600 bg-blue-100/70 shrink-0">
+                                    <span className="flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-950/80 shrink-0">
                                       TS
                                     </span>
                                     <span className="truncate">{sub.name}</span>
@@ -835,11 +835,11 @@ export function CodeExplorerClient({
                         onClick={() => handleSelectFile(item.path)}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-50 text-blue-700 font-medium'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium'
+                            : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
                         }`}
                       >
-                        <FileText className="h-4 w-4 text-slate-400 shrink-0" />
+                        <FileText className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0" />
                         <span className="truncate">{item.name}</span>
                       </button>
                     );
@@ -851,18 +851,18 @@ export function CodeExplorerClient({
         </div>
 
         {/* Center Column: Code Viewer Panel */}
-        <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden flex flex-col h-[720px]">
+        <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs overflow-hidden flex flex-col h-[720px]">
           {/* File Tab Bar */}
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-2 pt-2">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 px-2 pt-2">
             <div className="flex items-center">
-              <div className="flex items-center gap-2 rounded-t-xl border-t-2 border-t-blue-600 border-x border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 shadow-2xs">
+              <div className="flex items-center gap-2 rounded-t-xl border-t-2 border-t-blue-600 border-x border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3.5 py-2 text-xs font-semibold text-slate-900 dark:text-white shadow-2xs">
                 <span className="flex h-4 w-4 items-center justify-center rounded bg-blue-600 text-[9px] font-bold text-white">
                   TS
                 </span>
                 <span>{activeFileName}</span>
                 <button
                   type="button"
-                  className="rounded p-0.5 text-slate-400 hover:text-slate-700 transition-colors"
+                  className="rounded p-0.5 text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
                   title="Close tab"
                 >
                   <X className="h-3 w-3" />
@@ -872,26 +872,26 @@ export function CodeExplorerClient({
           </div>
 
           {/* Subheader: Breadcrumb & Line Count & Actions */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2 bg-white text-xs text-slate-500">
-            <span className="font-mono text-slate-500 text-[11px] truncate">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 px-4 py-2 bg-white dark:bg-zinc-950 text-xs text-slate-500 dark:text-zinc-400">
+            <span className="font-mono text-slate-500 dark:text-zinc-400 text-[11px] truncate">
               {selectedFilePath}
             </span>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="font-mono text-[11px] text-slate-400">
+              <span className="font-mono text-[11px] text-slate-400 dark:text-zinc-500">
                 {selectedFilePath === 'src/utils/logger.ts' ? 124 : codeLines.length} lines
               </span>
               <button
                 type="button"
                 onClick={handleCopyCode}
-                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                className="text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
                 title="Copy Code"
               >
-                {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
               <button
                 type="button"
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                className="text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
                 title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
               >
                 {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
@@ -902,7 +902,7 @@ export function CodeExplorerClient({
           {/* Code Viewer Body */}
           <div
             ref={codeContainerRef}
-            className="flex-1 overflow-y-auto overflow-x-auto p-4 font-mono text-[12px] leading-relaxed bg-white select-text"
+            className="flex-1 overflow-y-auto overflow-x-auto p-4 font-mono text-[12px] leading-relaxed bg-white dark:bg-zinc-950 select-text"
           >
             {codeLines.map((line, idx) => {
               const lineNum = idx + 1;
@@ -917,14 +917,14 @@ export function CodeExplorerClient({
                   data-line={lineNum}
                   className={`flex items-start transition-colors rounded-sm ${
                     isHighlighted
-                      ? 'bg-blue-50/80 -mx-4 px-4 border-l-2 border-blue-500'
-                      : 'hover:bg-slate-50/60'
+                      ? 'bg-blue-50/80 dark:bg-blue-950/40 -mx-4 px-4 border-l-2 border-blue-500'
+                      : 'hover:bg-slate-50/60 dark:hover:bg-zinc-900/40'
                   }`}
                 >
-                  <span className="w-8 select-none pr-3 text-right text-[11px] font-mono text-slate-300 shrink-0">
+                  <span className="w-8 select-none pr-3 text-right text-[11px] font-mono text-slate-300 dark:text-zinc-600 shrink-0">
                     {lineNum}
                   </span>
-                  <div className="flex-1 whitespace-pre overflow-x-visible text-slate-800">
+                  <div className="flex-1 whitespace-pre overflow-x-visible text-slate-800 dark:text-zinc-200">
                     {renderSyntaxHighlighted(line)}
                   </div>
                 </div>
@@ -934,16 +934,16 @@ export function CodeExplorerClient({
         </div>
 
         {/* Right Column: AI Review & File Info Inspector */}
-        <div className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden flex flex-col h-[720px]">
+        <div className="lg:col-span-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs overflow-hidden flex flex-col h-[720px]">
           {/* Top Tabs */}
-          <div className="flex items-center border-b border-slate-100 bg-white px-2">
+          <div className="flex items-center border-b border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2">
             <button
               type="button"
               onClick={() => setActiveTab('review')}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
                 activeTab === 'review'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Shield className="h-4 w-4" />
@@ -954,8 +954,8 @@ export function CodeExplorerClient({
               onClick={() => setActiveTab('info')}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
                 activeTab === 'info'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <FileText className="h-4 w-4" />
@@ -988,7 +988,7 @@ export function CodeExplorerClient({
                     </div>
                     <ChevronDown className="h-4 w-4 text-blue-200" />
                   </button>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500">
                     Analyse this file for security issues, bugs, and improvements using AI.
                   </p>
                 </div>
@@ -996,8 +996,8 @@ export function CodeExplorerClient({
                 {/* 2. Findings Section */}
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-900">Findings</span>
-                    <span className="flex h-5 items-center justify-center rounded-full bg-slate-100 px-2 text-[10px] font-bold text-slate-600">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">Findings</span>
+                    <span className="flex h-5 items-center justify-center rounded-full bg-slate-100 dark:bg-zinc-800 px-2 text-[10px] font-bold text-slate-600 dark:text-zinc-300">
                       {findings.length}
                     </span>
                   </div>
@@ -1007,10 +1007,10 @@ export function CodeExplorerClient({
                       const isSelected = selectedFindingId === f.id;
                       const severityColor =
                         f.severity === 'High'
-                          ? 'border-red-200 bg-red-50 text-red-600'
+                          ? 'border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400'
                           : f.severity === 'Medium'
-                          ? 'border-amber-200 bg-amber-50 text-amber-600'
-                          : 'border-blue-200 bg-blue-50 text-blue-600';
+                          ? 'border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
+                          : 'border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400';
 
                       return (
                         <div
@@ -1018,8 +1018,8 @@ export function CodeExplorerClient({
                           onClick={() => handleSelectFinding(f)}
                           className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
                             isSelected
-                              ? 'border-blue-300 bg-blue-50/40 shadow-xs ring-1 ring-blue-200'
-                              : 'border-slate-200 hover:border-slate-300 bg-white'
+                              ? 'border-blue-300 dark:border-blue-700 bg-blue-50/40 dark:bg-blue-950/40 shadow-xs ring-1 ring-blue-200 dark:ring-blue-800'
+                              : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -1029,15 +1029,15 @@ export function CodeExplorerClient({
                               {f.severity}
                             </span>
                             <div className="min-w-0">
-                              <h4 className="text-xs font-semibold text-slate-900 truncate">
+                              <h4 className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                                 {f.title}
                               </h4>
-                              <p className="text-[11px] font-mono text-slate-400">
+                              <p className="text-[11px] font-mono text-slate-400 dark:text-zinc-500">
                                 {f.location}
                               </p>
                             </div>
                           </div>
-                          <ChevronRight className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                          <ChevronRight className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0 ml-2" />
                         </div>
                       );
                     })}
@@ -1046,17 +1046,17 @@ export function CodeExplorerClient({
 
                 {/* 3. Quick Actions */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-900">Quick Actions</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Quick Actions</span>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={handleCopyFilePath}
-                      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+                      className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                     >
                       {copiedAction === 'path' ? (
-                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Copy className="h-3.5 w-3.5 text-slate-400" />
+                        <Copy className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                       )}
                       <span>{copiedAction === 'path' ? 'Copied' : 'Copy File Path'}</span>
                     </button>
@@ -1065,27 +1065,27 @@ export function CodeExplorerClient({
                       href={`https://github.com/${selectedRepo}/blob/${selectedBranch}/${selectedFilePath}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+                      className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                     >
-                      <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+                      <ExternalLink className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                       <span>Open in GitHub</span>
                     </a>
 
                     <button
                       type="button"
                       onClick={() => alert(`Git Blame for ${selectedFilePath}:\nLast committed by Armaan2104 2 hours ago.`)}
-                      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+                      className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                     >
-                      <History className="h-3.5 w-3.5 text-slate-400" />
+                      <History className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                       <span>View Blame</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => alert(`Commit History for ${selectedFilePath}:\n- Commit 7f9b2a1: Add structured security logging`)}
-                      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+                      className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                     >
-                      <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
+                      <RotateCcw className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
                       <span>View History</span>
                     </button>
                   </div>
@@ -1093,20 +1093,20 @@ export function CodeExplorerClient({
 
                 {/* 4. AI Chat about this file */}
                 <div className="space-y-1.5 pt-1">
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
                     AI Chat about this file
                   </span>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500">
                     Ask questions about this code, findings, or how to improve it.
                   </p>
 
                   <button
                     type="button"
                     onClick={handleAskChatbot}
-                    className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer group text-left"
+                    className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3 shadow-2xs hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-xs transition-all cursor-pointer group text-left"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="text-slate-800 group-hover:text-blue-600 transition-colors">
+                      <div className="text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         <svg
                           className="h-4.5 w-4.5 stroke-[2]"
                           viewBox="0 0 24 24"
@@ -1121,47 +1121,47 @@ export function CodeExplorerClient({
                           <circle cx="16" cy="12" r="0.8" fill="currentColor" />
                         </svg>
                       </div>
-                      <span className="text-xs font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">
+                      <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         Ask GitSentinel AI
                       </span>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                    <ChevronRight className="h-4 w-4 text-slate-400 dark:text-zinc-500 group-hover:text-slate-600 dark:group-hover:text-zinc-300 transition-colors" />
                   </button>
                 </div>
               </>
             ) : (
               /* File Info Tab */
               <div className="space-y-4">
-                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2">
-                  <span className="text-xs font-bold text-slate-900">Metadata</span>
+                <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 p-3 space-y-2">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Metadata</span>
                   <dl className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <dt className="text-[10px] text-slate-400">File Name</dt>
-                      <dd className="font-semibold text-slate-800">{activeFileName}</dd>
+                      <dt className="text-[10px] text-slate-400 dark:text-zinc-500">File Name</dt>
+                      <dd className="font-semibold text-slate-800 dark:text-zinc-200">{activeFileName}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] text-slate-400">Lines of Code</dt>
-                      <dd className="font-semibold text-slate-800">{codeLines.length}</dd>
+                      <dt className="text-[10px] text-slate-400 dark:text-zinc-500">Lines of Code</dt>
+                      <dd className="font-semibold text-slate-800 dark:text-zinc-200">{codeLines.length}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] text-slate-400">Language</dt>
-                      <dd className="font-semibold text-slate-800">TypeScript</dd>
+                      <dt className="text-[10px] text-slate-400 dark:text-zinc-500">Language</dt>
+                      <dd className="font-semibold text-slate-800 dark:text-zinc-200">TypeScript</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] text-slate-400">File Size</dt>
-                      <dd className="font-semibold text-slate-800">{fileContent.length} bytes</dd>
+                      <dt className="text-[10px] text-slate-400 dark:text-zinc-500">File Size</dt>
+                      <dd className="font-semibold text-slate-800 dark:text-zinc-200">{fileContent.length} bytes</dd>
                     </div>
                     <div className="col-span-2">
-                      <dt className="text-[10px] text-slate-400">Relative Path</dt>
-                      <dd className="font-mono text-[11px] text-slate-600 truncate">{selectedFilePath}</dd>
+                      <dt className="text-[10px] text-slate-400 dark:text-zinc-500">Relative Path</dt>
+                      <dd className="font-mono text-[11px] text-slate-600 dark:text-zinc-400 truncate">{selectedFilePath}</dd>
                     </div>
                   </dl>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
-                  <span className="text-xs font-bold text-slate-900">Security Gate Status</span>
-                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3 space-y-2">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Security Gate Status</span>
+                  <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-2.5 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>3 static security violations detected in this file.</span>
                   </div>
                 </div>
