@@ -184,7 +184,10 @@ export async function GET(req: NextRequest) {
   let workerStatus: 'online' | 'degraded' | 'offline' = 'offline';
 
   // Try HTTP probe first with 1.5s timeout
-  const workerMetricsUrl = process.env.WORKER_METRICS_URL || 'http://127.0.0.1:3001/metrics';
+  const workerBase = process.env.WORKER_URL || process.env.WORKER_METRICS_URL;
+  const workerMetricsUrl = workerBase
+    ? (workerBase.endsWith('/metrics') ? workerBase : `${workerBase.replace(/\/$/, '')}/metrics`)
+    : 'http://127.0.0.1:3001/metrics';
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 1500);

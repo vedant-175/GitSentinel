@@ -18,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
+  const [_mounted, setMounted] = useState(false);
 
   useEffect(() => {
     try {
@@ -53,7 +53,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(newTheme);
     try {
       localStorage.setItem('gitsentinel-theme', newTheme);
-    } catch (_) {}
+    } catch {
+      // Storage unavailable or disabled
+    }
     applyTheme(newTheme);
   };
 

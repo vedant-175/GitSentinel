@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
     };
 
     // 4. Token Budget & Usage (from Redis & DB)
-    let dailyTokenBudget = {
+    const dailyTokenBudget = {
       currentTokens: 0,
       limit: parseInt(process.env.DAILY_TOKEN_BUDGET || '500000', 10),
       allowed: true,
@@ -184,7 +184,7 @@ export async function GET(req: NextRequest) {
     const webhookSuccessRate = totalDeliveries > 0 ? (successfulDeliveries / totalDeliveries) * 100 : 100;
 
     // 7. Queue & Concurrency Controls (BullMQ)
-    let queueMetrics = {
+    const queueMetrics = {
       waiting: 0,
       active: 0,
       completed: 0,

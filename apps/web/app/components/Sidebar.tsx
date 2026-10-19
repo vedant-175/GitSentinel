@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   ShieldCheck,
   LayoutGrid,
@@ -24,8 +24,6 @@ interface SidebarProps {
 
 export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCount = 10 }: SidebarProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams ? searchParams.get('tab') : null;
 
   const [prCount, setPrCount] = useState<number>(initialPrCount);
   const [repoCount, setRepoCount] = useState<number>(initialRepoCount);
@@ -66,11 +64,10 @@ export function Sidebar({ prCount: initialPrCount = 5, repoCount: initialRepoCou
   }
 
   const isWorkerQueueActive =
-    (pathname === '/logs' && currentTab === 'Workers') ||
     pathname === '/worker-queue' ||
     pathname === '/queue';
 
-  const isLogsActive = pathname === '/logs' && currentTab !== 'Workers';
+  const isLogsActive = pathname === '/logs';
 
   const workspaceItems = [
     {

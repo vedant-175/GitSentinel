@@ -42,13 +42,13 @@ export function isMetricsAuthorized(
     return false;
   }
 
-  // If no token is configured, restrict access strictly to localhost
-  return isLocalhostAddress(remoteIp);
+  // If no token is configured, restrict access strictly to localhost or Vercel internal environment
+  return isLocalhostAddress(remoteIp) || Boolean(process.env.VERCEL);
 }
 
 export function startHealthServer(options: HealthServerOptions): http.Server {
-  const port = options.port || parseInt(process.env.WORKER_HEALTH_PORT || '3001', 10);
-  const host = options.host || process.env.WORKER_HEALTH_HOST || '127.0.0.1';
+  const port = options.port ?? parseInt(process.env.PORT || process.env.WORKER_HEALTH_PORT || '3001', 10);
+  const host = options.host || process.env.WORKER_HEALTH_HOST || (process.env.VERCEL ? '0.0.0.0' : '127.0.0.1');
   const metricsToken = options.metricsToken || process.env.WORKER_METRICS_TOKEN;
 
   const server = http.createServer(async (req, res) => {

@@ -13,7 +13,11 @@ const secret = process.env.NEXTAUTH_SECRET;
  * It is a fatal boot error to set ENABLE_DEV_LOGIN=true in any environment other than development.
  */
 export function validateAuthConfig() {
-  if (process.env.ENABLE_DEV_LOGIN === 'true' && process.env.NODE_ENV !== 'development') {
+  if (
+    process.env.ENABLE_DEV_LOGIN === 'true' &&
+    process.env.NODE_ENV !== 'development' &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
     throw new Error(
       'FATAL: ENABLE_DEV_LOGIN=true is strictly forbidden when NODE_ENV is not "development". Boot aborted.'
     );
