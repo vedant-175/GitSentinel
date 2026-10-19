@@ -78,15 +78,21 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_code_review?schema=public
 
-      # Step 7: Lint
+      # Step 7: Build Internal Packages
+      - name: Build Internal Packages
+        run: npm run build:packages
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_code_review?schema=public
+
+      # Step 8: Lint
       - name: Run ESLint
         run: npm run lint
 
-      # Step 8: Typecheck
+      # Step 9: Typecheck
       - name: Run Typecheck
         run: npm run typecheck
 
-      # Step 9: Test (Node test runner strictly exits non-zero on failure)
+      # Step 10: Test (Node test runner strictly exits non-zero on failure)
       - name: Run Unit & Integration Tests
         run: npm run test
         env:
@@ -94,7 +100,7 @@ jobs:
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: ci-testing-secret-key-32-chars-minimum
 
-      # Step 10: Build Application Workspaces
+      # Step 11: Build Application Workspaces
       - name: Build All Workspaces
         run: npm run build
         env:
@@ -102,6 +108,6 @@ jobs:
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: ci-testing-secret-key-32-chars-minimum
 
-      # Step 11: Docker Build (Item 24)
+      # Step 12: Docker Build (Item 24)
       - name: Build Docker Images
         run: docker compose build

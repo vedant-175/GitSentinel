@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import { createPrivateKey } from 'node:crypto';
 import { Octokit } from 'octokit';
 import { createAppAuth } from '@octokit/auth-app';
 
@@ -26,7 +26,7 @@ export function getInstallationOctokit(installationId: number): Octokit | null {
     : rawPrivateKey;
 
   try {
-    crypto.createPrivateKey(privateKey);
+    createPrivateKey(privateKey);
   } catch {
     return null;
   }
