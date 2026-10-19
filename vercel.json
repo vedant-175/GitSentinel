@@ -16,8 +16,7 @@
     "worker": {
       "root": "apps/worker",
       "runtime": "node",
-      "buildCommand": "npm run build",
-      "entrypoint": "dist/index.js"
+      "entrypoint": "src/index.ts"
     }
   },
   "rewrites": [
