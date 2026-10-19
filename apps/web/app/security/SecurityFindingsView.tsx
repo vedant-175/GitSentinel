@@ -263,15 +263,15 @@ export function SecurityFindingsView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Security Findings
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200/60 px-2 py-0.5 text-xs font-semibold text-rose-700">
-              <ShieldAlert className="h-3 w-3 text-rose-600" />
+            <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/50 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:text-rose-400">
+              <ShieldAlert className="h-3 w-3 text-rose-600 dark:text-rose-400" />
               Fail-Closed Security Gate
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Aggregated vulnerability scan results, CWE/OWASP violations, and automated remediations across all repositories.
           </p>
         </div>
@@ -294,40 +294,40 @@ export function SecurityFindingsView({
       {/* 2. Four Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Findings */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
-          <div className="text-xs font-semibold text-slate-600">Total Findings</div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{stats.total}</div>
-          <div className="mt-1 text-xs text-slate-400">Across monitored pull requests</div>
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
+          <div className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Total Findings</div>
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-zinc-500">Across monitored pull requests</div>
         </div>
 
         {/* Critical & High */}
-        <div className="rounded-xl border border-rose-200/80 bg-rose-50/40 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-rose-700">
+        <div className="rounded-xl border border-rose-200/80 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-rose-700 dark:text-rose-400">
             <span>Critical & High</span>
             <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
           </div>
-          <div className="mt-3 text-2xl font-bold text-rose-700">{stats.criticalHigh}</div>
-          <div className="mt-1 text-xs text-rose-500">Blocks PR merges automatically</div>
+          <div className="mt-3 text-2xl font-bold text-rose-700 dark:text-rose-400">{stats.criticalHigh}</div>
+          <div className="mt-1 text-xs text-rose-500 dark:text-rose-400/80">Blocks PR merges automatically</div>
         </div>
 
         {/* Medium Severity */}
-        <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-amber-700">
+        <div className="rounded-xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-amber-700 dark:text-amber-400">
             <span>Medium Severity</span>
             <span className="h-2 w-2 rounded-full bg-amber-500" />
           </div>
-          <div className="mt-3 text-2xl font-bold text-amber-700">{stats.medium}</div>
-          <div className="mt-1 text-xs text-amber-600">Recommended for sprint triage</div>
+          <div className="mt-3 text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.medium}</div>
+          <div className="mt-1 text-xs text-amber-600 dark:text-amber-400/80">Recommended for sprint triage</div>
         </div>
 
         {/* Low & Advisory */}
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+        <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-zinc-400">
             <span>Low & Style</span>
             <span className="h-2 w-2 rounded-full bg-blue-500" />
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{stats.low}</div>
-          <div className="mt-1 text-xs text-slate-400">Code quality & best practices</div>
+          <div className="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{stats.low}</div>
+          <div className="mt-1 text-xs text-slate-400 dark:text-zinc-500">Code quality & best practices</div>
         </div>
       </div>
 
@@ -335,13 +335,13 @@ export function SecurityFindingsView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search findings by vulnerability, file, or CWE..."
-            className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="h-10 w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 pl-9 pr-3 text-xs text-slate-800 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all"
           />
         </div>
 
@@ -352,7 +352,7 @@ export function SecurityFindingsView({
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value as any)}
-              className="h-10 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-medium text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              className="h-10 appearance-none rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-3 pr-8 text-xs font-medium text-slate-700 dark:text-zinc-200 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer"
             >
               <option value="all">All Severities</option>
               <option value="critical">Critical</option>
@@ -360,7 +360,7 @@ export function SecurityFindingsView({
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
           </div>
 
           {/* Repository Dropdown */}
@@ -368,7 +368,7 @@ export function SecurityFindingsView({
             <select
               value={repoFilter}
               onChange={(e) => setRepoFilter(e.target.value)}
-              className="h-10 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-medium text-slate-700 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer max-w-[200px] truncate"
+              className="h-10 appearance-none rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 pl-3 pr-8 text-xs font-medium text-slate-700 dark:text-zinc-200 shadow-xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 cursor-pointer max-w-[200px] truncate"
             >
               <option value="all">All Repositories</option>
               {repoList.map((repo) => (
@@ -377,16 +377,16 @@ export function SecurityFindingsView({
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
           </div>
         </div>
       </div>
 
       {/* 4. Findings List */}
-      <div className="rounded-xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
-        <div className="divide-y divide-slate-100">
+      <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xs overflow-hidden">
+        <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
           {filteredFindings.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 text-xs">
+            <div className="p-12 text-center text-slate-500 dark:text-zinc-400 text-xs">
               No security findings match your filter criteria.
             </div>
           ) : (
@@ -395,17 +395,17 @@ export function SecurityFindingsView({
 
               const severityBadge =
                 finding.severity === 'critical'
-                  ? 'bg-rose-100 text-rose-800 border-rose-200'
+                  ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-400 border-rose-200 dark:border-rose-900/60'
                   : finding.severity === 'high'
-                  ? 'bg-orange-100 text-orange-800 border-orange-200'
+                  ? 'bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-900/60'
                   : finding.severity === 'medium'
-                  ? 'bg-amber-100 text-amber-800 border-amber-200'
-                  : 'bg-blue-100 text-blue-800 border-blue-200';
+                  ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-900/60'
+                  : 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-900/60';
 
               return (
                 <div
                   key={finding.id}
-                  className="p-4 hover:bg-slate-50/60 transition-colors"
+                  className="p-4 hover:bg-slate-50/60 dark:hover:bg-zinc-900/40 transition-colors"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
                     {/* Left: Info */}
@@ -417,29 +417,29 @@ export function SecurityFindingsView({
                           {finding.severity}
                         </span>
                         {finding.cwe && (
-                          <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-600">
+                          <span className="rounded bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-600 dark:text-zinc-300">
                             {finding.cwe}
                           </span>
                         )}
-                        <span className="text-xs text-slate-400 font-mono">
+                        <span className="text-xs text-slate-400 dark:text-zinc-500 font-mono">
                           {finding.repoFullName}
                         </span>
                         {finding.prNumber && (
                           <Link
                             href={`/pull-requests`}
-                            className="text-xs text-blue-600 hover:underline font-mono"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-mono"
                           >
                             PR #{finding.prNumber}
                           </Link>
                         )}
                       </div>
 
-                      <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
                         {finding.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-                        <FileCode className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 font-mono">
+                        <FileCode className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
                         <span className="truncate">{finding.filePath}:{finding.lineNumber || 1}</span>
                         <span>•</span>
                         <span>{finding.detectedAt}</span>
@@ -451,7 +451,7 @@ export function SecurityFindingsView({
                       <button
                         type="button"
                         onClick={() => openInCopilot(finding)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-blue-600 px-2.5 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-white dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                       >
                         <Bot className="h-3.5 w-3.5" />
                         <span>Fix with AI</span>
@@ -462,11 +462,11 @@ export function SecurityFindingsView({
                         onClick={() =>
                           setSelectedFinding(isSelected ? null : finding)
                         }
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 text-xs font-medium shadow-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-2.5 py-1.5 text-xs font-medium shadow-xs transition-colors cursor-pointer"
                       >
                         <span>{isSelected ? 'Hide Details' : 'View Details'}</span>
                         <ChevronDown
-                          className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+                          className={`h-3.5 w-3.5 text-slate-400 dark:text-zinc-500 transition-transform ${
                             isSelected ? 'rotate-180' : ''
                           }`}
                         />
@@ -476,13 +476,13 @@ export function SecurityFindingsView({
 
                   {/* Expanded Vulnerability Deep Dive Panel */}
                   {isSelected && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 bg-slate-50/80 -mx-4 -mb-4 p-4 rounded-b-xl animate-fade-in">
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800 space-y-3 bg-slate-50/80 dark:bg-zinc-900/60 -mx-4 -mb-4 p-4 rounded-b-xl animate-fade-in">
                       {finding.impact && (
                         <div>
-                          <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                          <div className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                             Security Impact
                           </div>
-                          <p className="text-xs text-slate-600 mt-0.5">
+                          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
                             {finding.impact}
                           </p>
                         </div>
@@ -490,10 +490,10 @@ export function SecurityFindingsView({
 
                       {finding.attackScenario && (
                         <div>
-                          <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                          <div className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                             Attack Scenario
                           </div>
-                          <p className="text-xs text-slate-600 mt-0.5">
+                          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
                             {finding.attackScenario}
                           </p>
                         </div>
@@ -502,18 +502,18 @@ export function SecurityFindingsView({
                       {finding.suggestedFix && (
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                               AI Suggested Patch
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopy(finding.suggestedFix!, finding.id)}
-                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 font-medium"
+                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium cursor-pointer"
                             >
                               {copiedId === finding.id ? (
                                 <>
-                                  <Check className="h-3 w-3 text-emerald-600" />
-                                  <span className="text-emerald-600">Copied!</span>
+                                  <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
                                 </>
                               ) : (
                                 <>
@@ -523,7 +523,7 @@ export function SecurityFindingsView({
                               )}
                             </button>
                           </div>
-                          <pre className="rounded-lg bg-slate-900 p-3 text-[11px] font-mono text-emerald-400 overflow-x-auto">
+                          <pre className="rounded-lg bg-slate-900 dark:bg-black border border-transparent dark:border-zinc-800 p-3 text-[11px] font-mono text-emerald-400 overflow-x-auto">
                             <code>{finding.suggestedFix}</code>
                           </pre>
                         </div>
@@ -531,10 +531,10 @@ export function SecurityFindingsView({
 
                       {finding.remediation && (
                         <div>
-                          <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                          <div className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                             Remediation Guidance
                           </div>
-                          <p className="text-xs text-slate-600 mt-0.5">
+                          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
                             {finding.remediation}
                           </p>
                         </div>
