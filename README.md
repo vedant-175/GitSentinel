@@ -147,7 +147,7 @@ GitSentinel is evaluated against a curated, ground-truth benchmark suite of **10
 ## 🚀 Local Setup & Clean Machine Reproduction
 
 ### Prerequisites
-- **Node.js**: `>= 20.0.0`
+- **Node.js**: `>= 22.0.0` (LTS)
 - **Docker & Docker Compose**: (Recommended for PostgreSQL 16 & Redis 7)
 - **Local Services** (if not using Docker):
   - **PostgreSQL**: `>= 15.0` running on port `5432`
