@@ -10,7 +10,6 @@ import {
   Code2,
   MessageSquareText,
   TrendingUp,
-  SquareActivity,
   ShieldAlert,
   FileText,
   Settings,
@@ -72,10 +71,6 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
     return null;
   }
 
-  const isWorkerQueueActive =
-    pathname === '/worker-queue' ||
-    pathname === '/queue';
-
   const isLogsActive = pathname === '/logs';
 
   const workspaceItems = [
@@ -119,12 +114,6 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
       href: '/eval',
       icon: TrendingUp,
       active: pathname.startsWith('/eval'),
-    },
-    {
-      name: 'Worker Queue',
-      href: '/logs?tab=Workers',
-      icon: SquareActivity,
-      active: isWorkerQueueActive,
     },
     {
       name: 'Security Findings',
