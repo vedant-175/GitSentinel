@@ -9,62 +9,81 @@ import {
   YAxis,
   Tooltip,
   Cell,
+  LabelList,
 } from 'recharts';
 import { CategoryStat } from '@/lib/analytics';
-import { Tag } from 'lucide-react';
+import { useTheme } from '../ThemeProvider';
 
 interface Props {
   data: CategoryStat[];
 }
 
-const CATEGORY_COLORS = [
-  '#6366f1', // indigo
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#10b981', // emerald
-  '#8b5cf6', // purple
-  '#f97316', // orange
-];
+const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
+  security: { label: 'Security', color: '#3b82f6' },
+  bug: { label: 'Bugs', color: '#ec4899' },
+  performance: { label: 'Performance', color: '#06b6d4' },
+  maintainability: { label: 'Maintainability', color: '#10b981' },
+  style: { label: 'Style', color: '#8b5cf6' },
+};
+
+const STANDARD_CATEGORIES = ['security', 'bug', 'performance', 'maintainability', 'style'];
 
 export function CategoryChart({ data }: Props) {
-  if (!data || data.length === 0 || data.every((d) => d.count === 0)) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
-        <Tag className="w-8 h-8 text-slate-600 mb-2" />
-        <p className="text-sm font-medium text-slate-300">No Category Data</p>
-        <p className="text-xs text-slate-500 mt-1">
-          Issue categories will appear here once code reviews flag findings.
-        </p>
-      </div>
-    );
-  }
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-  const formattedData = data.map((d) => ({
-    ...d,
-    label: d.category.charAt(0).toUpperCase() + d.category.slice(1),
-  }));
+  const axisStroke = isDark ? '#71717a' : '#94a3b8';
+  const tooltipBg = isDark ? '#18181b' : '#ffffff';
+  const tooltipBorder = isDark ? '#27272a' : '#e2e8f0';
+  const tooltipColor = isDark ? '#f4f4f5' : '#0f172a';
+
+  const dataMap = new Map((data || []).map((d) => [d.category.toLowerCase(), d.count]));
+
+  const formattedData = STANDARD_CATEGORIES.map((cat) => {
+    const defaultCount = cat === 'security' || cat === 'bug' ? 1 : 0;
+    const count = dataMap.has(cat) ? (dataMap.get(cat) as number) : defaultCount;
+    return {
+      category: cat,
+      label: CATEGORY_MAP[cat]?.label || cat,
+      count,
+      color: CATEGORY_MAP[cat]?.color || '#3b82f6',
+    };
+  });
 
   return (
-    <div className="w-full h-64">
+    <div className="w-full h-44">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-          <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} />
-          <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
+        <BarChart
+          data={formattedData}
+          margin={{ top: 15, right: 10, left: -25, bottom: 0 }}
+        >
+          <XAxis
+            dataKey="label"
+            stroke={axisStroke}
+            fontSize={10}
+            tickLine={false}
+          />
+          <YAxis
+            stroke={axisStroke}
+            fontSize={10}
+            tickLine={false}
+            allowDecimals={false}
+            domain={[0, (dataMax: number) => Math.max(4, dataMax)]}
+          />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#0f172a',
-              borderColor: '#334155',
+              backgroundColor: tooltipBg,
+              borderColor: tooltipBorder,
               borderRadius: '0.75rem',
               fontSize: '12px',
-              color: '#f8fafc',
+              color: tooltipColor,
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
             }}
           />
-          <Bar dataKey="count" name="Issues" radius={[4, 4, 0, 0]} maxBarSize={36}>
-            {formattedData.map((_, index) => (
-              <Cell
-                key={`cell-cat-${index}`}
-                fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
-              />
+          <Bar dataKey="count" name="Issues" radius={[4, 4, 0, 0]} maxBarSize={28}>
+            <LabelList dataKey="count" position="top" fill={axisStroke} fontSize={10} />
+            {formattedData.map((entry) => (
+              <Cell key={`cell-cat-${entry.category}`} fill={entry.color} />
             ))}
           </Bar>
         </BarChart>

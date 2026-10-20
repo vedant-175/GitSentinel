@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Play, Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { analyseRepositoryAction } from '../actions/repo-actions';
 
 interface AnalyseRepoButtonProps {
   repoId: number;
   repoFullName: string;
-  variant?: 'card' | 'compact';
+  variant?: 'card' | 'compact' | 'primary';
 }
 
 export function AnalyseRepoButton({
@@ -22,16 +22,13 @@ export function AnalyseRepoButton({
 
   const handleAnalyse = async () => {
     setLoading(true);
-    setStatusText('Initiating AST & LLM surveillance...');
+    setStatusText('Analyzing repo...');
 
     try {
       const res = await analyseRepositoryAction(repoId, repoFullName);
       if (res.success) {
-        setStatusText(`Complete (${res.issuesCount} findings)! Opening analytics...`);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('cyberops:switch-tab', { detail: 'analytics' }));
-        }
-        router.push(`/repositories/${repoId}?tab=analytics`);
+        setStatusText(`Complete (${res.issuesCount} findings)!`);
+        router.push(`/repositories/${repoId}`);
         router.refresh();
         setTimeout(() => {
           setLoading(false);
@@ -53,22 +50,22 @@ export function AnalyseRepoButton({
     }
   };
 
-  if (variant === 'compact') {
+  if (variant === 'compact' || variant === 'primary') {
     return (
       <button
         type="button"
         disabled={loading}
         onClick={handleAnalyse}
-        className="flex items-center gap-1.5 rounded-xl border border-cyan-500/50 bg-cyan-500/10 hover:bg-cyan-500/20 px-3 py-1.5 text-xs font-mono font-bold text-cyan-300 hover:text-white transition-all active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-[0_0_12px_rgba(0,240,255,0.2)]"
+        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-all cursor-pointer disabled:opacity-60 shrink-0"
       >
         {loading ? (
           <>
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-400" />
-            <span>{statusText || 'Analyzing...'}</span>
+            <Loader2 className="h-4 w-4 animate-spin text-white" />
+            <span className="font-mono text-xs">{statusText || 'Analyzing...'}</span>
           </>
         ) : (
           <>
-            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+            <Play className="h-3.5 w-3.5 fill-current" />
             <span>Analyse Repository</span>
           </>
         )}
@@ -81,18 +78,18 @@ export function AnalyseRepoButton({
       type="button"
       disabled={loading}
       onClick={handleAnalyse}
-      className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-500/50 bg-gradient-to-r from-cyan-500/20 via-cyan-500/10 to-teal-500/20 hover:from-cyan-500/30 hover:to-teal-500/30 py-2.5 px-3 text-xs font-mono font-bold text-cyan-300 hover:text-white transition-all active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.2)] group"
+      className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/40 py-2.5 px-3 text-xs font-semibold text-blue-700 dark:text-blue-300 transition-all active:scale-[0.99] disabled:opacity-60 cursor-pointer shadow-xs group"
     >
       {loading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+          <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
           <span className="truncate">{statusText || 'Analyzing Repository...'}</span>
         </>
       ) : (
         <>
-          <Sparkles className="h-4 w-4 text-cyan-400 group-hover:rotate-12 transition-transform" />
+          <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 group-hover:rotate-12 transition-transform" />
           <span>Analyse Repository</span>
-          <ArrowRight className="h-3.5 w-3.5 ml-auto opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-cyan-400" />
+          <ArrowRight className="h-3.5 w-3.5 ml-auto opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-blue-600 dark:text-blue-400" />
         </>
       )}
     </button>
