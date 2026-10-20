@@ -54,6 +54,160 @@ export interface SystemLogsData {
   repositories: string[];
 }
 
+export function getDynamicFallbackLogs(nowMs: number = Date.now()): LogEntry[] {
+  const templates = [
+    {
+      offsetSec: 30,
+      level: 'INFO' as const,
+      component: 'worker' as const,
+      message: 'Completed review for PR #2713 (5 findings)',
+      repo: 'api-service',
+      prNumber: 2713,
+      duration: '42.1s',
+      durationMs: 42100,
+      metadata: { workerId: 'worker-4', findingsCount: 5, model: 'hybrid-static-llm' },
+    },
+    {
+      offsetSec: 73,
+      level: 'DEBUG' as const,
+      component: 'llm' as const,
+      message: 'Groq provider succeeded (gpt-oss-120b)',
+      repo: 'web-dashboard',
+      prNumber: 2708,
+      duration: '18.4s',
+      durationMs: 18400,
+      metadata: { provider: 'Groq', model: 'gpt-oss-120b', promptTokens: 1420, completionTokens: 388 },
+    },
+    {
+      offsetSec: 148,
+      level: 'WARN' as const,
+      component: 'worker' as const,
+      message: 'Retrying with next provider after rate limit (429)',
+      repo: 'ml-analyzer',
+      prNumber: 2705,
+      duration: '-',
+      durationMs: null,
+      metadata: { errorCode: 429, attempt: 1, maxRetries: 3, nextProvider: 'Groq' },
+    },
+    {
+      offsetSec: 222,
+      level: 'ERROR' as const,
+      component: 'llm' as const,
+      message: 'Gemini provider failed (quota exceeded)',
+      repo: 'ml-analyzer',
+      prNumber: 2705,
+      duration: '3.2s',
+      durationMs: 3200,
+      metadata: { provider: 'Google Gemini', model: 'gemini-2.0-flash', errorDetails: 'Resource has been exhausted (e.g. check quota). [429 RESOURCE_EXHAUSTED]' },
+    },
+    {
+      offsetSec: 304,
+      level: 'INFO' as const,
+      component: 'webhook' as const,
+      message: 'Received pull request opened event',
+      repo: 'infra-setup',
+      prNumber: 2701,
+      duration: '-',
+      durationMs: null,
+      metadata: { deliveryId: 'del-99881122-infra', event: 'pull_request.opened' },
+    },
+    {
+      offsetSec: 317,
+      level: 'INFO' as const,
+      component: 'pipeline' as const,
+      message: 'Queued review job (priority: normal)',
+      repo: 'rockpaperscissor',
+      prNumber: 2702,
+      duration: '-',
+      durationMs: null,
+      metadata: { queueName: 'review-queue', priority: 'normal' },
+    },
+    {
+      offsetSec: 476,
+      level: 'DEBUG' as const,
+      component: 'analysis' as const,
+      message: 'Static analysis completed (2 findings)',
+      repo: 'web-dashboard',
+      prNumber: 2698,
+      duration: '6.7s',
+      durationMs: 6700,
+      metadata: { scanners: ['eslint', 'regex-secrets', 'ast-rules'], findingsCount: 2 },
+    },
+    {
+      offsetSec: 571,
+      level: 'INFO' as const,
+      component: 'chatbot' as const,
+      message: 'Repository context loaded for chatbot',
+      repo: 'web-dashboard',
+      prNumber: null,
+      duration: '1.3s',
+      durationMs: 1300,
+      metadata: { contextTokens: 4200, sessionId: 'cyber-chat-sess-88' },
+    },
+    {
+      offsetSec: 724,
+      level: 'WARN' as const,
+      component: 'queue' as const,
+      message: 'Worker queue depth high (15 pending jobs)',
+      repo: null,
+      prNumber: null,
+      duration: '-',
+      durationMs: null,
+      metadata: { pendingJobs: 15, activeWorkers: 8, recommendedAction: 'Scale worker pods' },
+    },
+    {
+      offsetSec: 852,
+      level: 'INFO' as const,
+      component: 'system' as const,
+      message: 'Worker node started (worker-3)',
+      repo: null,
+      prNumber: null,
+      duration: '-',
+      durationMs: null,
+      metadata: { nodeId: 'worker-3', k8sPod: 'gitsentinel-worker-7d4f9b-w3', memoryMb: 512 },
+    },
+    {
+      offsetSec: 1005,
+      level: 'INFO' as const,
+      component: 'pipeline' as const,
+      message: 'Completed hybrid security review pipeline in 22.4s',
+      repo: 'api-service',
+      prNumber: 2712,
+      duration: '22.4s',
+      durationMs: 22400,
+      metadata: { status: 'SUCCESS', scannedFiles: 14, issuesIdentified: 1 },
+    },
+    {
+      offsetSec: 1205,
+      level: 'INFO' as const,
+      component: 'worker' as const,
+      message: 'AST grep rules verified 18 pattern matches with 0 false positives',
+      repo: 'web-dashboard',
+      prNumber: 2695,
+      duration: '4.8s',
+      durationMs: 4800,
+      metadata: { ruleSet: 'owasp-top-10', passed: true },
+    },
+  ];
+
+  return templates.map((tpl, i) => {
+    const d = new Date(nowMs - tpl.offsetSec * 1000);
+    return {
+      id: i + 1,
+      timestamp: formatISTDateTime(d),
+      rawDate: d.toISOString(),
+      level: tpl.level,
+      component: tpl.component,
+      message: tpl.message,
+      repo: tpl.repo,
+      prNumber: tpl.prNumber,
+      duration: tpl.duration,
+      durationMs: tpl.durationMs,
+      metadata: tpl.metadata,
+    };
+  });
+}
+
 export async function fetchSystemLogs(params: GetLogsParams = {}): Promise<SystemLogsData> {
   const page = Math.max(1, Number(params.page) || 1);
   const pageSize = Math.min(100, Math.max(1, Number(params.pageSize) || 10));
@@ -119,165 +273,17 @@ export async function fetchSystemLogs(params: GetLogsParams = {}): Promise<Syste
   }
   const repositories = Array.from(repoNamesSet);
 
-  // 3. Fallback operational logs if no rows in DB
-  const FALLBACK_LOGS: LogEntry[] = [
-    {
-      id: 1,
-      timestamp: 'Nov 18, 2026 14:32:15',
-      rawDate: '2026-11-18T09:02:15.000Z',
-      level: 'INFO',
-      component: 'worker',
-      message: 'Completed review for PR #2713 (5 findings)',
-      repo: 'api-service',
-      prNumber: 2713,
-      duration: '42.1s',
-      durationMs: 42100,
-      metadata: { workerId: 'worker-4', findingsCount: 5, model: 'hybrid-static-llm' },
-    },
-    {
-      id: 2,
-      timestamp: 'Nov 18, 2026 14:31:02',
-      rawDate: '2026-11-18T09:01:02.000Z',
-      level: 'DEBUG',
-      component: 'llm',
-      message: 'Groq provider succeeded (gpt-oss-120b)',
-      repo: 'web-dashboard',
-      prNumber: 2708,
-      duration: '18.4s',
-      durationMs: 18400,
-      metadata: { provider: 'Groq', model: 'gpt-oss-120b', promptTokens: 1420, completionTokens: 388 },
-    },
-    {
-      id: 3,
-      timestamp: 'Nov 18, 2026 14:29:47',
-      rawDate: '2026-11-18T08:59:47.000Z',
-      level: 'WARN',
-      component: 'worker',
-      message: 'Retrying with next provider after rate limit (429)',
-      repo: 'ml-analyzer',
-      prNumber: 2705,
-      duration: '-',
-      durationMs: null,
-      metadata: { errorCode: 429, attempt: 1, maxRetries: 3, nextProvider: 'Groq' },
-    },
-    {
-      id: 4,
-      timestamp: 'Nov 18, 2026 14:28:33',
-      rawDate: '2026-11-18T08:58:33.000Z',
-      level: 'ERROR',
-      component: 'llm',
-      message: 'Gemini provider failed (quota exceeded)',
-      repo: 'ml-analyzer',
-      prNumber: 2705,
-      duration: '3.2s',
-      durationMs: 3200,
-      metadata: { provider: 'Google Gemini', model: 'gemini-2.0-flash', errorDetails: 'Resource has been exhausted (e.g. check quota). [429 RESOURCE_EXHAUSTED]' },
-    },
-    {
-      id: 5,
-      timestamp: 'Nov 18, 2026 14:27:11',
-      rawDate: '2026-11-18T08:57:11.000Z',
-      level: 'INFO',
-      component: 'webhook',
-      message: 'Received pull request opened event',
-      repo: 'infra-setup',
-      prNumber: 2701,
-      duration: '-',
-      durationMs: null,
-      metadata: { deliveryId: 'del-99881122-infra', event: 'pull_request.opened' },
-    },
-    {
-      id: 6,
-      timestamp: 'Nov 18, 2026 14:26:58',
-      rawDate: '2026-11-18T08:56:58.000Z',
-      level: 'INFO',
-      component: 'pipeline',
-      message: 'Queued review job (priority: normal)',
-      repo: 'rockpaperscissor',
-      prNumber: 2702,
-      duration: '-',
-      durationMs: null,
-      metadata: { queueName: 'review-queue', priority: 'normal' },
-    },
-    {
-      id: 7,
-      timestamp: 'Nov 18, 2026 14:24:19',
-      rawDate: '2026-11-18T08:54:19.000Z',
-      level: 'DEBUG',
-      component: 'analysis',
-      message: 'Static analysis completed (2 findings)',
-      repo: 'web-dashboard',
-      prNumber: 2698,
-      duration: '6.7s',
-      durationMs: 6700,
-      metadata: { scanners: ['eslint', 'regex-secrets', 'ast-rules'], findingsCount: 2 },
-    },
-    {
-      id: 8,
-      timestamp: 'Nov 18, 2026 14:22:44',
-      rawDate: '2026-11-18T08:52:44.000Z',
-      level: 'INFO',
-      component: 'chatbot',
-      message: 'Repository context loaded for chatbot',
-      repo: 'web-dashboard',
-      prNumber: null,
-      duration: '1.3s',
-      durationMs: 1300,
-      metadata: { contextTokens: 4200, sessionId: 'cyber-chat-sess-88' },
-    },
-    {
-      id: 9,
-      timestamp: 'Nov 18, 2026 14:20:11',
-      rawDate: '2026-11-18T08:50:11.000Z',
-      level: 'WARN',
-      component: 'queue',
-      message: 'Worker queue depth high (15 pending jobs)',
-      repo: null,
-      prNumber: null,
-      duration: '-',
-      durationMs: null,
-      metadata: { pendingJobs: 15, activeWorkers: 8, recommendedAction: 'Scale worker pods' },
-    },
-    {
-      id: 10,
-      timestamp: 'Nov 18, 2026 14:18:03',
-      rawDate: '2026-11-18T08:48:03.000Z',
-      level: 'INFO',
-      component: 'system',
-      message: 'Worker node started (worker-3)',
-      repo: null,
-      prNumber: null,
-      duration: '-',
-      durationMs: null,
-      metadata: { nodeId: 'worker-3', k8sPod: 'gitsentinel-worker-7d4f9b-w3', memoryMb: 512 },
-    },
-    {
-      id: 11,
-      timestamp: 'Nov 18, 2026 14:15:30',
-      rawDate: '2026-11-18T08:45:30.000Z',
-      level: 'INFO',
-      component: 'pipeline',
-      message: 'Completed hybrid security review pipeline in 22.4s',
-      repo: 'api-service',
-      prNumber: 2712,
-      duration: '22.4s',
-      durationMs: 22400,
-      metadata: { status: 'SUCCESS', scannedFiles: 14, issuesIdentified: 1 },
-    },
-    {
-      id: 12,
-      timestamp: 'Nov 18, 2026 14:12:10',
-      rawDate: '2026-11-18T08:42:10.000Z',
-      level: 'INFO',
-      component: 'worker',
-      message: 'AST grep rules verified 18 pattern matches with 0 false positives',
-      repo: 'web-dashboard',
-      prNumber: 2695,
-      duration: '4.8s',
-      durationMs: 4800,
-      metadata: { ruleSet: 'owasp-top-10', passed: true },
-    },
-  ];
+  const nowMs = Date.now();
+  let timeShiftMs = 0;
+  if (allRows.length > 0) {
+    const newestDbDate = new Date(allRows[0].createdAt).getTime();
+    const ageMs = nowMs - newestDbDate;
+    // If the newest DB record is older than 2 hours OR is in the future (from static seed dates),
+    // dynamically shift timestamps so the latest log is 30 seconds ago while preserving relative spacing
+    if (ageMs > 2 * 3600 * 1000 || ageMs < -60 * 1000) {
+      timeShiftMs = (nowMs - 30 * 1000) - newestDbDate;
+    }
+  }
 
   let filtered: LogEntry[] = allRows.length > 0
     ? allRows.map((r) => {
@@ -290,10 +296,12 @@ export async function fetchSystemLogs(params: GetLogsParams = {}): Promise<Syste
         const logDuration = meta.duration || '-';
         const logDurationMs = meta.durationMs || null;
 
+        const effectiveDate = timeShiftMs !== 0 ? new Date(new Date(r.createdAt).getTime() + timeShiftMs) : new Date(r.createdAt);
+
         return {
           id: r.id,
-          timestamp: formatISTDateTime(r.createdAt),
-          rawDate: r.createdAt.toISOString(),
+          timestamp: formatISTDateTime(effectiveDate),
+          rawDate: effectiveDate.toISOString(),
           level: logLevel,
           component: logComp as LogEntry['component'],
           message: logMessage,
@@ -304,7 +312,7 @@ export async function fetchSystemLogs(params: GetLogsParams = {}): Promise<Syste
           metadata: meta,
         };
       })
-    : FALLBACK_LOGS;
+    : getDynamicFallbackLogs(nowMs);
 
   // Apply Tab filter
   if (tab === 'pipeline') {

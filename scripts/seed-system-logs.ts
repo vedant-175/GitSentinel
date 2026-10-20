@@ -91,11 +91,13 @@ async function seedSystemLogs() {
   }
 
   // 4. Exact 10 Top Logs matching the screenshot
-  // Base date: Nov 18, 2026 IST (UTC = Nov 18, 2026 09:02:15 UTC for 14:32:15 IST)
+  // Dynamically anchored to current time so seeded logs are always up-to-date
+  const nowMs = Date.now();
+  const anchorSeconds = 14 * 3600 + 32 * 60 + 15;
   const baseISTDate = (h: number, m: number, s: number) => {
-    // 2026-11-18 with IST (+05:30) offset
-    const d = new Date(Date.UTC(2026, 10, 18, h - 5, m - 30, s));
-    return d;
+    const timeInSec = h * 3600 + m * 60 + s;
+    const diffSec = anchorSeconds - timeInSec;
+    return new Date(nowMs - (30 + Math.max(0, diffSec)) * 1000);
   };
 
   const top10 = [

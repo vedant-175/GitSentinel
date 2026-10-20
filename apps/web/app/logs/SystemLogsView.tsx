@@ -148,22 +148,22 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
   const renderComponentIcon = (comp: string) => {
     switch (comp.toLowerCase()) {
       case 'worker':
-        return <Settings className="h-3.5 w-3.5 text-slate-600" />;
+        return <Settings className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-400" />;
       case 'llm':
-        return <Sparkles className="h-3.5 w-3.5 text-blue-600" />;
+        return <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />;
       case 'webhook':
-        return <GitFork className="h-3.5 w-3.5 text-purple-600" />;
+        return <GitFork className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />;
       case 'pipeline':
-        return <Layers className="h-3.5 w-3.5 text-slate-600" />;
+        return <Layers className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-400" />;
       case 'analysis':
-        return <Search className="h-3.5 w-3.5 text-slate-600" />;
+        return <Search className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-400" />;
       case 'chatbot':
-        return <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />;
+        return <MessageSquare className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />;
       case 'queue':
-        return <AlignLeft className="h-3.5 w-3.5 text-amber-600" />;
+        return <AlignLeft className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />;
       case 'system':
       default:
-        return <Server className="h-3.5 w-3.5 text-slate-600" />;
+        return <Server className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-400" />;
     }
   };
 
@@ -172,25 +172,25 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
     switch (level) {
       case 'INFO':
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded border border-emerald-300 bg-emerald-50 text-emerald-700">
+          <div className="flex h-5 w-5 items-center justify-center rounded border border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
             <span className="text-[10px] font-bold">i</span>
           </div>
         );
       case 'DEBUG':
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded border border-blue-300 bg-blue-50 text-blue-700">
+          <div className="flex h-5 w-5 items-center justify-center rounded border border-blue-300 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400">
             <span className="text-[10px] font-bold">D</span>
           </div>
         );
       case 'WARN':
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded border border-amber-300 bg-amber-50 text-amber-700">
+          <div className="flex h-5 w-5 items-center justify-center rounded border border-amber-300 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
             <AlertTriangle className="h-3 w-3 stroke-[2.5]" />
           </div>
         );
       case 'ERROR':
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded border border-rose-300 bg-rose-50 text-rose-700">
+          <div className="flex h-5 w-5 items-center justify-center rounded border border-rose-300 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400">
             <X className="h-3 w-3 stroke-[3]" />
           </div>
         );
@@ -204,30 +204,30 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
     switch (level) {
       case 'INFO':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/50">
             INFO
           </span>
         );
       case 'DEBUG':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-blue-50 text-blue-700 border border-blue-200/80">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/50">
             DEBUG
           </span>
         );
       case 'WARN':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-50 text-amber-800 border border-amber-200/80">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50">
             WARN
           </span>
         );
       case 'ERROR':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/50">
             ERROR
           </span>
         );
       default:
-        return <span>{level}</span>;
+        return <span className="dark:text-zinc-300">{level}</span>;
     }
   };
 
@@ -235,19 +235,19 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
   const renderMessageContent = (message: string) => {
     const parts = message.split(/(PR #\d+|\(\d+ findings\))/g);
     return (
-      <span className="text-xs text-slate-800 font-normal">
+      <span className="text-xs text-slate-800 dark:text-zinc-200 font-normal">
         {parts.map((part, idx) => {
           if (part.startsWith('PR #')) {
             const prNum = part.replace('PR #', '');
             return (
-              <span key={idx} className="font-semibold text-blue-600 hover:underline cursor-pointer">
+              <span key={idx} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
                 PR #{prNum}
               </span>
             );
           }
           if (part.includes('findings')) {
             return (
-              <span key={idx} className="text-slate-500 font-medium">
+              <span key={idx} className="text-slate-500 dark:text-zinc-400 font-medium">
                 {part}
               </span>
             );
@@ -291,6 +291,18 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
 
         {/* Right Top Controls */}
         <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Manual Refresh Button */}
+          <button
+            type="button"
+            onClick={() => fetchLogs()}
+            disabled={isLoading}
+            className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
+            title="Refresh logs to latest time"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 text-slate-500 dark:text-zinc-400 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
           {/* Auto-refresh Dropdown */}
           <div className="relative">
             <button
@@ -604,7 +616,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                     <td className="py-3 pl-4 pr-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {renderTimeStatusIcon(log.level)}
-                        <span className="font-mono text-xs text-slate-600 dark:text-zinc-400 font-medium">
+                        <span className="font-mono text-xs text-slate-600 dark:text-zinc-300 font-medium">
                           {log.timestamp}
                         </span>
                       </div>
@@ -617,7 +629,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
 
                     {/* Component */}
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-zinc-300">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-zinc-200">
                         {renderComponentIcon(log.component)}
                         <span className="text-xs">{log.component}</span>
                       </div>
@@ -660,7 +672,7 @@ export function SystemLogsView({ initialData }: SystemLogsViewProps) {
                     </td>
 
                     {/* Duration */}
-                    <td className="py-3 px-3 text-right font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                    <td className="py-3 px-3 text-right font-mono text-xs text-slate-600 dark:text-zinc-300 whitespace-nowrap">
                       {log.duration}
                     </td>
 
