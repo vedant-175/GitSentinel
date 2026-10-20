@@ -13,11 +13,17 @@ import {
   RotateCcw,
   MoreHorizontal,
   ChevronDown,
+  RefreshCw,
+  GitPullRequest,
+  AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 import { formatDate, formatTimeAgo } from '@/lib/date-format';
+import { syncUserPullRequestsAction } from '../actions/pr-actions';
 
 interface Props {
   initialPullRequests: any[];
+  currentUserLogin?: string;
 }
 
 interface IssueItem {
@@ -44,199 +50,103 @@ interface PRCardData {
   issues: IssueItem[] | null;
 }
 
-// Pixel-perfect default dataset matching the system's live review status
-const DEMO_PRS: PRCardData[] = [
-  {
-    id: 101,
-    dbId: 101,
-    repoShortName: 'website',
-    repoFullName: 'platform/website',
-    title: 'Validate authentication inputs and rate limiting',
-    author: 'alexdev',
-    branch: 'feature/security-auth',
-    commitSha: 'a1b2c3d',
-    status: 'PASS',
-    state: 'open',
-    dateFormatted: 'Oct 18, 2026',
-    timeAgo: '2 hours ago',
-    findingsCount: 2,
-    issues: [
-      {
-        severity: 'high',
-        severityLabel: 'High',
-        title: 'Constant-time token comparison to prevent timing attacks',
-        subtitle: 'src/middleware/auth.ts : 34',
-      },
-      {
-        severity: 'medium',
-        severityLabel: 'Medium',
-        title: 'Rate limit not enforced on login endpoint',
-        subtitle: 'src/routes/login.ts : 88',
-      },
-    ],
-  },
-  {
-    id: 98,
-    dbId: 98,
-    repoShortName: 'API Gateway',
-    repoFullName: 'platform/api-gateway',
-    title: 'Harden request validation and error handling',
-    author: 'priyasharma',
-    branch: 'feature/validation',
-    commitSha: 'd4e5f6a',
-    status: 'EVALUATING',
-    state: 'open',
-    dateFormatted: 'Oct 17, 2026',
-    timeAgo: '5 hours ago',
-    findingsCount: 3,
-    issues: [
-      {
-        severity: 'high',
-        severityLabel: 'High',
-        title: 'Missing input validation for userId parameter',
-        subtitle: 'src/routes/session.ts : 72',
-      },
-      {
-        severity: 'medium',
-        severityLabel: 'Medium',
-        title: 'Potential XSS in error message',
-        subtitle: 'src/utils/response.ts : 120',
-      },
-    ],
-  },
-  {
-    id: 87,
-    dbId: 87,
-    repoShortName: 'Webhook service',
-    repoFullName: 'platform/webhook-service',
-    title: 'Verify webhook signatures and improve logging',
-    author: 'kartikdev',
-    branch: 'fix/webhook-signature',
-    commitSha: '9f8e7d6',
-    status: 'PASS',
-    state: 'open',
-    dateFormatted: 'Oct 16, 2026',
-    timeAgo: '1 day ago',
-    findingsCount: 1,
-    issues: [
-      {
-        severity: 'high',
-        severityLabel: 'High',
-        title: 'Signature validation incomplete',
-        subtitle: 'src/webhooks/verify.ts : 41',
-      },
-    ],
-  },
-  {
-    id: 64,
-    dbId: 64,
-    repoShortName: 'Data Aggregator',
-    repoFullName: 'platform/data-aggregator',
-    title: 'Add branch protection checks and CI configuration',
-    author: 'sneha',
-    branch: 'chore/ci-setup',
-    commitSha: '3c4d5e6',
-    status: 'BLOCK',
-    state: 'open',
-    dateFormatted: 'Oct 15, 2026',
-    timeAgo: '1 day ago',
-    findingsCount: 2,
-    issues: [
-      {
-        severity: 'high',
-        severityLabel: 'High',
-        title: 'Secret scanning configuration missing',
-        subtitle: 'README.md : 12',
-      },
-      {
-        severity: 'medium',
-        severityLabel: 'Medium',
-        title: 'Workflow permissions are too broad',
-        subtitle: '.github/workflows/ci.yml : 28',
-      },
-    ],
-  },
-  {
-    id: 52,
-    dbId: 52,
-    repoShortName: 'Internship Portal',
-    repoFullName: 'platform/internship-portal',
-    title: 'Improve input sanitization and add tests',
-    author: 'john_doe',
-    branch: 'feat/input-sanitization',
-    commitSha: '7a8b9c0',
-    status: 'PASS',
-    state: 'open',
-    dateFormatted: 'Oct 14, 2026',
-    timeAgo: '2 days ago',
-    findingsCount: 1,
-    issues: [
-      {
-        severity: 'medium',
-        severityLabel: 'Medium',
-        title: 'Unsanitized input in search endpoint',
-        subtitle: 'src/controllers/search.ts : 55',
-      },
-    ],
-  },
-];
-
-export function CyberPRQueue({ initialPullRequests }: Props) {
+export function CyberPRQueue({
+  initialPullRequests,
+  currentUserLogin = '',
+}: Props) {
   const router = useRouter();
+  const effectiveLogin = currentUserLogin || 'vedant-175';
+  const [prs, setPrs] = useState<any[]>(initialPullRequests || []);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'OPEN' | 'APPROVED' | 'CHANGES'>('ALL');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showSyncBar, setShowSyncBar] = useState(false);
+  const [syncTarget, setSyncTarget] = useState('');
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Map database pull requests with fallback to standard review dataset
-  const prsToDisplay: PRCardData[] =
-    initialPullRequests && initialPullRequests.length > 0
-      ? initialPullRequests.map((pr: any) => {
-          const latestReview = pr.reviews?.[0];
-          const verdict = latestReview?.verdict;
-          const isEvaluating = latestReview?.status === 'pending' || latestReview?.status === 'posting';
-          const isBlocked = verdict === 'REQUEST_CHANGES';
-          const isPass = verdict === 'APPROVE';
+  const handleSyncPRs = async (usernameToSync?: string) => {
+    const user = (usernameToSync || syncTarget || effectiveLogin).trim();
+    setSyncLoading(true);
+    setSyncFeedback(null);
+    try {
+      const res = await syncUserPullRequestsAction(user);
+      if (res.success && res.prs && res.prs.length > 0) {
+        setPrs(res.prs);
+        setSyncFeedback({
+          type: 'success',
+          message: res.message || `Successfully synced ${res.prs.length} pull requests from @${user}!`,
+        });
+        setSyncTarget('');
+        router.refresh();
+      } else if (res.success) {
+        setSyncFeedback({
+          type: 'success',
+          message: `Sync completed: 0 pull requests found on GitHub for @${user}.`,
+        });
+      } else {
+        setSyncFeedback({
+          type: 'error',
+          message: res.error || 'Failed to sync pull requests.',
+        });
+      }
+    } catch (err) {
+      setSyncFeedback({
+        type: 'error',
+        message: (err as Error).message || 'Failed to communicate with GitHub API.',
+      });
+    } finally {
+      setSyncLoading(false);
+    }
+  };
 
-          let status: PRCardData['status'] = 'PASS';
-          if (isBlocked) status = 'BLOCK';
-          else if (isEvaluating) status = 'EVALUATING';
-          else if (verdict === 'COMMENT') status = 'COMMENT';
+  // Map real database or live pull requests (no hardcoded demo data)
+  const prsToDisplay: PRCardData[] = (prs || []).map((pr: any) => {
+    const latestReview = pr.reviews?.[0];
+    const verdict = latestReview?.verdict;
+    const isEvaluating = latestReview?.status === 'pending' || latestReview?.status === 'posting';
+    const isBlocked = verdict === 'REQUEST_CHANGES';
+    const isPass = verdict === 'APPROVE';
 
-          const issues: IssueItem[] = (latestReview?.issues || []).map((iss: any) => {
-            const rawSev = (iss.severity || 'medium').toLowerCase();
-            const severity: 'high' | 'medium' | 'low' =
-              rawSev === 'critical' || rawSev === 'high' ? 'high' : rawSev === 'low' ? 'low' : 'medium';
-            const severityLabel = severity === 'high' ? 'High' : severity === 'medium' ? 'Medium' : 'Low';
-            return {
-              severity,
-              severityLabel,
-              title: iss.message.length > 65 ? iss.message.substring(0, 65) + '...' : iss.message,
-              subtitle: `${iss.filePath}${iss.lineNumber ? ` : ${iss.lineNumber}` : ''}`,
-            };
-          });
+    let status: PRCardData['status'] = 'PASS';
+    if (isBlocked) status = 'BLOCK';
+    else if (isEvaluating) status = 'EVALUATING';
+    else if (verdict === 'COMMENT') status = 'COMMENT';
 
-          const fullName = pr.repository?.fullName || 'unknown/repository';
-          const parts = fullName.split('/');
-          const repoShortName = parts[1] || parts[0] || 'repository';
+    const issues: IssueItem[] = (latestReview?.issues || []).map((iss: any) => {
+      const rawSev = (iss.severity || 'medium').toLowerCase();
+      const severity: 'high' | 'medium' | 'low' =
+        rawSev === 'critical' || rawSev === 'high' ? 'high' : rawSev === 'low' ? 'low' : 'medium';
+      const severityLabel = severity === 'high' ? 'High' : severity === 'medium' ? 'Medium' : 'Low';
+      return {
+        severity,
+        severityLabel,
+        title: iss.message.length > 65 ? iss.message.substring(0, 65) + '...' : iss.message,
+        subtitle: `${iss.filePath}${iss.lineNumber ? ` : ${iss.lineNumber}` : ''}`,
+      };
+    });
 
-          return {
-            id: pr.githubPrNumber || pr.id,
-            dbId: pr.id,
-            repoShortName,
-            repoFullName: fullName,
-            title: pr.title || `PR #${pr.githubPrNumber}`,
-            author: pr.author || 'contributor',
-            branch: pr.headBranch || pr.baseBranch || 'main',
-            commitSha: latestReview?.commitSha?.substring(0, 7) || pr.headSha?.substring(0, 7) || '',
-            status,
-            state: pr.state || 'open',
-            dateFormatted: pr.openedAt ? formatDate(pr.openedAt) : 'Oct 18, 2026',
-            timeAgo: pr.openedAt ? formatTimeAgo(pr.openedAt) : 'recently',
-            findingsCount: issues.length,
-            issues: issues.length > 0 ? issues : null,
-          };
-        })
-      : DEMO_PRS;
+    const fullName = pr.repository?.fullName || 'unknown/repository';
+    const parts = fullName.split('/');
+    const repoShortName = parts[1] || parts[0] || 'repository';
+
+    return {
+      id: pr.githubPrNumber || pr.id,
+      dbId: pr.id,
+      repoShortName,
+      repoFullName: fullName,
+      title: pr.title || `PR #${pr.githubPrNumber}`,
+      author: pr.author || 'contributor',
+      branch: pr.headBranch || pr.baseBranch || 'main',
+      commitSha: latestReview?.commitSha?.substring(0, 7) || pr.headSha?.substring(0, 7) || '',
+      status,
+      state: pr.state || 'open',
+      dateFormatted: pr.openedAt ? formatDate(pr.openedAt) : 'recently',
+      timeAgo: pr.openedAt ? formatTimeAgo(pr.openedAt) : 'recently',
+      findingsCount: issues.length,
+      issues: issues.length > 0 ? issues : null,
+    };
+  });
 
   const allCount = prsToDisplay.length;
   const openCount = prsToDisplay.filter((p) => p.state === 'open').length;
@@ -272,26 +182,115 @@ export function CyberPRQueue({ initialPullRequests }: Props) {
             Pull requests
           </h1>
           <p className="text-xs md:text-sm text-slate-500 dark:text-zinc-400 mt-1">
-            Review changes and security findings across connected repositories.
+            Real-time security auditing and automated review queue for GitHub repositories.
           </p>
         </div>
 
-        {/* GitHub Webhook Status Badge */}
-        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-emerald-50/70 dark:bg-emerald-950/20 px-3.5 py-2 shrink-0 shadow-xs">
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-          <div className="flex flex-col">
-            <span className="font-semibold text-emerald-800 dark:text-emerald-300 text-xs">
-              GitHub webhook connected
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Sync Button */}
+          <button
+            type="button"
+            onClick={() => handleSyncPRs()}
+            disabled={syncLoading}
+            className="inline-flex items-center gap-2 rounded-xl border border-blue-200 dark:border-blue-800/60 bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 px-3.5 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            title={`Sync recent pull requests from GitHub for @${effectiveLogin}`}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${syncLoading ? 'animate-spin' : ''}`} />
+            <span>{syncLoading ? 'Syncing...' : `Sync PRs (@${effectiveLogin})`}</span>
+          </button>
+
+          {/* Account Switcher / Custom Sync Button */}
+          <button
+            type="button"
+            onClick={() => setShowSyncBar(!showSyncBar)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
+          >
+            <span>Custom Sync</span>
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showSyncBar ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* GitHub Webhook Status Badge */}
+          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-emerald-50/70 dark:bg-emerald-950/20 px-3.5 py-2 shrink-0 shadow-xs">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
-              Receiving real-time updates
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-emerald-800 dark:text-emerald-300 text-xs">
+                GitHub webhook connected
+              </span>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                Receiving real-time updates
+              </span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Sync Drawer Bar */}
+      {showSyncBar && (
+        <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-900/60 p-4 transition-all">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-blue-500 shrink-0" />
+              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">
+                Sync pull requests from any GitHub account or organization
+              </span>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSyncPRs();
+              }}
+              className="flex items-center gap-2"
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  value={syncTarget}
+                  onChange={(e) => setSyncTarget(e.target.value)}
+                  placeholder={effectiveLogin}
+                  className="rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 w-44"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={syncLoading}
+                className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                {syncLoading ? 'Syncing...' : 'Sync'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sync Feedback Alert */}
+      {syncFeedback && (
+        <div
+          className={`flex items-center justify-between gap-3 rounded-xl border p-3.5 text-xs ${
+            syncFeedback.type === 'success'
+              ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/80 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300'
+              : 'border-red-200 dark:border-red-900/50 bg-red-50/80 dark:bg-red-950/20 text-red-800 dark:text-red-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {syncFeedback.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+            )}
+            <span>{syncFeedback.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSyncFeedback(null)}
+            className="text-xs opacity-60 hover:opacity-100 font-semibold cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* 2. Filter Tabs & Search Bar */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-zinc-800 pb-px">
@@ -451,7 +450,37 @@ export function CyberPRQueue({ initialPullRequests }: Props) {
 
       {/* 3. Pull Request Cards List */}
       <div className="space-y-3.5">
-        {filteredPRs.length === 0 ? (
+        {allCount === 0 ? (
+          <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-12 text-center shadow-xs">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 mb-4 ring-1 ring-blue-500/20">
+              <GitPullRequest className="h-7 w-7" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              No pull requests tracked for @{effectiveLogin}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+              GitSentinel audits security vulnerabilities, analyzes code diffs, and computes automated PR quality gates across your GitHub repositories.
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleSyncPRs()}
+                disabled={syncLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
+                {syncLoading ? 'Syncing Pull Requests...' : `Sync PRs for @${effectiveLogin}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSyncBar(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
+              >
+                Sync other account
+              </button>
+            </div>
+          </div>
+        ) : filteredPRs.length === 0 ? (
           <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-12 text-center shadow-xs">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 mb-3">
               <Search className="h-6 w-6" />
