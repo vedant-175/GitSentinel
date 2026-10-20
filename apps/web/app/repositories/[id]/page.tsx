@@ -12,10 +12,10 @@ import {
   GitPullRequest,
   TrendingUp,
   Tag,
+  BarChart3,
 } from 'lucide-react';
 import { RepoConfigModal } from '../../components/RepoConfigModal';
 import { AnalyseRepoButton } from '../AnalyseRepoButton';
-import { RepoViewTabs } from './RepoViewTabs';
 import { getRepositoryById } from '@/lib/data';
 import { getRepositoryAnalytics } from '@/lib/analytics';
 import { RepoConfig, calculateRepositoryHealthScore } from '@ai-reviewer/shared';
@@ -23,7 +23,6 @@ import { WeeklyTrendChart } from '@/app/components/charts/WeeklyTrendChart';
 import { SeverityChart } from '@/app/components/charts/SeverityChart';
 import { CategoryChart } from '@/app/components/charts/CategoryChart';
 import { LatencyDistributionCard } from '@/app/components/charts/LatencyDistributionCard';
-import { RepoSourceExplorer } from '@/app/components/RepoSourceExplorer';
 
 export const dynamic = 'force-dynamic';
 
@@ -116,26 +115,6 @@ export default async function RepositoryAnalyticsPage({
     prsWithTests: Math.round(repoPrs.length * 0.85),
   });
 
-  const codebaseNode = (
-    <div id="codebase" className="space-y-3">
-      <div className="flex items-center justify-between pb-1 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <FileCode className="h-5 w-5 text-cyan-400" />
-          <h2 className="text-base font-bold text-white font-mono">
-            Repository Codebase &amp; On-Demand AI Review
-          </h2>
-        </div>
-        <span className="text-xs text-slate-400 font-mono">
-          Direct GitHub API &bull; Groq + Gemini Cascading AI
-        </span>
-      </div>
-      <RepoSourceExplorer
-        repoFullName={repo.fullName}
-        initialIssues={allIssues}
-      />
-    </div>
-  );
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Back button & Repo Header */}
@@ -175,14 +154,29 @@ export default async function RepositoryAnalyticsPage({
         </div>
       </div>
 
-      <RepoViewTabs
-        initialTab={resolvedSearchParams?.tab || 'analytics'}
-        codebaseContent={codebaseNode}
-        issuesCount={allIssues.length}
-        healthScore={healthReport.overallScore}
-        analyticsContent={
-          <div className="space-y-8">
-            {/* Metrics Strip */}
+      {/* Analytics Surveillance Status Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#172338] pb-3">
+        <div className="flex items-center gap-2 font-mono text-xs">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-bold shadow-[0_0_12px_rgba(0,240,255,0.15)]">
+            <BarChart3 className="h-4 w-4 text-cyan-400" />
+            <span>Health &amp; Security Analytics</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              {healthReport.overallScore}/100
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="text-emerald-400 font-semibold">Active AST &amp; LLM Surveillance</span>
+        </div>
+      </div>
+
+      <div className="space-y-8">
+        {/* Metrics Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-panel rounded-2xl p-5">
           <span className="text-xs uppercase tracking-wider text-slate-400">Total PRs Analyzed</span>
@@ -504,8 +498,6 @@ export default async function RepositoryAnalyticsPage({
       </div>
 
           </div>
-        }
-      />
     </div>
   );
 }

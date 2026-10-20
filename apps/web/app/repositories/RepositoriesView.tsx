@@ -11,7 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   Play,
-  FileCode,
+  BarChart3,
   MoreHorizontal,
   Plus,
   RefreshCw,
@@ -679,13 +679,13 @@ export function RepositoriesView({
                             <span>{isAnalysing ? 'Analysing...' : 'Analyse'}</span>
                           </button>
 
-                          {/* Code Explorer Button */}
+                          {/* Analytics Button */}
                           <Link
-                            href={`/repositories/${repo.id}?tab=codebase`}
+                            href={`/repositories/${repo.id}`}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 px-2.5 py-1.5 text-xs font-medium shadow-xs transition-colors"
                           >
-                            <FileCode className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
-                            <span>Code</span>
+                            <BarChart3 className="h-3.5 w-3.5 text-slate-500 dark:text-zinc-400" />
+                            <span>Analytics</span>
                           </Link>
 
                           {/* More Options Button */}
@@ -757,11 +757,11 @@ export function RepositoriesView({
                   <span>Analyse</span>
                 </button>
                 <Link
-                  href={`/repositories/${repo.id}?tab=codebase`}
+                  href={`/repositories/${repo.id}`}
                   className="flex-1 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 flex items-center justify-center gap-1 shadow-xs transition-colors"
                 >
-                  <FileCode className="h-3 w-3" />
-                  <span>Code</span>
+                  <BarChart3 className="h-3 w-3" />
+                  <span>Analytics</span>
                 </Link>
               </div>
             </div>
