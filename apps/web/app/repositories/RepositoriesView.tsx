@@ -194,10 +194,10 @@ export function RepositoriesView({
   }, [mappedRepositories, searchQuery, statusFilter, sortBy]);
 
   // Handle repository analysis
-  const handleAnalyse = async (repoId: number) => {
+  const handleAnalyse = async (repoId: number, repoFullName?: string) => {
     setAnalysingId(repoId);
     try {
-      const res = await analyseRepositoryAction(repoId);
+      const res = await analyseRepositoryAction(repoId, repoFullName);
       if (res.success) {
         router.push(`/repositories/${repoId}?tab=analytics`);
         router.refresh();
@@ -665,7 +665,7 @@ export function RepositoriesView({
                           <button
                             type="button"
                             disabled={isAnalysing}
-                            onClick={() => handleAnalyse(repo.id)}
+                            onClick={() => handleAnalyse(repo.id, repo.fullName)}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-white dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2.5 py-1.5 text-xs font-medium shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                           >
                             <Play className={`h-3 w-3 fill-current ${isAnalysing ? 'animate-spin' : ''}`} />
@@ -743,7 +743,7 @@ export function RepositoriesView({
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  onClick={() => handleAnalyse(repo.id)}
+                  onClick={() => handleAnalyse(repo.id, repo.fullName)}
                   className="flex-1 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 dark:border-blue-900/60 bg-white dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer"
                 >
                   <Play className="h-3 w-3 fill-current" />

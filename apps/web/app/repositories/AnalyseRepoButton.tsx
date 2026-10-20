@@ -25,7 +25,7 @@ export function AnalyseRepoButton({
     setStatusText('Initiating AST & LLM surveillance...');
 
     try {
-      const res = await analyseRepositoryAction(repoId);
+      const res = await analyseRepositoryAction(repoId, repoFullName);
       if (res.success) {
         setStatusText(`Complete (${res.issuesCount} findings)! Opening analytics...`);
         if (typeof window !== 'undefined') {
