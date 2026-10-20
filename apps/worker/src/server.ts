@@ -47,14 +47,11 @@ export function isMetricsAuthorized(
 }
 
 export function startHealthServer(options: HealthServerOptions): http.Server {
-  const port = options.port ?? parseInt(process.env.PORT || process.env.WORKER_HEALTH_PORT || '3001', 10);
-  const host =
-    options.host ||
-    process.env.WORKER_HEALTH_HOST ||
-    process.env.HOST ||
-    (process.env.RENDER || process.env.VERCEL || process.env.PORT || process.env.NODE_ENV === 'production'
-      ? '0.0.0.0'
-      : '127.0.0.1');
+  const isCloudPlatform = Boolean(process.env.RENDER || process.env.PORT || process.env.VERCEL);
+  const port = options.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : parseInt(process.env.WORKER_HEALTH_PORT || '3001', 10));
+  const host = isCloudPlatform
+    ? (options.host || process.env.HOST || '0.0.0.0')
+    : (options.host || process.env.WORKER_HEALTH_HOST || process.env.HOST || '127.0.0.1');
   const metricsToken = options.metricsToken || process.env.WORKER_METRICS_TOKEN;
 
   const server = http.createServer(async (req, res) => {
