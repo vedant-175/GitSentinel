@@ -48,22 +48,49 @@ export function isMetricsAuthorized(
 
 export function startHealthServer(options: HealthServerOptions): http.Server {
   const port = options.port ?? parseInt(process.env.PORT || process.env.WORKER_HEALTH_PORT || '3001', 10);
-  const host = options.host || process.env.WORKER_HEALTH_HOST || (process.env.VERCEL ? '0.0.0.0' : '127.0.0.1');
+  const host =
+    options.host ||
+    process.env.WORKER_HEALTH_HOST ||
+    process.env.HOST ||
+    (process.env.RENDER || process.env.VERCEL || process.env.PORT || process.env.NODE_ENV === 'production'
+      ? '0.0.0.0'
+      : '127.0.0.1');
   const metricsToken = options.metricsToken || process.env.WORKER_METRICS_TOKEN;
 
   const server = http.createServer(async (req, res) => {
-    const url = req.url || '';
+    const rawUrl = req.url || '';
+    const pathname = rawUrl.split('?')[0];
 
-    if (url === '/health' || url === '/healthz') {
+    if (
+      pathname === '/health' ||
+      pathname === '/healthz' ||
+      pathname === '/ping' ||
+      pathname === '/'
+    ) {
       const shuttingDown = options.isShuttingDown();
       const redisStatus = options.redis.status;
       const isRedisHealthy = redisStatus === 'ready' || redisStatus === 'connect';
 
       if (shuttingDown || !isRedisHealthy) {
+        // If UptimeRobot pings / or /ping as a keep-alive probe, return 200 so the container stays awake
+        if (pathname === '/' || pathname === '/ping') {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              status: shuttingDown ? 'draining' : 'degraded',
+              service: 'ai-code-reviewer-worker',
+              redis: redisStatus,
+              uptime: Math.round(process.uptime()),
+            })
+          );
+          return;
+        }
+
         res.writeHead(503, { 'Content-Type': 'application/json' });
         res.end(
           JSON.stringify({
             status: shuttingDown ? 'draining' : 'unhealthy',
+            service: 'ai-code-reviewer-worker',
             redis: redisStatus,
             uptime: Math.round(process.uptime()),
           })
@@ -75,14 +102,16 @@ export function startHealthServer(options: HealthServerOptions): http.Server {
       res.end(
         JSON.stringify({
           status: 'healthy',
+          service: 'ai-code-reviewer-worker',
           redis: redisStatus,
           uptime: Math.round(process.uptime()),
+          timestamp: new Date().toISOString(),
         })
       );
       return;
     }
 
-    if (url === '/metrics') {
+    if (pathname === '/metrics') {
       if (!isMetricsAuthorized(req, metricsToken)) {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(
