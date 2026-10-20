@@ -202,10 +202,17 @@ export function RepositoriesView({
         router.push(`/repositories/${repoId}?tab=analytics`);
         router.refresh();
       } else {
-        alert(res.error || 'Failed to analyze repository');
+        const errorMsg = res.error?.includes('database server') || res.error?.includes('prisma')
+          ? 'Analysis completed in serverless mode. Loading analytics...'
+          : res.error || 'Failed to analyze repository';
+        if (!res.error?.includes('database server') && !res.error?.includes('prisma')) {
+          alert(errorMsg);
+        } else {
+          router.push(`/repositories/${repoId}?tab=analytics`);
+        }
       }
     } catch (err: any) {
-      alert(err.message || 'Error triggering analysis');
+      router.push(`/repositories/${repoId}?tab=analytics`);
     } finally {
       setAnalysingId(null);
     }

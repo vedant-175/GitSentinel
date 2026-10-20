@@ -128,73 +128,83 @@ export async function getPullRequests(
  * Fetch a specific pull request with verified access
  */
 export async function getPullRequestById(id: number) {
-  const { pr } = await requirePullRequestAccess(id);
+  try {
+    const { pr } = await requirePullRequestAccess(id);
 
-  const pullRequest = await prisma.pullRequest.findUnique({
-    where: { id: pr.id },
-    include: {
-      repository: {
-        include: {
-          installation: true,
+    const pullRequest = await prisma.pullRequest.findUnique({
+      where: { id: pr.id },
+      include: {
+        repository: {
+          include: {
+            installation: true,
+          },
+        },
+        reviews: {
+          orderBy: { completedAt: 'desc' },
+          include: {
+            issues: true,
+          },
         },
       },
-      reviews: {
-        orderBy: { completedAt: 'desc' },
-        include: {
-          issues: true,
-        },
-      },
-    },
-  });
+    });
 
-  if (pullRequest) {
-    const SEVERITY_WEIGHT: Record<string, number> = {
-      critical: 1,
-      warning: 2,
-      suggestion: 3,
-    };
+    if (pullRequest) {
+      const SEVERITY_WEIGHT: Record<string, number> = {
+        critical: 1,
+        warning: 2,
+        suggestion: 3,
+      };
 
-    for (const review of pullRequest.reviews) {
-      review.issues.sort((a, b) => {
-        const weightA = SEVERITY_WEIGHT[a.severity] || 4;
-        const weightB = SEVERITY_WEIGHT[b.severity] || 4;
-        if (weightA !== weightB) return weightA - weightB;
-        if (a.filePath !== b.filePath) return a.filePath.localeCompare(b.filePath);
-        return (a.lineNumber || 0) - (b.lineNumber || 0);
-      });
+      for (const review of pullRequest.reviews) {
+        review.issues.sort((a, b) => {
+          const weightA = SEVERITY_WEIGHT[a.severity] || 4;
+          const weightB = SEVERITY_WEIGHT[b.severity] || 4;
+          if (weightA !== weightB) return weightA - weightB;
+          if (a.filePath !== b.filePath) return a.filePath.localeCompare(b.filePath);
+          return (a.lineNumber || 0) - (b.lineNumber || 0);
+        });
+      }
     }
-  }
 
-  return { data: pullRequest };
+    return { data: pullRequest };
+  } catch (err) {
+    console.warn(`[getPullRequestById] Database query failed for PR #${id}:`, err);
+    return { data: null };
+  }
 }
 
 /**
  * Fetch a specific repository with verified access
  */
 export async function getRepositoryById(id: number) {
-  const { repo } = await requireInstallationAccess(id);
+  try {
+    const { repo } = await requireInstallationAccess(id);
 
-  const repository = await prisma.repository.findUnique({
-    where: { id: repo.id },
-    include: {
-      installation: true,
-      pullRequests: {
-        take: 25,
-        include: {
-          reviews: {
-            take: 1,
-            include: {
-              issues: true,
+    const repository = await prisma.repository.findUnique({
+      where: { id: repo.id },
+      include: {
+        installation: true,
+        pullRequests: {
+          take: 25,
+          include: {
+            reviews: {
+              take: 1,
+              include: {
+                issues: true,
+              },
+              orderBy: { completedAt: 'desc' },
             },
-            orderBy: { completedAt: 'desc' },
           },
+          orderBy: { id: 'desc' },
         },
-        orderBy: { id: 'desc' },
       },
-    },
-  });
+    });
 
-  return { data: repository };
+    return { data: repository };
+  } catch (err) {
+    console.warn(`[getRepositoryById] Database query failed for repo #${id}:`, err);
+    return { data: null };
+  }
 }
 
 /**
