@@ -3,6 +3,8 @@ import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@ai-reviewer/db';
 import { syncUserRepositories } from './github-sync';
+import { verifyPassword } from './password';
+import { findGitHubAccountForEmail } from './github-email';
 
 // Auto-detect production URL on Vercel
 if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
@@ -36,8 +38,8 @@ export function validateAuthConfig() {
 
 /**
  * Builds the authentication providers list according to security rules:
- * - GithubProvider with minimal OAuth scope ('read:user')
- * - CredentialsProvider is included in dev mode, preview mode, or when GitHub OAuth is not yet configured
+ * 1. GithubProvider with minimal OAuth scope ('read:user') - Direct 1-Click GitHub OAuth
+ * 2. CredentialsProvider - Supporting both GitHub Username registration/login and Email & Password
  */
 export function buildProviders() {
   const github = GithubProvider({
@@ -46,7 +48,7 @@ export function buildProviders() {
     authorization: {
       url: 'https://github.com/login/oauth/authorize',
       params: {
-        scope: 'read:user', // Item 6: Narrow OAuth scope to the minimum
+        scope: 'read:user', // Narrow OAuth scope to the minimum
       },
     },
   });
@@ -60,20 +62,30 @@ export function buildProviders() {
 
   const providers: any[] = [github];
 
-  // Enable Developer/Preview Credentials login when explicitly configured in dev mode OR on unconfigured Vercel preview
+  // Enable Credentials login when explicitly configured in dev mode, on Vercel preview/production, or non-test envs
   const isDevLoginEnabled =
     (process.env.ENABLE_DEV_LOGIN === 'true' && process.env.NODE_ENV === 'development') ||
-    (Boolean(process.env.VERCEL) && (!clientId || !clientSecret));
+    Boolean(process.env.VERCEL) ||
+    (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_LOGIN !== 'true');
 
   if (isDevLoginEnabled) {
     const creds = CredentialsProvider({
       id: 'credentials',
-      name: 'Developer Login',
+      name: 'GitSentinel Login',
       credentials: {
         username: {
           label: 'GitHub Username',
           type: 'text',
           placeholder: 'Enter GitHub username (e.g. octocat, torvalds)',
+        },
+        email: {
+          label: 'Email',
+          type: 'email',
+          placeholder: 'name@example.com',
+        },
+        password: {
+          label: 'Password',
+          type: 'password',
         },
       },
       async authorize(credentials, req) {
@@ -94,7 +106,76 @@ export function buildProviders() {
           throw new Error('Dev credentials login is only permitted on localhost');
         }
 
-        const username = credentials?.username?.trim();
+        // =========================================================================
+        // METHOD 1: EMAIL & PASSWORD LOGIN
+        // =========================================================================
+        const email = credentials?.email?.trim().toLowerCase();
+        const password = credentials?.password;
+
+        if (email && password) {
+          // Check if registered email has a GitHub account
+          const ghAccount = await findGitHubAccountForEmail(email);
+
+          // Find user in database
+          let dbUser = null;
+          try {
+            dbUser = await prisma.user.findUnique({
+              where: { email },
+            });
+          } catch (dbErr) {
+            console.warn('[Auth] Database offline during email login:', dbErr);
+          }
+
+          // If user exists in DB, verify password
+          if (dbUser && dbUser.passwordHash) {
+            const isValid = verifyPassword(password, dbUser.passwordHash);
+            if (!isValid) {
+              throw new Error('Invalid email or password');
+            }
+          }
+
+          // User Requirement:
+          // "first login/register should be if someone can type their email and password, if their registered email has github acc in it, so then they must connect with their github"
+          if (ghAccount.hasGithub && ghAccount.login) {
+            if (!dbUser?.githubLogin) {
+              throw new Error(`GITHUB_CONNECT_REQUIRED:${ghAccount.login}`);
+            }
+          }
+
+          const effectiveLogin = dbUser?.githubLogin || ghAccount.login || email.split('@')[0];
+          const displayName = dbUser?.name || effectiveLogin;
+          const userImage = dbUser?.image || (ghAccount.login ? `https://github.com/${ghAccount.login}.png` : undefined);
+
+          // Ensure installations exist for this user
+          let userInstIds = [1];
+          try {
+            if (effectiveLogin) {
+              const insts = await prisma.installation.findMany({
+                where: { accountLogin: { equals: effectiveLogin, mode: 'insensitive' } },
+                select: { githubInstallationId: true },
+              });
+              if (insts.length > 0) {
+                userInstIds = insts.map((i) => Number(i.githubInstallationId));
+              }
+            }
+          } catch (instErr) {
+            console.warn('[Auth] Could not load installations for user:', instErr);
+          }
+
+          return {
+            id: dbUser?.id || `user-${effectiveLogin}`,
+            name: displayName,
+            email: email,
+            login: effectiveLogin,
+            image: userImage,
+            installationIds: userInstIds,
+          };
+        }
+
+        // =========================================================================
+        // METHOD 2: GITHUB USERNAME LOGIN / REGISTRATION
+        // =========================================================================
+        const username = credentials?.username?.trim().replace(/^@/, '');
         if (!username) {
           return null;
         }
@@ -106,7 +187,7 @@ export function buildProviders() {
           console.warn(`[Auth] Sync warning for ${username}:`, syncErr);
         }
 
-        // Query installations created for this account
+        // Query or create installations for this account
         let matchingInsts: Array<{ githubInstallationId: bigint; accountLogin: string }> = [];
         try {
           matchingInsts = await prisma.installation.findMany({
@@ -132,6 +213,21 @@ export function buildProviders() {
             });
             matchingInsts = [fallback];
           }
+
+          // Upsert User model in DB
+          await prisma.user.upsert({
+            where: { githubLogin: username },
+            update: {
+              name: username,
+              image: `https://github.com/${username}.png`,
+            },
+            create: {
+              githubLogin: username,
+              name: username,
+              email: `${username}@users.noreply.github.com`,
+              image: `https://github.com/${username}.png`,
+            },
+          }).catch(() => {});
         } catch (dbErr) {
           console.warn(`[Auth] Database offline during login for ${username}, continuing with offline installation.`);
         }
@@ -142,7 +238,7 @@ export function buildProviders() {
         const effectiveLogin = matchingInsts[0]?.accountLogin || username;
 
         return {
-          id: `dev-user-${effectiveLogin}`,
+          id: `gh-user-${effectiveLogin}`,
           name: effectiveLogin,
           email: `${effectiveLogin}@users.noreply.github.com`,
           login: effectiveLogin,
