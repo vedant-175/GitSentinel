@@ -18,6 +18,7 @@ import {
   Sparkles,
   Trash2,
 } from 'lucide-react';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface ChatMessage {
   id: string;
@@ -298,14 +299,14 @@ How can I assist you with this codebase or security review today?`,
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-2 bg-slate-50/40 dark:bg-zinc-900/50 border-b border-slate-100 dark:border-zinc-800 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto px-3 py-2 bg-slate-50/80 dark:bg-zinc-900/90 border-b border-slate-200/80 dark:border-zinc-800/80 no-scrollbar">
             {quickPrompts.map((p, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSendMessage(p.query)}
                 disabled={loading}
-                className="whitespace-nowrap rounded-lg bg-white dark:bg-zinc-850 border border-slate-200/90 dark:border-zinc-800 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:text-zinc-300 shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+                className="whitespace-nowrap rounded-lg bg-slate-100/90 dark:bg-zinc-800/90 border border-slate-200 dark:border-zinc-700/90 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 text-slate-700 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-300 px-2.5 py-1 text-[11px] font-medium shadow-2xs transition-all disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {p.label}
               </button>
@@ -313,31 +314,35 @@ How can I assist you with this codebase or security review today?`,
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-slate-50/20 dark:bg-zinc-950/40">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-slate-50/40 dark:bg-zinc-950/60">
             {messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {m.role === 'assistant' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/50 mt-0.5 shadow-2xs">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
 
                 <div
-                  className={`relative max-w-[85%] rounded-2xl p-3.5 leading-relaxed text-xs shadow-2xs ${
+                  className={`relative ${isExpanded ? 'max-w-[92%]' : 'max-w-[88%]'} rounded-2xl p-3.5 leading-relaxed text-xs shadow-2xs ${
                     m.role === 'user'
                       ? 'bg-blue-600 text-white font-medium rounded-tr-xs'
-                      : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-100 rounded-tl-xs'
+                      : 'bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-tl-xs overflow-hidden'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap select-text leading-relaxed">
-                    {m.content}
-                  </div>
+                  {m.role === 'user' ? (
+                    <div className="whitespace-pre-wrap select-text leading-relaxed font-medium">
+                      {m.content}
+                    </div>
+                  ) : (
+                    <MarkdownRenderer content={m.content} />
+                  )}
 
                   {m.role === 'assistant' && (
-                    <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-400">
                       <span suppressHydrationWarning className="font-mono">
                         {m.provider ? `Model: ${m.provider}` : m.timestamp}
                       </span>
@@ -363,7 +368,7 @@ How can I assist you with this codebase or security review today?`,
                 </div>
 
                 {m.role === 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 mt-0.5 shadow-2xs">
                     <User className="h-4 w-4" />
                   </div>
                 )}
@@ -385,7 +390,7 @@ How can I assist you with this codebase or security review today?`,
               e.preventDefault();
               handleSendMessage();
             }}
-            className="border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 flex items-center gap-2"
+            className="border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 flex items-center gap-2"
           >
             <input
               type="text"
@@ -393,12 +398,12 @@ How can I assist you with this codebase or security review today?`,
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about this code, PR #, security vulnerabilities, or fixes..."
               disabled={loading}
-              className="flex-1 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+              className="flex-1 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50/80 dark:bg-zinc-900 px-3.5 py-2.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-400 focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all disabled:opacity-40 cursor-pointer shadow-xs"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all disabled:opacity-40 cursor-pointer shadow-xs active:scale-95"
             >
               <Send className="h-4 w-4" />
             </button>
