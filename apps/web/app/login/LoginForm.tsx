@@ -54,14 +54,60 @@ export function LoginForm({
   } | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
 
-  // Method 2: GitHub Username state
   const [username, setUsername] = useState('');
+
+  // Last used login memory
+  const [lastUsedMethod, setLastUsedMethod] = useState<AuthMethod | null>(null);
+  const [lastUsedIdentity, setLastUsedIdentity] = useState<string | null>(null);
 
   // Common state
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showOAuthHelp, setShowOAuthHelp] = useState(false);
+
+  // Load remembered last login method and identity on mount
+  useEffect(() => {
+    try {
+      const savedMethod = localStorage.getItem('gitsentinel_last_auth_method') as AuthMethod | null;
+      const savedIdentity = localStorage.getItem('gitsentinel_last_auth_identity');
+
+      if (savedMethod && ['email', 'username', 'oauth'].includes(savedMethod)) {
+        setLastUsedMethod(savedMethod);
+
+        // Auto-select last used tab if user didn't explicitly pass ?method=
+        if (!searchParams.get('method')) {
+          setActiveTab(savedMethod);
+        }
+      }
+
+      if (savedIdentity) {
+        setLastUsedIdentity(savedIdentity);
+        if (savedMethod === 'email') {
+          setEmail(savedIdentity);
+        } else if (savedMethod === 'username') {
+          setUsername(savedIdentity);
+        }
+      }
+    } catch {
+      // Ignore if localStorage is restricted
+    }
+  }, [searchParams]);
+
+  // Persist login preference upon successful authentication attempt
+  const persistLoginPreference = (method: AuthMethod, identity?: string) => {
+    try {
+      localStorage.setItem('gitsentinel_last_auth_method', method);
+      if (identity) {
+        localStorage.setItem('gitsentinel_last_auth_identity', identity);
+      } else {
+        localStorage.removeItem('gitsentinel_last_auth_identity');
+      }
+      document.cookie = `gitsentinel_last_auth_method=${method}; path=/; max-age=2592000; SameSite=Lax`;
+    } catch {
+      // Ignore storage errors
+    }
+  };
 
   // Check if email has an associated GitHub account when typing or on blur
   const checkEmailForGithub = async (emailToCheck: string) => {
@@ -167,8 +213,10 @@ export function LoginForm({
           setErrorMsg(signInRes.error);
           setLoading(false);
         } else if (signInRes?.url) {
+          persistLoginPreference('email', cleanEmail);
           window.location.href = signInRes.url;
         } else {
+          persistLoginPreference('email', cleanEmail);
           window.location.href = callbackUrl;
         }
       } catch (err: any) {
@@ -205,8 +253,10 @@ export function LoginForm({
         }
         setLoading(false);
       } else if (res?.url) {
+        persistLoginPreference('email', cleanEmail);
         window.location.href = res.url;
       } else {
+        persistLoginPreference('email', cleanEmail);
         window.location.href = callbackUrl;
       }
     } catch (err: any) {
@@ -247,8 +297,10 @@ export function LoginForm({
         );
         setLoading(false);
       } else if (res?.url) {
+        persistLoginPreference('username', cleanUser);
         window.location.href = res.url;
       } else {
+        persistLoginPreference('username', cleanUser);
         window.location.href = callbackUrl;
       }
     } catch (err: any) {
@@ -266,6 +318,7 @@ export function LoginForm({
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    persistLoginPreference('oauth');
     try {
       await signIn('github', { callbackUrl });
     } catch (err: any) {
@@ -284,6 +337,7 @@ export function LoginForm({
       setActiveTab('username');
       setLoading(true);
       setErrorMsg(null);
+      persistLoginPreference('username', loginToConnect);
       try {
         const res = await signIn('credentials', {
           username: loginToConnect,
@@ -318,6 +372,22 @@ export function LoginForm({
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Choose your preferred sign-in or registration method
           </p>
+          {lastUsedMethod && (
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>
+                Last used:{' '}
+                <strong className="text-slate-900 dark:text-white">
+                  {lastUsedMethod === 'email'
+                    ? 'Email & Password'
+                    : lastUsedMethod === 'username'
+                    ? 'GitHub Username'
+                    : 'GitHub OAuth'}
+                </strong>
+                {lastUsedIdentity ? ` (${lastUsedIdentity})` : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 3-Way Method Tabs */}
@@ -333,6 +403,11 @@ export function LoginForm({
           >
             <Mail className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">Email & Pass</span>
+            {lastUsedMethod === 'email' && (
+              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
+                Last
+              </span>
+            )}
           </button>
 
           <button
@@ -346,6 +421,11 @@ export function LoginForm({
           >
             <UserCheck className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">Username</span>
+            {lastUsedMethod === 'username' && (
+              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
+                Last
+              </span>
+            )}
           </button>
 
           <button
@@ -361,6 +441,11 @@ export function LoginForm({
               <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
             </svg>
             <span className="truncate">GitHub OAuth</span>
+            {lastUsedMethod === 'oauth' && (
+              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
+                Last
+              </span>
+            )}
           </button>
         </div>
 
