@@ -12,7 +12,7 @@ export default async function RepositoriesPage() {
 
   let repositories: any[] = [];
   try {
-    const res = await getRepositories({ limit: 100 });
+    const res = await getRepositories({ limit: 500 });
     repositories = res?.data || [];
   } catch (err) {
     console.error('Failed to load repositories from database:', err);
@@ -24,7 +24,7 @@ export default async function RepositoriesPage() {
     try {
       const syncResult = await syncUserRepositories(currentUserLogin, session?.accessToken);
       if (syncResult.success) {
-        const refreshed = await getRepositories({ limit: 100 }).catch(() => null);
+        const refreshed = await getRepositories({ limit: 500 }).catch(() => null);
         if (refreshed?.data && refreshed.data.length > 0) {
           repositories = refreshed.data;
         } else if (syncResult.repos && syncResult.repos.length > 0) {

@@ -159,20 +159,31 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
     clearInstallationAccessCache(effectiveLogin);
     clearInstallationAccessCache(username);
 
-    // 3. Fetch public repositories for this user from GitHub API (with token if available)
-    let rawRepos: Array<{ id: number | string; full_name: string; default_branch?: string }> = [];
+    // 3. Fetch public repositories for this user from GitHub API (with token if available, paginated up to 1000)
+    const fetchedReposMap = new Map<string, { id: number | string; full_name: string; default_branch?: string }>();
 
-    // If authenticated accessToken is present, query user's authenticated repos
+    // If authenticated accessToken is present, query user's authenticated repos (paginated, max 100 per page)
     if (accessToken) {
       try {
-        const userReposRes = await fetch(
-          `https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator`,
-          { headers: authHeaders }
-        );
-        if (userReposRes.ok) {
-          const json = await userReposRes.json();
-          if (Array.isArray(json) && json.length > 0) {
-            rawRepos = json;
+        for (let page = 1; page <= 10; page++) {
+          const userReposRes = await fetch(
+            `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator`,
+            { headers: authHeaders }
+          );
+          if (userReposRes.ok) {
+            const json = await userReposRes.json();
+            if (Array.isArray(json) && json.length > 0) {
+              for (const r of json) {
+                if (r?.full_name) {
+                  fetchedReposMap.set(r.full_name.toLowerCase(), r);
+                }
+              }
+              if (json.length < 100) break; // Reached last page
+            } else {
+              break;
+            }
+          } else {
+            break;
           }
         }
       } catch (e) {
@@ -180,26 +191,38 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
       }
     }
 
-    // If not fetched or empty, query by effective username
-    if (rawRepos.length === 0) {
+    // If not fetched or empty, query by effective username (paginated, max 100 per page)
+    if (fetchedReposMap.size === 0) {
       try {
-        const reposRes = await fetch(
-          `https://api.github.com/users/${encodeURIComponent(effectiveTargetUser)}/repos?per_page=100&sort=updated`,
-          { headers: authHeaders }
-        );
+        for (let page = 1; page <= 10; page++) {
+          const reposRes = await fetch(
+            `https://api.github.com/users/${encodeURIComponent(effectiveTargetUser)}/repos?per_page=100&page=${page}&sort=updated`,
+            { headers: authHeaders }
+          );
 
-        if (reposRes.ok) {
-          const json = await reposRes.json();
-          if (Array.isArray(json) && json.length > 0) {
-            rawRepos = json;
+          if (reposRes.ok) {
+            const json = await reposRes.json();
+            if (Array.isArray(json) && json.length > 0) {
+              for (const r of json) {
+                if (r?.full_name) {
+                  fetchedReposMap.set(r.full_name.toLowerCase(), r);
+                }
+              }
+              if (json.length < 100) break; // Reached last page
+            } else {
+              break;
+            }
+          } else {
+            console.warn(`[GitHub Sync] GitHub REST API returned status ${reposRes.status} on page ${page} for '${effectiveTargetUser}'. Attempting HTML fallback...`);
+            break;
           }
-        } else {
-          console.warn(`[GitHub Sync] GitHub REST API returned status ${reposRes.status} for '${effectiveTargetUser}'. Attempting HTML fallback...`);
         }
       } catch (apiErr) {
         console.warn(`[GitHub Sync] Network error querying GitHub API for '${effectiveTargetUser}':`, apiErr);
       }
     }
+
+    let rawRepos = Array.from(fetchedReposMap.values());
 
     // Fallback: If GitHub API was rate-limited (403), failed, or returned 0 repos, scrape public profile HTML
     if (rawRepos.length === 0) {
@@ -744,18 +767,20 @@ async function scrapeUserRepositories(
   const reposMap = new Map<string, { id: number; full_name: string; default_branch: string }>();
 
   try {
-    const urls = [
-      `https://github.com/${encodeURIComponent(username)}?tab=repositories`,
-      `https://github.com/${encodeURIComponent(username)}`,
-    ];
-
     const blacklist = new Set([
       'repositories', 'projects', 'packages', 'stars', 'followers', 'following',
       'tab', 'contributions', 'activity', 'sponsors', 'settings', 'overview',
       'pulls', 'issues', 'marketplace', 'explore', 'notifications'
     ]);
 
-    for (const url of urls) {
+    const escapedUser = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const repoHrefRegex = new RegExp(`href="\\/(${escapedUser})\\/([a-zA-Z0-9_.-]+)"`, 'gi');
+
+    // Scrape paginated repository tab pages (GitHub shows 30 repos per page)
+    for (let page = 1; page <= 10; page++) {
+      const prevSize = reposMap.size;
+      const url = `https://github.com/${encodeURIComponent(username)}?tab=repositories&page=${page}`;
+
       try {
         const res = await fetch(url, {
           headers: {
@@ -764,13 +789,10 @@ async function scrapeUserRepositories(
             Accept: 'text/html,application/xhtml+xml',
           },
         });
-        if (!res.ok) continue;
+        if (!res.ok) break;
 
         const html = await res.text();
-
-        // Match repository links: href="/User/Repo"
-        const escapedUser = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const repoHrefRegex = new RegExp(`href="\\/(${escapedUser})\\/([a-zA-Z0-9_.-]+)"`, 'gi');
+        repoHrefRegex.lastIndex = 0;
         let match;
         while ((match = repoHrefRegex.exec(html)) !== null) {
           const owner = match[1];
@@ -793,8 +815,56 @@ async function scrapeUserRepositories(
             }
           }
         }
+
+        // If no new repositories were found on this page, we've reached the end of repository list
+        if (reposMap.size === prevSize) {
+          break;
+        }
       } catch (pageErr) {
         console.warn(`[GitHub Sync] Error fetching HTML from ${url}:`, pageErr);
+        break;
+      }
+    }
+
+    // Fallback: If no repos found on repository tab, try main profile overview page
+    if (reposMap.size === 0) {
+      const overviewUrl = `https://github.com/${encodeURIComponent(username)}`;
+      try {
+        const res = await fetch(overviewUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml',
+          },
+        });
+        if (res.ok) {
+          const html = await res.text();
+          repoHrefRegex.lastIndex = 0;
+          let match;
+          while ((match = repoHrefRegex.exec(html)) !== null) {
+            const owner = match[1];
+            const name = match[2].trim();
+            if (
+              !blacklist.has(name.toLowerCase()) &&
+              !name.includes('?') &&
+              !name.includes('#') &&
+              !name.endsWith('.png') &&
+              !name.endsWith('.jpg') &&
+              !name.endsWith('.svg')
+            ) {
+              const fullName = `${owner}/${name}`;
+              if (!reposMap.has(fullName.toLowerCase())) {
+                reposMap.set(fullName.toLowerCase(), {
+                  id: hashString(fullName),
+                  full_name: fullName,
+                  default_branch: 'main',
+                });
+              }
+            }
+          }
+        }
+      } catch (pageErr) {
+        console.warn(`[GitHub Sync] Error fetching HTML from ${overviewUrl}:`, pageErr);
       }
     }
   } catch (err) {

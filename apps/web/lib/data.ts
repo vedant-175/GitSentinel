@@ -17,7 +17,7 @@ export interface PaginationOptions {
  */
 export async function getRepositories(options: PaginationOptions = {}) {
   const installationIds = await getSessionInstallationIds();
-  const limit = Math.min(100, Math.max(1, options.limit || 100));
+  const limit = Math.min(1000, Math.max(1, options.limit || 500));
   const cursor = options.cursor;
 
   const repositories = await prisma.repository.findMany({

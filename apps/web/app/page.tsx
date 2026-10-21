@@ -46,7 +46,7 @@ export default async function OverviewPage() {
   // 1. Fetch repositories
   let repositories: any[] = [];
   try {
-    const repoRes = await getRepositories({ limit: 100 });
+    const repoRes = await getRepositories({ limit: 500 });
     repositories = repoRes?.data || [];
   } catch (err) {
     console.warn('[OverviewPage] Failed to fetch repositories:', err);
@@ -57,7 +57,7 @@ export default async function OverviewPage() {
     try {
       const syncResult = await syncUserRepositories(currentUserLogin, session?.accessToken);
       if (syncResult.success) {
-        const refreshed = await getRepositories({ limit: 100 }).catch(() => null);
+        const refreshed = await getRepositories({ limit: 500 }).catch(() => null);
         if (refreshed?.data && refreshed.data.length > 0) {
           repositories = refreshed.data;
         } else if (syncResult.repos && syncResult.repos.length > 0) {
