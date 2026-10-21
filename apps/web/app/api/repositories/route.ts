@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
     // 2. Auth & Scope by session's installation IDs
     const installationIds = await getSessionInstallationIds();
 
-    // 3. Cursor pagination (default: 25, max: 100)
-    const { cursor, limit } = parsePaginationParams(req.url, 25, 100);
+    // 3. Cursor pagination (default: 100, max: 500)
+    const { cursor, limit } = parsePaginationParams(req.url, 100, 500);
 
     const repositories = await prisma.repository.findMany({
       where: {

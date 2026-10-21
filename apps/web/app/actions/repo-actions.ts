@@ -149,16 +149,24 @@ export async function disconnectRepository(repoId: number) {
 export async function syncUserReposAction(targetUsername?: string) {
   try {
     let username = targetUsername?.trim();
-    if (!username) {
+    let accessToken: string | undefined;
+
+    try {
       const session = await requireSession();
-      username = session?.user?.login;
+      if (!username) {
+        username = session?.user?.login;
+      }
+      accessToken = session?.accessToken;
+    } catch {
+      // In unauthenticated context, proceed with targetUsername
     }
+
     if (!username) {
       return { success: false, error: 'No GitHub username provided or found in session' };
     }
 
     const { syncUserRepositories } = await import('@/lib/github-sync');
-    const result = await syncUserRepositories(username);
+    const result = await syncUserRepositories(username, accessToken);
 
     try {
       revalidatePath('/');
@@ -177,10 +185,12 @@ export async function syncUserReposAction(targetUsername?: string) {
 
 export async function analyseRepositoryAction(repoId: number, repoFullName?: string) {
   try {
-    let userLogin = 'vedant-175';
+    let userLogin = '';
+    let accessToken: string | undefined;
     try {
       const session = await requireSession();
-      userLogin = session?.user?.login || (session?.user as any)?.name || 'vedant-175';
+      userLogin = session?.user?.login || (session?.user as any)?.name || '';
+      accessToken = session?.accessToken;
     } catch {
       // In development mode or unauthenticated preview, gracefully proceed
     }
@@ -205,10 +215,10 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
     if (!repo) {
       // Resolve repository full name
       let resolvedFullName = repoFullName;
-      if (!resolvedFullName) {
+      if (!resolvedFullName && userLogin) {
         try {
           const { syncUserRepositories } = await import('@/lib/github-sync');
-          const syncRes = await syncUserRepositories(userLogin);
+          const syncRes = await syncUserRepositories(userLogin, accessToken);
           const matched = syncRes.repos?.find((r: any) => r.id === repoId || String(r.id) === String(repoId));
           if (matched) {
             resolvedFullName = matched.fullName;
@@ -219,14 +229,14 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
       }
 
       if (!resolvedFullName) {
-        resolvedFullName = 'vedant-175/GitSentinel';
+        return { success: false, error: `Repository #${repoId} not found` };
       }
 
       repo = {
         id: repoId,
         fullName: resolvedFullName,
         defaultBranch: 'main',
-        installation: { accountLogin: userLogin },
+        installation: { accountLogin: userLogin || resolvedFullName.split('/')[0] },
         pullRequests: [],
       };
     }

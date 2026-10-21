@@ -114,20 +114,16 @@ export function RepositoriesView({
           ? repo.description
           : known?.description || repo.description || 'GitHub repository configured for autonomous code review and vulnerability scanning.';
 
-      const prsCount = totalPrsFromDb > 0 ? totalPrsFromDb : known?.prsCount ?? (repo.id % 5);
+      const prsCount = totalPrsFromDb > 0 ? totalPrsFromDb : (typeof repo.prsCount === 'number' ? repo.prsCount : 0);
 
       const findings =
         high > 0 || medium > 0 || low > 0
           ? { high, medium, low }
-          : known?.findings || {
-              high: repo.id % 4 === 0 ? 1 : 0,
-              medium: repo.id % 2 === 0 ? 1 : 0,
-              low: repo.id % 3 === 0 ? 1 : 0,
-            };
+          : (repo.findings || { high: 0, medium: 0, low: 0 });
 
       const lastUpdated =
         known?.lastUpdated ||
-        (repo.updatedAt ? formatTimeAgo(repo.updatedAt) : '1 day ago');
+        (repo.updatedAt ? formatTimeAgo(repo.updatedAt) : 'Recently synced');
 
       return {
         id: repo.id,
@@ -232,7 +228,7 @@ export function RepositoriesView({
     try {
       const res = await syncUserReposAction(userToSync);
       if (res.success) {
-        if ((res as any).repos && (res as any).repos.length > 0) {
+        if (Array.isArray((res as any).repos)) {
           setSyncedRepos((res as any).repos);
         }
         setSyncFeedback({

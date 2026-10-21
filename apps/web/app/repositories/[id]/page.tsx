@@ -29,36 +29,30 @@ export default async function RepositoryAnalyticsPage({
 
   if (!repo) {
     const session = await getServerSession(authOptions).catch(() => null);
-    const currentUserLogin = session?.user?.login || (session?.user as any)?.name || 'vedant-175';
-    try {
-      const syncResult = await syncUserRepositories(currentUserLogin);
-      const matched = syncResult.repos?.find((r: any) => r.id === repoId || String(r.id) === id);
-      if (matched) {
-        repo = {
-          id: repoId,
-          fullName: matched.fullName,
-          defaultBranch: matched.defaultBranch || 'main',
-          description: matched.description || 'GitHub repository configured for autonomous code review and vulnerability scanning.',
-          createdAt: new Date(),
-          config: {},
-          pullRequests: [],
-        };
+    const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
+    if (currentUserLogin) {
+      try {
+        const syncResult = await syncUserRepositories(currentUserLogin, session?.accessToken);
+        const matched = syncResult.repos?.find((r: any) => r.id === repoId || String(r.id) === id);
+        if (matched) {
+          repo = {
+            id: repoId,
+            fullName: matched.fullName,
+            defaultBranch: matched.defaultBranch || 'main',
+            description: matched.description || 'GitHub repository configured for autonomous code review and vulnerability scanning.',
+            createdAt: new Date(),
+            config: {},
+            pullRequests: [],
+          };
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
     }
   }
 
   if (!repo) {
-    repo = {
-      id: repoId,
-      fullName: 'vedant-175/GitSentinel',
-      defaultBranch: 'main',
-      description: 'AI-Powered Automated Code Review and Security Surveillance Monorepo.',
-      createdAt: new Date(),
-      config: {},
-      pullRequests: [],
-    };
+    return notFound();
   }
 
   // Compute native PostgreSQL SQL aggregates with fallback
