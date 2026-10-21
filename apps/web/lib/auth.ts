@@ -181,8 +181,12 @@ export function buildProviders() {
         }
 
         // Dynamically synchronize public repositories for ANY GitHub username
+        let targetLogin = username;
         try {
-          await syncUserRepositories(username);
+          const syncResult = await syncUserRepositories(username);
+          if (syncResult.login) {
+            targetLogin = syncResult.login;
+          }
         } catch (syncErr) {
           console.warn(`[Auth] Sync warning for ${username}:`, syncErr);
         }
@@ -192,10 +196,10 @@ export function buildProviders() {
         try {
           matchingInsts = await prisma.installation.findMany({
             where: {
-              accountLogin: {
-                equals: username,
-                mode: 'insensitive',
-              },
+              OR: [
+                { accountLogin: { equals: targetLogin, mode: 'insensitive' } },
+                { accountLogin: { equals: username, mode: 'insensitive' } },
+              ],
             },
             select: { githubInstallationId: true, accountLogin: true },
           });
@@ -206,7 +210,7 @@ export function buildProviders() {
             const fallback = await prisma.installation.create({
               data: {
                 githubInstallationId: fallbackInstId,
-                accountLogin: username,
+                accountLogin: targetLogin,
                 accountType: 'User',
               },
               select: { githubInstallationId: true, accountLogin: true },
@@ -216,26 +220,26 @@ export function buildProviders() {
 
           // Upsert User model in DB
           await prisma.user.upsert({
-            where: { githubLogin: username },
+            where: { githubLogin: targetLogin },
             update: {
-              name: username,
-              image: `https://github.com/${username}.png`,
+              name: targetLogin,
+              image: `https://github.com/${targetLogin}.png`,
             },
             create: {
-              githubLogin: username,
-              name: username,
-              email: `${username}@users.noreply.github.com`,
-              image: `https://github.com/${username}.png`,
+              githubLogin: targetLogin,
+              name: targetLogin,
+              email: `${targetLogin}@users.noreply.github.com`,
+              image: `https://github.com/${targetLogin}.png`,
             },
           }).catch(() => {});
         } catch (dbErr) {
-          console.warn(`[Auth] Database offline during login for ${username}, continuing with offline installation.`);
+          console.warn(`[Auth] Database offline during login for ${targetLogin}, continuing with offline installation.`);
         }
 
         const userInstIds = matchingInsts.length > 0
           ? matchingInsts.map((i) => Number(i.githubInstallationId))
           : [1];
-        const effectiveLogin = matchingInsts[0]?.accountLogin || username;
+        const effectiveLogin = matchingInsts[0]?.accountLogin || targetLogin;
 
         return {
           id: `gh-user-${effectiveLogin}`,
