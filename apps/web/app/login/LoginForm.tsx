@@ -38,7 +38,7 @@ export function LoginForm({
 }: LoginFormProps) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
-  const initialMethod = (searchParams.get('method') as AuthMethod) || 'oauth';
+  const initialMethod = (searchParams.get('method') as AuthMethod) || 'email';
 
   const [activeTab, setActiveTab] = useState<AuthMethod>(initialMethod);
 
@@ -324,17 +324,15 @@ export function LoginForm({
         <div className="mt-5 grid grid-cols-3 p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] font-medium text-slate-600 dark:text-zinc-400">
           <button
             type="button"
-            onClick={() => handleTabChange('oauth')}
+            onClick={() => handleTabChange('email')}
             className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'oauth'
+              activeTab === 'email'
                 ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                 : 'hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <svg className="h-3.5 w-3.5 fill-current shrink-0" viewBox="0 0 24 24">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-            </svg>
-            <span className="truncate">GitHub OAuth</span>
+            <Mail className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Email & Pass</span>
           </button>
 
           <button
@@ -352,15 +350,17 @@ export function LoginForm({
 
           <button
             type="button"
-            onClick={() => handleTabChange('email')}
+            onClick={() => handleTabChange('oauth')}
             className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'email'
+              activeTab === 'oauth'
                 ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                 : 'hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Mail className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Email & Pass</span>
+            <svg className="h-3.5 w-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+            <span className="truncate">GitHub OAuth</span>
           </button>
         </div>
 
@@ -377,85 +377,6 @@ export function LoginForm({
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div className="flex-1">{successMsg}</div>
           </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 3: GITHUB OAUTH LOGIN (Direct 1-Click Connection)                     */}
-        {/* ========================================================================= */}
-        {activeTab === 'oauth' && (
-          <div className="mt-5 space-y-4">
-            <div className="p-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/50 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
-              <div className="font-semibold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                <span>Direct GitHub OAuth Login</span>
-              </div>
-              Connects directly to your GitHub account using secure OAuth. Pulls your organizations, repositories, and review permissions with minimal read-only scope.
-            </div>
-
-            <button
-              type="button"
-              onClick={handleDirectOAuth}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                  />
-                </svg>
-              )}
-              <span>Continue with GitHub OAuth</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
-            </button>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 2: GITHUB USERNAME LOGIN / REGISTRATION                               */}
-        {/* ========================================================================= */}
-        {activeTab === 'username' && (
-          <form onSubmit={handleUsernameAuth} className="mt-5 space-y-3.5">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                  GitHub Username
-                </label>
-                <span className="text-[10px] text-slate-400 dark:text-zinc-500">Auto-syncs public repos</span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500 font-mono text-xs">
-                  @
-                </div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. octocat, torvalds, or your username"
-                  disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 pl-8 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <UserCheck className="h-4 w-4 text-white" />
-              )}
-              <span>Continue with GitHub Username</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
-            </button>
-          </form>
         )}
 
         {/* ========================================================================= */}
@@ -562,7 +483,7 @@ export function LoginForm({
             {/* GitHub Account Detected Callout */}
             {/* Requirement: "if their registered email has github acc in it, so then they must connect with their github" */}
             {detectedGithubUser && (
-              <div className="p-3 rounded-xl border border-blue-200 dark:border-blue-800/70 bg-blue-50/80 dark:bg-blue-950/40 text-xs text-blue-950 dark:text-blue-100 space-y-2 animate-fade-in">
+              <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-800/70 bg-blue-50/80 dark:bg-blue-950/40 text-xs text-blue-950 dark:text-blue-100 space-y-2.5 animate-fade-in">
                 <div className="flex items-center gap-2">
                   <svg className="h-4 w-4 fill-blue-600 dark:fill-blue-400 shrink-0" viewBox="0 0 24 24">
                     <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -574,18 +495,30 @@ export function LoginForm({
                 <p className="text-[11px] text-slate-600 dark:text-zinc-300 leading-relaxed">
                   Your registered email is associated with GitHub account <strong>@{detectedGithubUser.login}</strong>. You must connect with your GitHub account to continue.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => handleConnectDetectedGitHub(detectedGithubUser.login)}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2 px-3 shadow-xs transition-all cursor-pointer"
-                >
-                  <svg className="h-3.5 w-3.5 fill-white" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
-                  <span>Connect GitHub (@{detectedGithubUser.login})</span>
-                  <ArrowRight className="h-3 w-3" />
-                </button>
+                <div className="space-y-1.5 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleConnectDetectedGitHub(detectedGithubUser.login)}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2 px-3 shadow-xs transition-all cursor-pointer"
+                  >
+                    <svg className="h-3.5 w-3.5 fill-white" viewBox="0 0 24 24">
+                      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                    </svg>
+                    <span>Connect GitHub (@{detectedGithubUser.login})</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUsername(detectedGithubUser.login);
+                      setActiveTab('username');
+                    }}
+                    className="w-full text-center text-[10px] text-blue-600 dark:text-blue-400 hover:underline pt-0.5"
+                  >
+                    Or switch to Username Tab
+                  </button>
+                </div>
               </div>
             )}
 
@@ -603,6 +536,98 @@ export function LoginForm({
               <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
             </button>
           </form>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 2: GITHUB USERNAME LOGIN / REGISTRATION                               */}
+        {/* ========================================================================= */}
+        {activeTab === 'username' && (
+          <form onSubmit={handleUsernameAuth} className="mt-5 space-y-3.5">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  GitHub Username
+                </label>
+                <span className="text-[10px] text-slate-400 dark:text-zinc-500">Auto-syncs public repos</span>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500 font-mono text-xs">
+                  @
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. octocat, torvalds, or your username"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 pl-8 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <UserCheck className="h-4 w-4 text-white" />
+              )}
+              <span>Continue with GitHub Username</span>
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
+            </button>
+          </form>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: GITHUB OAUTH LOGIN (Direct 1-Click Connection)                     */}
+        {/* ========================================================================= */}
+        {activeTab === 'oauth' && (
+          <div className="mt-5 space-y-4">
+            <div className="p-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/50 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
+              <div className="font-semibold text-slate-900 dark:text-white mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>Direct GitHub OAuth Login</span>
+                </span>
+                {hasGithubOAuth ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/40 font-medium">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Ready
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 font-medium">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    Requires App ID
+                  </span>
+                )}
+              </div>
+              Connects directly to your GitHub account using secure OAuth. Pulls your organizations, repositories, and review permissions with minimal read-only scope.
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDirectOAuth}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                  />
+                </svg>
+              )}
+              <span>Continue with GitHub OAuth</span>
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
+            </button>
+          </div>
         )}
 
         {/* OAuth Configuration Help Dropdown */}

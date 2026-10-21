@@ -293,8 +293,49 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  events: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'github' && profile) {
+        try {
+          const ghLogin = (profile as any).login;
+          const ghId = (profile as any).id ? BigInt((profile as any).id) : null;
+          const ghEmail = (profile as any).email || user?.email;
+          const ghAvatar = (profile as any).avatar_url || user?.image;
+          const ghName = (profile as any).name || ghLogin;
+
+          if (ghLogin) {
+            // Asynchronously sync public repositories
+            syncUserRepositories(ghLogin).catch((e) =>
+              console.warn('[Auth] sync error on OAuth sign in:', e)
+            );
+
+            // Link or create User record
+            await prisma.user.upsert({
+              where: { githubLogin: ghLogin },
+              update: {
+                githubId: ghId,
+                image: ghAvatar,
+                name: ghName,
+                ...(ghEmail ? { email: ghEmail } : {}),
+              },
+              create: {
+                githubLogin: ghLogin,
+                githubId: ghId,
+                name: ghName,
+                email: ghEmail,
+                image: ghAvatar,
+              },
+            });
+          }
+        } catch (err) {
+          console.warn('[Auth Event] Could not upsert user on OAuth sign in:', err);
+        }
+      }
+    },
+  },
   pages: {
     signIn: '/login',
   },
 };
+
 
