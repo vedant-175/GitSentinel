@@ -304,8 +304,8 @@ export const authOptions: NextAuthOptions = {
           const ghName = (profile as any).name || ghLogin;
 
           if (ghLogin) {
-            // Asynchronously sync public repositories
-            syncUserRepositories(ghLogin).catch((e) =>
+            // Asynchronously sync public repositories using authenticated OAuth access token
+            syncUserRepositories(ghLogin, account?.access_token).catch((e) =>
               console.warn('[Auth] sync error on OAuth sign in:', e)
             );
 

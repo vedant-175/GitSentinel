@@ -181,7 +181,7 @@ export async function resolveUserInstallations(
     if (dbInstallations.length === 0) {
       try {
         const { syncUserRepositories } = await import('./github-sync');
-        await syncUserRepositories(session.user.login);
+        await syncUserRepositories(session.user.login, session.accessToken);
         const refreshed = await prisma.installation.findMany({
           where: {
             accountLogin: {

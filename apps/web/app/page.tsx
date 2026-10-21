@@ -41,7 +41,7 @@ function getAuthorBg(name: string) {
 
 export default async function OverviewPage() {
   const session = await getServerSession(authOptions).catch(() => null);
-  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || 'vedant-175';
+  const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
 
   // 1. Fetch repositories
   let repositories: any[] = [];
@@ -52,16 +52,18 @@ export default async function OverviewPage() {
     console.warn('[OverviewPage] Failed to fetch repositories:', err);
   }
 
-  // If DB has 0 repositories, auto-sync live GitHub repositories
+  // If DB has 0 repositories and user is logged in, auto-sync live GitHub repositories
   if (currentUserLogin && repositories.length === 0) {
     try {
-      const syncResult = await syncUserRepositories(currentUserLogin);
+      const syncResult = await syncUserRepositories(currentUserLogin, session?.accessToken);
       if (syncResult.success) {
         const refreshed = await getRepositories({ limit: 100 }).catch(() => null);
         if (refreshed?.data && refreshed.data.length > 0) {
           repositories = refreshed.data;
         } else if (syncResult.repos && syncResult.repos.length > 0) {
           repositories = syncResult.repos;
+        } else {
+          repositories = [];
         }
       }
     } catch (syncErr) {
@@ -78,15 +80,17 @@ export default async function OverviewPage() {
     console.warn('[OverviewPage] Failed to fetch pull requests:', err);
   }
 
-  // If DB has 0 pull requests, auto-sync user's real PRs from GitHub
+  // If DB has 0 pull requests and user is logged in, auto-sync user's real PRs from GitHub
   if (currentUserLogin && pullRequests.length === 0) {
     try {
-      const synced = await syncUserPullRequests(currentUserLogin);
+      const synced = await syncUserPullRequests(currentUserLogin, session?.accessToken);
       const refreshedPrs = await getPullRequests({ limit: 50 }).catch(() => null);
       if (refreshedPrs?.data && refreshedPrs.data.length > 0) {
         pullRequests = refreshedPrs.data;
       } else if (synced && synced.length > 0) {
         pullRequests = synced;
+      } else {
+        pullRequests = [];
       }
     } catch (syncPrErr) {
       console.warn('[OverviewPage] Failed to auto-sync user pull requests:', syncPrErr);

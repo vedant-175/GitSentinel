@@ -24,32 +24,72 @@ export interface SyncResult {
  * Dynamically synchronizes any GitHub user's account and public repositories into GitSentinel.
  * Works for ANY GitHub username with zero hardcoding.
  */
-export async function syncUserRepositories(rawUsername: string): Promise<SyncResult> {
+export async function syncUserRepositories(rawUsername: string, accessToken?: string): Promise<SyncResult> {
   const username = rawUsername.trim().replace(/^@/, '');
   if (!username) {
     return { success: false, error: 'GitHub username is required' };
   }
 
   try {
+    const authHeaders: Record<string, string> = {
+      'User-Agent': 'GitSentinel-Surveillance/1.0',
+      Accept: 'application/vnd.github.v3+json',
+    };
+    const ghToken = accessToken || process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+    if (ghToken) {
+      authHeaders['Authorization'] = `token ${ghToken}`;
+    }
+
     // 1. Fetch GitHub user profile
     const userRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, {
-      headers: {
-        'User-Agent': 'GitSentinel-Surveillance/1.0',
-        Accept: 'application/vnd.github.v3+json',
-      },
+      headers: authHeaders,
     });
 
     let githubUser: { id: number; login: string; type?: string } | null = null;
+    let effectiveTargetUser = username;
+
     if (userRes.ok) {
       githubUser = await userRes.json();
+      effectiveTargetUser = githubUser?.login || username;
     } else if (userRes.status === 404) {
-      console.warn(`[GitHub Sync] User '${username}' not found on GitHub.com`);
+      console.warn(`[GitHub Sync] User '${username}' not found on GitHub.com. Checking typo variants...`);
+      // Smart typo auto-resolution: e.g. 'NikhilShrivastaava' -> 'NikhilShrivastava'
+      const candidates = [
+        username.replace(/aava/gi, 'ava'),
+        username.replace(/([a-zA-Z])\1{2,}/g, '$1$1'),
+        username.replace(/aa/gi, 'a'),
+        username.replace(/([a-zA-Z])\1+/g, '$1'),
+      ];
+      for (const candidate of candidates) {
+        if (candidate.toLowerCase() !== username.toLowerCase()) {
+          try {
+            const candidateRes = await fetch(`https://github.com/${encodeURIComponent(candidate)}`, {
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+              redirect: 'manual',
+            });
+            if (candidateRes.status === 200) {
+              console.log(`[GitHub Sync] Resolved typo username '${username}' -> '${candidate}'`);
+              effectiveTargetUser = candidate;
+              // Try fetching API user for resolved candidate
+              const candApi = await fetch(`https://api.github.com/users/${encodeURIComponent(candidate)}`, {
+                headers: authHeaders,
+              });
+              if (candApi.ok) {
+                githubUser = await candApi.json();
+              }
+              break;
+            }
+          } catch {
+            // continue checking candidates
+          }
+        }
+      }
     } else {
       console.warn(`[GitHub Sync] GitHub API responded with status ${userRes.status} for user '${username}'`);
     }
 
     // Determine deterministic installation ID
-    const effectiveLogin = githubUser?.login || username;
+    const effectiveLogin = githubUser?.login || effectiveTargetUser;
     const githubInstallationId = githubUser?.id
       ? BigInt(githubUser.id)
       : BigInt(Math.abs(hashString(effectiveLogin.toLowerCase())));
@@ -120,53 +160,88 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
     clearInstallationAccessCache(username);
 
     // 3. Fetch public repositories for this user from GitHub API (with token if available)
-    const authHeaders: Record<string, string> = {
-      'User-Agent': 'GitSentinel-Surveillance/1.0',
-      Accept: 'application/vnd.github.v3+json',
-    };
-    const ghToken = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
-    if (ghToken) {
-      authHeaders['Authorization'] = `token ${ghToken}`;
-    }
-
     let rawRepos: Array<{ id: number | string; full_name: string; default_branch?: string }> = [];
 
-    try {
-      const reposRes = await fetch(
-        `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`,
-        { headers: authHeaders }
-      );
-
-      if (reposRes.ok) {
-        const json = await reposRes.json();
-        if (Array.isArray(json) && json.length > 0) {
-          rawRepos = json;
+    // If authenticated accessToken is present, query user's authenticated repos
+    if (accessToken) {
+      try {
+        const userReposRes = await fetch(
+          `https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator`,
+          { headers: authHeaders }
+        );
+        if (userReposRes.ok) {
+          const json = await userReposRes.json();
+          if (Array.isArray(json) && json.length > 0) {
+            rawRepos = json;
+          }
         }
-      } else {
-        console.warn(`[GitHub Sync] GitHub REST API returned status ${reposRes.status} for '${username}'. Attempting HTML fallback...`);
+      } catch (e) {
+        console.warn('[GitHub Sync] Error querying authenticated /user/repos:', e);
       }
-    } catch (apiErr) {
-      console.warn(`[GitHub Sync] Network error querying GitHub API for '${username}':`, apiErr);
+    }
+
+    // If not fetched or empty, query by effective username
+    if (rawRepos.length === 0) {
+      try {
+        const reposRes = await fetch(
+          `https://api.github.com/users/${encodeURIComponent(effectiveTargetUser)}/repos?per_page=100&sort=updated`,
+          { headers: authHeaders }
+        );
+
+        if (reposRes.ok) {
+          const json = await reposRes.json();
+          if (Array.isArray(json) && json.length > 0) {
+            rawRepos = json;
+          }
+        } else {
+          console.warn(`[GitHub Sync] GitHub REST API returned status ${reposRes.status} for '${effectiveTargetUser}'. Attempting HTML fallback...`);
+        }
+      } catch (apiErr) {
+        console.warn(`[GitHub Sync] Network error querying GitHub API for '${effectiveTargetUser}':`, apiErr);
+      }
     }
 
     // Fallback: If GitHub API was rate-limited (403), failed, or returned 0 repos, scrape public profile HTML
     if (rawRepos.length === 0) {
-      console.log(`[GitHub Sync] Attempting zero-rate-limit HTML profile scrape for '${username}'...`);
-      const scraped = await scrapeUserRepositories(username);
+      console.log(`[GitHub Sync] Attempting zero-rate-limit HTML profile scrape for '${effectiveTargetUser}'...`);
+      const scraped = await scrapeUserRepositories(effectiveTargetUser);
       if (scraped.length > 0) {
         rawRepos = scraped;
-        console.log(`[GitHub Sync] Successfully scraped ${scraped.length} repositories from GitHub HTML for '${username}'!`);
+        console.log(`[GitHub Sync] Successfully scraped ${scraped.length} repositories from GitHub HTML for '${effectiveTargetUser}'!`);
       }
     }
 
-    // Ultimate fallback: If user is offline or has 0 public repos, seed realistic starter repos
+    // Purge any legacy fake starter repos that might have been seeded previously under this installation
+    try {
+      await prisma.repository.deleteMany({
+        where: {
+          installationId: installation.id,
+          fullName: {
+            in: [
+              `${effectiveLogin}/payment-service`,
+              `${effectiveLogin}/auth-gateway`,
+              `${effectiveLogin}/core-api`,
+              `${username}/payment-service`,
+              `${username}/auth-gateway`,
+              `${username}/core-api`,
+            ],
+          },
+        },
+      });
+    } catch {
+      // ignore
+    }
+
+    // Clean empty state: if user genuinely has 0 repos, DO NOT seed fake starter repositories!
     if (rawRepos.length === 0) {
-      console.log(`[GitHub Sync] Seeding realistic starter repositories for '${effectiveLogin}'...`);
-      rawRepos = [
-        { id: hashString(`${effectiveLogin}/payment-service`), full_name: `${effectiveLogin}/payment-service`, default_branch: 'main' },
-        { id: hashString(`${effectiveLogin}/auth-gateway`), full_name: `${effectiveLogin}/auth-gateway`, default_branch: 'main' },
-        { id: hashString(`${effectiveLogin}/core-api`), full_name: `${effectiveLogin}/core-api`, default_branch: 'main' },
-      ];
+      return {
+        success: true,
+        login: effectiveLogin,
+        installationId: installation.id,
+        reposCount: 0,
+        repos: [],
+        message: `No repositories found on GitHub for '${effectiveLogin}'`,
+      };
     }
 
     let syncedCount = 0;
@@ -222,7 +297,7 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
 
       // Also sync all recent PRs across this account using GitHub Search API
       try {
-        await syncUserPullRequests(effectiveLogin);
+        await syncUserPullRequests(effectiveLogin, accessToken);
       } catch (prSearchErr) {
         console.warn(`[GitHub Sync] Error in search PR sync for ${effectiveLogin}:`, prSearchErr);
       }
@@ -231,7 +306,7 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
       syncedCount = rawRepos.length;
     }
 
-    const mappedOutputRepos = rawRepos.map((r, idx) => {
+    const mappedOutputRepos = rawRepos.map((r) => {
       const fn = r.full_name || `${effectiveLogin}/${r.id}`;
       return {
         id: typeof r.id === 'number' ? r.id : hashString(fn),
@@ -239,9 +314,9 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
         description: (r as any).description || `Synchronized repository from @${effectiveLogin}`,
         status: 'Active',
         defaultBranch: r.default_branch || 'main',
-        prsCount: (r as any).open_issues_count ?? (idx < 3 ? 3 : 1),
-        findings: { high: idx === 0 ? 1 : 0, medium: 2, low: 1 },
-        lastUpdated: 'Just now',
+        prsCount: (r as any).open_issues_count ?? 0,
+        findings: { high: 0, medium: 0, low: 0 },
+        lastUpdated: 'Recently synced',
       };
     });
 
@@ -267,7 +342,7 @@ export async function syncUserRepositories(rawUsername: string): Promise<SyncRes
  * using direct repository pull queries and GitHub Search API.
  * Always returns rich PR objects with repository and review metadata even if DB is offline.
  */
-export async function syncUserPullRequests(rawUsername: string): Promise<any[]> {
+export async function syncUserPullRequests(rawUsername: string, accessToken?: string): Promise<any[]> {
   const username = rawUsername.trim().replace(/^@/, '');
   if (!username) return [];
 
@@ -275,7 +350,7 @@ export async function syncUserPullRequests(rawUsername: string): Promise<any[]> 
     'User-Agent': 'GitSentinel-Surveillance/1.0',
     Accept: 'application/vnd.github.v3+json',
   };
-  const ghToken = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+  const ghToken = accessToken || process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
   if (ghToken) {
     authHeaders['Authorization'] = `token ${ghToken}`;
   }
@@ -667,13 +742,18 @@ async function scrapeUserRepositories(
   username: string
 ): Promise<Array<{ id: number; full_name: string; default_branch: string }>> {
   const reposMap = new Map<string, { id: number; full_name: string; default_branch: string }>();
-  const normalizedUser = username.toLowerCase();
 
   try {
     const urls = [
       `https://github.com/${encodeURIComponent(username)}?tab=repositories`,
       `https://github.com/${encodeURIComponent(username)}`,
     ];
+
+    const blacklist = new Set([
+      'repositories', 'projects', 'packages', 'stars', 'followers', 'following',
+      'tab', 'contributions', 'activity', 'sponsors', 'settings', 'overview',
+      'pulls', 'issues', 'marketplace', 'explore', 'notifications'
+    ]);
 
     for (const url of urls) {
       try {
@@ -688,32 +768,22 @@ async function scrapeUserRepositories(
 
         const html = await res.text();
 
-        // 1. Match repository name from standard tab: itemprop="name codeRepository" ... href="/User/Repo"
-        const repoItemRegex = /itemprop="name codeRepository"[\s\S]*?href="\/([^/"]+)\/([^"/]+)"/g;
+        // Match repository links: href="/User/Repo"
+        const escapedUser = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const repoHrefRegex = new RegExp(`href="\\/(${escapedUser})\\/([a-zA-Z0-9_.-]+)"`, 'gi');
         let match;
-        while ((match = repoItemRegex.exec(html)) !== null) {
+        while ((match = repoHrefRegex.exec(html)) !== null) {
           const owner = match[1];
           const name = match[2].trim();
-          if (owner.toLowerCase() === normalizedUser && name && !name.includes('?') && !name.includes('#')) {
+          if (
+            !blacklist.has(name.toLowerCase()) &&
+            !name.includes('?') &&
+            !name.includes('#') &&
+            !name.endsWith('.png') &&
+            !name.endsWith('.jpg') &&
+            !name.endsWith('.svg')
+          ) {
             const fullName = `${owner}/${name}`;
-            reposMap.set(fullName.toLowerCase(), {
-              id: hashString(fullName),
-              full_name: fullName,
-              default_branch: 'main',
-            });
-          }
-        }
-
-        // 2. Match pinned repos: href="/User/Repo"
-        const pinnedRegex = new RegExp(`href="\\/${username}\\/([^"\\/\\?\\#\\s]+)"`, 'gi');
-        while ((match = pinnedRegex.exec(html)) !== null) {
-          const name = match[1].trim();
-          const blacklist = [
-            'repositories', 'projects', 'packages', 'stars', 'followers', 'following',
-            'tab', 'contributions', 'activity', 'sponsors', 'settings'
-          ];
-          if (!blacklist.includes(name.toLowerCase())) {
-            const fullName = `${username}/${name}`;
             if (!reposMap.has(fullName.toLowerCase())) {
               reposMap.set(fullName.toLowerCase(), {
                 id: hashString(fullName),
