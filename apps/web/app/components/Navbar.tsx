@@ -14,11 +14,13 @@ import {
 import { useState } from 'react';
 import { useTheme } from './ThemeProvider';
 import { GitSentinelLogo } from './GitSentinelLogo';
+import { GithubConnectionModal } from './GithubConnectionModal';
 
 export function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   // If on login page or PR diff inspector view, suppress the global header
@@ -37,6 +39,7 @@ export function Navbar() {
     { label: 'Overview', href: '/', active: pathname === '/' },
     { label: 'Pull requests', href: '/pull-requests', active: pathname.startsWith('/pull-requests') },
     { label: 'Repositories', href: '/repositories', active: pathname.startsWith('/repositories') },
+    { label: 'Explore', href: '/explore', active: pathname.startsWith('/explore') },
     { label: 'AI Code Explorer', href: '/code-explorer', active: pathname.startsWith('/code-explorer') },
     { label: 'Evaluations', href: '/eval', active: pathname.startsWith('/eval') },
     { label: 'Logs', href: '/logs', active: pathname.startsWith('/logs') },
@@ -116,6 +119,19 @@ export function Navbar() {
 
           {isLoggedIn ? (
             <>
+              {/* GitHub Connection Status Pill for Email Users */}
+              {session?.user?.authMethod === 'email' && !session?.user?.isGithubConnected && (
+                <button
+                  type="button"
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 transition-colors cursor-pointer"
+                  title="GitHub is not connected. Click to connect."
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span>GitHub: Not Connected</span>
+                </button>
+              )}
+
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -127,13 +143,50 @@ export function Navbar() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-lg z-50 text-xs">
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-lg z-50 text-xs">
                     <div className="px-2 py-1 text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
                       Signed in as
                     </div>
                     <div className="px-2 py-1 text-slate-900 dark:text-zinc-100 font-semibold truncate">
-                      {username}
+                      {session?.user?.email || username}
                     </div>
+
+                    <div className="border-t border-slate-100 dark:border-zinc-800 my-1" />
+
+                    <div className="px-2 py-1 text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
+                      GitHub Connection
+                    </div>
+                    <div className="px-2 py-1">
+                      {session?.user?.isGithubConnected ? (
+                        <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <span>Connected (@{session.user.githubLogin || username})</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold text-[11px]">
+                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Not Connected</span>
+                          </div>
+                          {session?.user?.detectedGithubLogin && (
+                            <div className="text-[11px] text-slate-500 dark:text-zinc-400">
+                              Detected: <span className="font-semibold text-slate-700 dark:text-zinc-200">@{session.user.detectedGithubLogin}</span>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDropdownOpen(false);
+                              setIsConnectModalOpen(true);
+                            }}
+                            className="w-full mt-1 px-2.5 py-1 text-center rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold text-[11px] transition-colors cursor-pointer"
+                          >
+                            Connect with GitHub
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="border-t border-slate-100 dark:border-zinc-800 my-1" />
                     <button
                       onClick={() => signOut({ callbackUrl: '/login' })}
@@ -151,6 +204,12 @@ export function Navbar() {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 dark:bg-zinc-700 text-white font-medium text-xs shadow-sm">
                 {initial}
               </div>
+
+              <GithubConnectionModal
+                isOpen={isConnectModalOpen}
+                onClose={() => setIsConnectModalOpen(false)}
+                detectedLogin={session?.user?.detectedGithubLogin}
+              />
             </>
           ) : (
             <Link

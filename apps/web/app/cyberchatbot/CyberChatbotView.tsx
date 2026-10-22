@@ -26,6 +26,7 @@ import {
   ExternalLink,
   Zap,
 } from 'lucide-react';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 
 interface ChatMessage {
   id: string;
@@ -433,14 +434,18 @@ export function CyberChatbotView({ currentUserLogin = '' }: CyberChatbotViewProp
                       </div>
                     )}
 
-                    {/* Content Body formatted */}
-                    <div className="whitespace-pre-wrap font-sans text-[13.5px] leading-relaxed">
-                      {msg.content}
-                    </div>
+                    {/* Content Body formatted with rich Markdown */}
+                    {isAssistant ? (
+                      <MarkdownRenderer content={msg.content} className="text-sm" />
+                    ) : (
+                      <div className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                        {msg.content}
+                      </div>
+                    )}
 
                     <div
                       className={`text-[10px] mt-2 ${
-                        isAssistant ? 'text-slate-400 dark:text-zinc-500' : 'text-blue-100 text-right'
+                        isAssistant ? 'text-slate-400 dark:text-zinc-400' : 'text-blue-100 text-right'
                       }`}
                     >
                       {msg.timestamp}
@@ -480,7 +485,7 @@ export function CyberChatbotView({ currentUserLogin = '' }: CyberChatbotViewProp
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={`Ask about security vulnerabilities, code fixes, or PR #${selectedPr}...`}
-                className="flex-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-xs"
+                className="flex-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-xs"
               />
               <button
                 type="submit"

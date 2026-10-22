@@ -20,7 +20,7 @@
     "push": "prisma db push --skip-generate",
     "seed": "tsx prisma/seed.ts",
     "studio": "prisma studio",
-    "build": "prisma generate && tsc",
+    "build": "tsc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

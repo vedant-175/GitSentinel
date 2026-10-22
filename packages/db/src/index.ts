@@ -44,7 +44,7 @@ export async function isDatabaseAvailable(): Promise<boolean> {
   if (dbAvailableCache !== null) return dbAvailableCache;
   dbAvailableCache = (async () => {
     try {
-      await prisma.$executeRawUnsafe('SELECT 1');
+      await prisma.$executeRawUnsafe('SELECT 1 FROM "users" LIMIT 1');
       return true;
     } catch {
       return false;

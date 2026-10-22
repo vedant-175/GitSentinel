@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Lock,
   FolderLock,
@@ -16,16 +16,10 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  Mail,
-  UserCheck,
-  KeyRound,
   AlertCircle,
-  CheckCircle2,
-  Sparkles,
+  Search,
 } from 'lucide-react';
 import { GitSentinelLogo } from '../components/GitSentinelLogo';
-
-type AuthMethod = 'oauth' | 'username' | 'email';
 
 interface LoginFormProps {
   isDevLoginEnabled?: boolean;
@@ -33,690 +27,270 @@ interface LoginFormProps {
 }
 
 export function LoginForm({
-  isDevLoginEnabled = true,
   hasGithubOAuth = false,
 }: LoginFormProps) {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
-  const initialMethod = (searchParams.get('method') as AuthMethod) || 'email';
+  const router = useRouter();
+  const callbackUrl = searchParams.get('callbackUrl') || '/repositories';
+  const queryError = searchParams.get('error');
 
-  const [activeTab, setActiveTab] = useState<AuthMethod>(initialMethod);
+  // Primary OAuth state
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [lastUsedOAuth, setLastUsedOAuth] = useState(false);
 
-  // Method 1: Email & Password state
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [detectedGithubUser, setDetectedGithubUser] = useState<{
-    login: string;
-    avatarUrl?: string;
-  } | null>(null);
-  const [checkingEmail, setCheckingEmail] = useState(false);
+  // Secondary Public Exploration state
+  const [exploreUsername, setExploreUsername] = useState('');
+  const [exploreLoading, setExploreLoading] = useState(false);
+  const [exploreError, setExploreError] = useState<string | null>(null);
 
-  const [username, setUsername] = useState('');
-
-  // Last used login memory
-  const [lastUsedMethod, setLastUsedMethod] = useState<AuthMethod | null>(null);
-  const [lastUsedIdentity, setLastUsedIdentity] = useState<string | null>(null);
-
-  // Common state
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  // Common UI state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showOAuthHelp, setShowOAuthHelp] = useState(false);
 
-  // Load remembered last login method and identity on mount
+  // Check last used auth method from localStorage/cookie (only reflect valid GitHub OAuth)
   useEffect(() => {
     try {
-      const savedMethod = localStorage.getItem('gitsentinel_last_auth_method') as AuthMethod | null;
-      const savedIdentity = localStorage.getItem('gitsentinel_last_auth_identity');
-
-      if (savedMethod && ['email', 'username', 'oauth'].includes(savedMethod)) {
-        setLastUsedMethod(savedMethod);
-
-        // Auto-select last used tab if user didn't explicitly pass ?method=
-        if (!searchParams.get('method')) {
-          setActiveTab(savedMethod);
-        }
-      }
-
-      if (savedIdentity) {
-        setLastUsedIdentity(savedIdentity);
-        if (savedMethod === 'email') {
-          setEmail(savedIdentity);
-        } else if (savedMethod === 'username') {
-          setUsername(savedIdentity);
-        }
+      const savedMethod = localStorage.getItem('gitsentinel_last_auth_method');
+      if (savedMethod === 'oauth' || savedMethod === 'github') {
+        setLastUsedOAuth(true);
       }
     } catch {
       // Ignore if localStorage is restricted
     }
-  }, [searchParams]);
+  }, []);
 
-  // Persist login preference upon successful authentication attempt
-  const persistLoginPreference = (method: AuthMethod, identity?: string) => {
-    try {
-      localStorage.setItem('gitsentinel_last_auth_method', method);
-      if (identity) {
-        localStorage.setItem('gitsentinel_last_auth_identity', identity);
+  // Map OAuth callback error query parameters to user-friendly error messages
+  useEffect(() => {
+    if (queryError) {
+      if (queryError === 'OAuthCallback' || queryError === 'OAuthSignin' || queryError === 'Callback') {
+        setErrorMessage('GitHub authorization failed or state verification expired. Please try signing in again.');
+      } else if (queryError === 'AccessDenied') {
+        setErrorMessage('Access was denied or the GitHub authorization was cancelled.');
+      } else if (queryError === 'Configuration') {
+        setErrorMessage('GitHub OAuth is not configured. Please ensure GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET are set in your environment.');
+      } else if (queryError === 'OAuthCreateAccount') {
+        setErrorMessage('Could not sign in with this GitHub account. Please try again.');
+      } else if (queryError === 'SessionRequired') {
+        setErrorMessage('Please sign in with GitHub to access the requested page.');
       } else {
-        localStorage.removeItem('gitsentinel_last_auth_identity');
+        setErrorMessage(`Authentication error: ${queryError}. Please try again.`);
       }
-      document.cookie = `gitsentinel_last_auth_method=${method}; path=/; max-age=2592000; SameSite=Lax`;
+    }
+  }, [queryError]);
+
+  // Primary Flow: Continue with GitHub OAuth
+  const handleGithubOAuth = async () => {
+    setOauthLoading(true);
+    setErrorMessage(null);
+
+    try {
+      localStorage.setItem('gitsentinel_last_auth_method', 'oauth');
+      document.cookie = 'gitsentinel_last_auth_method=oauth; path=/; max-age=2592000; SameSite=Lax';
     } catch {
       // Ignore storage errors
     }
-  };
 
-  // Check if email has an associated GitHub account when typing or on blur
-  const checkEmailForGithub = async (emailToCheck: string) => {
-    const clean = emailToCheck.trim().toLowerCase();
-    if (!clean || !clean.includes('@') || !clean.includes('.')) {
-      setDetectedGithubUser(null);
-      return;
-    }
-
-    setCheckingEmail(true);
-    try {
-      const res = await fetch(`/api/auth/check-github-email?email=${encodeURIComponent(clean)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.hasGithub && data.login) {
-          setDetectedGithubUser({
-            login: data.login,
-            avatarUrl: data.avatarUrl,
-          });
-        } else {
-          setDetectedGithubUser(null);
-        }
-      }
-    } catch {
-      // Ignore background check failure
-    } finally {
-      setCheckingEmail(false);
-    }
-  };
-
-  // Reset messages when switching tabs
-  const handleTabChange = (tab: AuthMethod) => {
-    setActiveTab(tab);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-  };
-
-  // =========================================================================
-  // METHOD 1: EMAIL & PASSWORD LOGIN / REGISTRATION
-  // =========================================================================
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setErrorMsg('Please enter a valid email address.');
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
-      return;
-    }
-
-    setLoading(true);
-
-    // If Registration Mode
-    if (isRegistering) {
-      if (password !== confirmPassword) {
-        setErrorMsg('Passwords do not match. Please re-enter.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password, name }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          // Check if GitHub account was detected
-          if (data.githubRequired && data.githubUser?.login) {
-            setDetectedGithubUser({
-              login: data.githubUser.login,
-              avatarUrl: data.githubUser.avatarUrl,
-            });
-            setErrorMsg(data.message || `Your registered email has a GitHub account (@${data.githubUser.login}). You must connect with your GitHub account.`);
-            setLoading(false);
-            return;
-          }
-          setErrorMsg(data.error || 'Registration failed. Please try again.');
-          setLoading(false);
-          return;
-        }
-
-        setSuccessMsg('Account created successfully! Signing you in...');
-
-        // Automatically sign in with credentials
-        const signInRes = await signIn('credentials', {
-          email: cleanEmail,
-          password,
-          callbackUrl,
-          redirect: false,
-        });
-
-        if (signInRes?.error) {
-          setErrorMsg(signInRes.error);
-          setLoading(false);
-        } else if (signInRes?.url) {
-          persistLoginPreference('email', cleanEmail);
-          window.location.href = signInRes.url;
-        } else {
-          persistLoginPreference('email', cleanEmail);
-          window.location.href = callbackUrl;
-        }
-      } catch (err: any) {
-        console.error('Registration exception:', err);
-        setErrorMsg('An error occurred during registration. Please try again.');
-        setLoading(false);
-      }
-      return;
-    }
-
-    // If Sign-In Mode
-    try {
-      const res = await signIn('credentials', {
-        email: cleanEmail,
-        password,
-        callbackUrl,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        if (res.error.startsWith('GITHUB_CONNECT_REQUIRED:')) {
-          const ghLogin = res.error.split(':')[1] || '';
-          setDetectedGithubUser({
-            login: ghLogin,
-            avatarUrl: `https://github.com/${ghLogin}.png`,
-          });
-          setErrorMsg(
-            `Your registered email has a GitHub account (@${ghLogin}). You must connect with your GitHub account to continue.`
-          );
-        } else if (res.error === 'CredentialsSignin') {
-          setErrorMsg('Invalid email or password. Please verify your credentials.');
-        } else {
-          setErrorMsg(res.error);
-        }
-        setLoading(false);
-      } else if (res?.url) {
-        persistLoginPreference('email', cleanEmail);
-        window.location.href = res.url;
-      } else {
-        persistLoginPreference('email', cleanEmail);
-        window.location.href = callbackUrl;
-      }
-    } catch (err: any) {
-      console.error('Email sign-in failed:', err);
-      setErrorMsg('Failed to sign in. Please verify your credentials.');
-      setLoading(false);
-    }
-  };
-
-  // =========================================================================
-  // METHOD 2: GITHUB USERNAME LOGIN / REGISTRATION
-  // =========================================================================
-  const handleUsernameAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanUser = username.trim().replace(/^@/, '');
-
-    if (!cleanUser) {
-      setErrorMsg('Please enter your GitHub username (e.g. octocat, torvalds).');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    try {
-      const res = await signIn('credentials', {
-        username: cleanUser,
-        callbackUrl,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        setErrorMsg(
-          res.error === 'CredentialsSignin'
-            ? 'Sign-in failed. Please verify the GitHub username exists.'
-            : res.error
-        );
-        setLoading(false);
-      } else if (res?.url) {
-        persistLoginPreference('username', cleanUser);
-        window.location.href = res.url;
-      } else {
-        persistLoginPreference('username', cleanUser);
-        window.location.href = callbackUrl;
-      }
-    } catch (err: any) {
-      console.error('GitHub username sign-in failed:', err);
-      setErrorMsg('Failed to connect GitHub username. Please try again.');
-      setLoading(false);
-    }
-  };
-
-  // =========================================================================
-  // METHOD 3: DIRECT GITHUB OAUTH LOGIN
-  // =========================================================================
-  const handleDirectOAuth = async () => {
-    setLoading(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    persistLoginPreference('oauth');
     try {
       await signIn('github', { callbackUrl });
     } catch (err: any) {
-      console.error('GitHub OAuth error:', err);
-      setErrorMsg('GitHub OAuth failed to initialize. Please verify your connection.');
-      setLoading(false);
+      console.error('GitHub OAuth initialization error:', err);
+      setErrorMessage('Failed to connect to GitHub. Please check your internet connection.');
+      setOauthLoading(false);
     }
   };
 
-  // Quick connect for detected GitHub account
-  const handleConnectDetectedGitHub = async (loginToConnect: string) => {
-    if (hasGithubOAuth) {
-      await handleDirectOAuth();
-    } else {
-      setUsername(loginToConnect);
-      setActiveTab('username');
-      setLoading(true);
-      setErrorMsg(null);
-      persistLoginPreference('username', loginToConnect);
-      try {
-        const res = await signIn('credentials', {
-          username: loginToConnect,
-          callbackUrl,
-          redirect: false,
-        });
-        if (res?.url) {
-          window.location.href = res.url;
-        } else {
-          window.location.href = callbackUrl;
-        }
-      } catch (err: any) {
-        setErrorMsg('Failed to connect GitHub account. Please try again.');
-        setLoading(false);
-      }
+  // Secondary Flow: Explore Public Repositories (Non-Authenticated)
+  const handleExploreSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setExploreError(null);
+
+    const cleanUsername = exploreUsername.trim().replace(/^@/, '');
+    if (!cleanUsername) {
+      setExploreError('Please enter a GitHub username to explore.');
+      return;
     }
+
+    // Validate GitHub username character set
+    const validUsernameRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
+    if (!validUsernameRegex.test(cleanUsername)) {
+      setExploreError('Invalid username. GitHub usernames only contain alphanumeric characters and hyphens.');
+      return;
+    }
+
+    setExploreLoading(true);
+    router.push(`/explore?username=${encodeURIComponent(cleanUsername)}`);
   };
 
   return (
     <div className="w-full max-w-md mx-auto flex flex-col items-center">
-      {/* 1. Brand Logo & Title */}
+      {/* 1. Brand Logo & Header */}
       <div className="flex flex-col items-center text-center">
         <GitSentinelLogo className="h-12 w-12 rounded-2xl shadow-md shadow-blue-500/25 mb-3" />
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">GitSentinel</h1>
         <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">AI Code Review & Security Platform</p>
       </div>
 
-      {/* 2. White / Dark Sign-in Card */}
+      {/* 2. Main Authentication Card */}
       <div className="w-full mt-6 rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-7 shadow-sm">
+        
+        {/* Heading & Subtitle */}
         <div className="text-center">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">Sign in to GitSentinel</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            Sign in to GitSentinel
+          </h2>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Choose your preferred sign-in or registration method
+            AI Code Review & Security Platform
           </p>
-          {lastUsedMethod && (
+
+          {/* Last-used Indicator (Valid OAuth only) */}
+          {lastUsedOAuth && (
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>
-                Last used:{' '}
-                <strong className="text-slate-900 dark:text-white">
-                  {lastUsedMethod === 'email'
-                    ? 'Email & Password'
-                    : lastUsedMethod === 'username'
-                    ? 'GitHub Username'
-                    : 'GitHub OAuth'}
-                </strong>
-                {lastUsedIdentity ? ` (${lastUsedIdentity})` : ''}
+                Last used: <strong className="text-slate-900 dark:text-white">GitHub OAuth</strong>
               </span>
             </div>
           )}
         </div>
 
-        {/* 3-Way Method Tabs */}
-        <div className="mt-5 grid grid-cols-3 p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] font-medium text-slate-600 dark:text-zinc-400">
-          <button
-            type="button"
-            onClick={() => handleTabChange('email')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'email'
-                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Mail className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Email & Pass</span>
-            {lastUsedMethod === 'email' && (
-              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
-                Last
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTabChange('username')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'username'
-                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <UserCheck className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Username</span>
-            {lastUsedMethod === 'username' && (
-              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
-                Last
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTabChange('oauth')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'oauth'
-                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-semibold'
-                : 'hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <svg className="h-3.5 w-3.5 fill-current shrink-0" viewBox="0 0 24 24">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-            </svg>
-            <span className="truncate">GitHub OAuth</span>
-            {lastUsedMethod === 'oauth' && (
-              <span className="hidden sm:inline-block text-[9px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1 py-0.2 rounded font-medium ml-0.5">
-                Last
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Global Feedback Messages */}
-        {errorMsg && (
+        {/* Global Error Notice */}
+        {errorMessage && (
           <div className="mt-4 p-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-xs text-rose-900 dark:text-rose-200 flex items-start gap-2 leading-relaxed animate-fade-in">
             <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1">{errorMsg}</div>
+            <div className="flex-1">{errorMessage}</div>
           </div>
         )}
 
-        {successMsg && (
-          <div className="mt-4 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-2 leading-relaxed animate-fade-in">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-            <div className="flex-1">{successMsg}</div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 1: EMAIL & PASSWORD LOGIN / REGISTRATION                             */}
-        {/* ========================================================================= */}
-        {activeTab === 'email' && (
-          <form onSubmit={handleEmailAuth} className="mt-5 space-y-3.5">
-            {/* Sign in vs Register Toggle */}
-            <div className="flex items-center justify-between pb-1">
-              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">
-                {isRegistering ? 'Create New Account' : 'Sign In with Email'}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRegistering(!isRegistering);
-                  setErrorMsg(null);
-                  setSuccessMsg(null);
-                }}
-                className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-semibold cursor-pointer"
-              >
-                {isRegistering ? 'Already have an account? Sign In' : 'Need an account? Register'}
-              </button>
+        {/* Unconfigured OAuth Environment Notice */}
+        {!hasGithubOAuth && (
+          <div className="mt-4 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2 leading-relaxed">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              GitHub OAuth is not configured in this environment. Set <code className="font-mono text-[10px] font-bold">NEXTAUTH_GITHUB_CLIENT_ID</code> and <code className="font-mono text-[10px] font-bold">NEXTAUTH_GITHUB_CLIENT_SECRET</code> to enable one-click sign in.
             </div>
+          </div>
+        )}
 
-            {/* Optional Full Name for Register */}
-            {isRegistering && (
-              <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-                  Full Name (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Alex Turing"
-                  disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+        {/* ========================================================================= */}
+        {/* PRIMARY ACTION: CONTINUE WITH GITHUB                                     */}
+        {/* ========================================================================= */}
+        <div className="mt-6 space-y-3">
+          <button
+            type="button"
+            id="continue-with-github-btn"
+            onClick={handleGithubOAuth}
+            disabled={oauthLoading}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#1e232b] hover:bg-black active:bg-[#111418] dark:bg-white dark:hover:bg-zinc-100 dark:active:bg-zinc-200 text-white dark:text-black font-semibold text-sm py-3 px-4 shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {oauthLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-white dark:text-black" />
+            ) : (
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                 />
-              </div>
+              </svg>
             )}
+            <span>Continue with GitHub</span>
+            <ArrowRight className="h-4 w-4 ml-0.5" />
+          </button>
 
-            {/* Email Address */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (detectedGithubUser) setDetectedGithubUser(null);
-                  }}
-                  onBlur={() => checkEmailForGithub(email)}
-                  placeholder="developer@example.com"
-                  disabled={loading}
-                  required
-                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                />
-                {checkingEmail && (
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
-                  </div>
-                )}
-              </div>
+          {/* Primary Supporting Description */}
+          <p className="text-[11px] text-slate-500 dark:text-zinc-400 text-center leading-relaxed px-1">
+            Securely connect your GitHub account to manage authorized repositories and AI-powered code reviews.
+          </p>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* SEPARATOR: OR EXPLORE PUBLICLY                                           */}
+        {/* ========================================================================= */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200 dark:border-zinc-800" />
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase tracking-wider font-semibold">
+            <span className="bg-white dark:bg-zinc-950 px-3 text-slate-400 dark:text-zinc-500">
+              or explore public code
+            </span>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* SECONDARY CARD: EXPLORE PUBLIC REPOSITORIES                              */}
+        {/* ========================================================================= */}
+        <div className="rounded-xl border border-slate-200/80 dark:border-zinc-800/90 bg-slate-50/60 dark:bg-zinc-900/40 p-4 space-y-3">
+          <div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <Search className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                <span>Explore Public Repositories</span>
+              </h3>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 bg-slate-200/60 dark:bg-zinc-800 px-2 py-0.5 rounded-full font-medium">
+                No login needed
+              </span>
             </div>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+              Discover publicly accessible repositories using a GitHub username.
+            </p>
+          </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-                Password
-              </label>
+          <form onSubmit={handleExploreSubmit} className="space-y-2">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500 font-mono text-xs">
+                @
+              </div>
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                required
-                className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                type="text"
+                value={exploreUsername}
+                onChange={(e) => {
+                  setExploreUsername(e.target.value);
+                  if (exploreError) setExploreError(null);
+                }}
+                placeholder="GitHub username (e.g. octocat, torvalds)"
+                disabled={exploreLoading}
+                className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-8 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
               />
             </div>
 
-            {/* Confirm Password for Register */}
-            {isRegistering && (
-              <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  disabled={loading}
-                  required
-                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                />
-              </div>
+            {exploreError && (
+              <p className="text-[11px] text-rose-600 dark:text-rose-400">{exploreError}</p>
             )}
 
-            {/* GitHub Account Detected Callout */}
-            {/* Requirement: "if their registered email has github acc in it, so then they must connect with their github" */}
-            {detectedGithubUser && (
-              <div className="p-3.5 rounded-xl border border-blue-200 dark:border-blue-800/70 bg-blue-50/80 dark:bg-blue-950/40 text-xs text-blue-950 dark:text-blue-100 space-y-2.5 animate-fade-in">
-                <div className="flex items-center gap-2">
-                  <svg className="h-4 w-4 fill-blue-600 dark:fill-blue-400 shrink-0" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    GitHub Account Detected: @{detectedGithubUser.login}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-zinc-300 leading-relaxed">
-                  Your registered email is associated with GitHub account <strong>@{detectedGithubUser.login}</strong>. You must connect with your GitHub account to continue.
-                </p>
-                <div className="space-y-1.5 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleConnectDetectedGitHub(detectedGithubUser.login)}
-                    disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2 px-3 shadow-xs transition-all cursor-pointer"
-                  >
-                    <svg className="h-3.5 w-3.5 fill-white" viewBox="0 0 24 24">
-                      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                    </svg>
-                    <span>Connect GitHub (@{detectedGithubUser.login})</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUsername(detectedGithubUser.login);
-                      setActiveTab('username');
-                    }}
-                    className="w-full text-center text-[10px] text-blue-600 dark:text-blue-400 hover:underline pt-0.5"
-                  >
-                    Or switch to Username Tab
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <KeyRound className="h-4 w-4 text-white" />
-              )}
-              <span>{isRegistering ? 'Register & Sign In' : 'Sign In with Email'}</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
-            </button>
-          </form>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 2: GITHUB USERNAME LOGIN / REGISTRATION                               */}
-        {/* ========================================================================= */}
-        {activeTab === 'username' && (
-          <form onSubmit={handleUsernameAuth} className="mt-5 space-y-3.5">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                  GitHub Username
-                </label>
-                <span className="text-[10px] text-slate-400 dark:text-zinc-500">Auto-syncs public repos</span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-zinc-500 font-mono text-xs">
-                  @
-                </div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. octocat, torvalds, or your username"
-                  disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-900 pl-8 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:bg-white dark:focus:bg-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <UserCheck className="h-4 w-4 text-white" />
-              )}
-              <span>Continue with GitHub Username</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
-            </button>
-          </form>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 3: GITHUB OAUTH LOGIN (Direct 1-Click Connection)                     */}
-        {/* ========================================================================= */}
-        {activeTab === 'oauth' && (
-          <div className="mt-5 space-y-4">
-            <div className="p-3.5 rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/50 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
-              <div className="font-semibold text-slate-900 dark:text-white mb-1 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                  <span>Direct GitHub OAuth Login</span>
-                </span>
-                {hasGithubOAuth ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/40 font-medium">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Ready
-                  </span>
+            <div className="flex items-center gap-2 pt-0.5">
+              <button
+                type="submit"
+                disabled={exploreLoading || !exploreUsername.trim()}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-medium text-xs py-2 px-3 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {exploreLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 font-medium">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    Requires App ID
-                  </span>
+                  <Search className="h-3.5 w-3.5" />
                 )}
-              </div>
-              Connects directly to your GitHub account using secure OAuth. Pulls your organizations, repositories, and review permissions with minimal read-only scope.
+                <span>Explore Repositories</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/explore')}
+                className="px-2.5 py-2 text-xs font-medium text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                Browse All &rarr;
+              </button>
             </div>
+          </form>
 
-            <button
-              type="button"
-              onClick={handleDirectOAuth}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1e232b] hover:bg-slate-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border dark:border-zinc-700 text-white font-medium text-xs sm:text-sm py-2.5 px-4 shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24">
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                  />
-                </svg>
-              )}
-              <span>Continue with GitHub OAuth</span>
-              <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
-            </button>
-          </div>
-        )}
+          <p className="text-[10px] text-slate-400 dark:text-zinc-500 leading-tight">
+            Anonymous read-only preview. GitHub OAuth is required to run automated code reviews or access private repositories.
+          </p>
+        </div>
 
-        {/* OAuth Configuration Help Dropdown */}
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800">
+        {/* ========================================================================= */}
+        {/* OAUTH CONFIGURATION HELP DROPDOWN                                         */}
+        {/* ========================================================================= */}
+        <div className="mt-5 pt-3 border-t border-slate-100 dark:border-zinc-850">
           <button
             type="button"
             onClick={() => setShowOAuthHelp(!showOAuthHelp)}
@@ -724,15 +298,15 @@ export function LoginForm({
           >
             <span className="flex items-center gap-1.5">
               <HelpCircle className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              <span>How to configure 1-Click GitHub OAuth</span>
+              <span>How to configure GitHub OAuth</span>
             </span>
             {showOAuthHelp ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
 
           {showOAuthHelp && (
-            <div className="mt-2.5 p-3 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-300 space-y-2 leading-relaxed">
+            <div className="mt-2.5 p-3 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 text-[11px] text-slate-600 dark:text-zinc-300 space-y-2 leading-relaxed animate-fade-in">
               <p>
-                To enable 1-Click GitHub OAuth on production, create an OAuth App at{' '}
+                To configure GitHub OAuth, create an OAuth App at{' '}
                 <a
                   href="https://github.com/settings/developers"
                   target="_blank"
@@ -741,9 +315,9 @@ export function LoginForm({
                 >
                   GitHub Developer Settings <ExternalLink className="h-2.5 w-2.5" />
                 </a>{' '}
-                and add the following to your environment variables:
+                and add the following environment variables:
               </p>
-              <div className="font-mono text-[10px] bg-white dark:bg-zinc-950 p-2 rounded border border-slate-200 dark:border-zinc-800 space-y-1">
+              <div className="font-mono text-[10px] bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-slate-200 dark:border-zinc-800 space-y-1">
                 <div><span className="text-slate-400 dark:text-zinc-500">Homepage URL:</span> https://gitsentinel-red.vercel.app</div>
                 <div><span className="text-slate-400 dark:text-zinc-500">Callback URL:</span> https://gitsentinel-red.vercel.app/api/auth/callback/github</div>
                 <div><span className="text-blue-600 dark:text-blue-400 font-bold">GITHUB_CLIENT_ID:</span> your_oauth_client_id</div>
@@ -760,7 +334,7 @@ export function LoginForm({
             <span className="block font-medium text-slate-800 dark:text-zinc-200">
               We only access repositories you explicitly authorize.
             </span>
-            <span>Your code remains private and secure.</span>
+            <span>Your source code remains private and protected.</span>
           </div>
         </div>
 
@@ -768,11 +342,11 @@ export function LoginForm({
         <div className="mt-4 space-y-2.5 text-xs text-slate-600 dark:text-zinc-400">
           <div className="flex items-center gap-2.5">
             <FolderLock className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0" />
-            <span>Read-only access to your public repositories</span>
+            <span>Read-only access to authorized repositories</span>
           </div>
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0" />
-            <span>Encrypted token authentication with GitHub</span>
+            <span>Encrypted OAuth token exchange with GitHub</span>
           </div>
           <div className="flex items-center gap-2.5">
             <RotateCcw className="h-4 w-4 text-slate-400 dark:text-zinc-500 shrink-0" />
@@ -794,10 +368,10 @@ export function LoginForm({
         </div>
       </div>
 
-      {/* 3. Bottom Trust Line */}
+      {/* 3. Bottom Trust Highlights */}
       <div className="mt-6 text-center space-y-2">
         <p className="text-xs text-slate-500 dark:text-zinc-500">
-          Built for developers who care about secure and high quality code.
+          Built for developers who care about secure, high quality code.
         </p>
         <div className="flex items-center justify-center gap-5 text-xs text-slate-600 dark:text-zinc-400 font-medium">
           <div className="flex items-center gap-1.5">

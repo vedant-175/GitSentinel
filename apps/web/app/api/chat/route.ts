@@ -162,6 +162,18 @@ REPOSITORY CONTEXT:
           const modelName = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
           const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
+          const systemPrompt = `You are GitSentinel CyberOps AI, an elite security and code review assistant. 
+You are assisting an engineer inspecting security reviews, PR code, and repository safety.
+Be concise, clear, and highly technical.
+Format your responses using rich GitHub Flavored Markdown (GFM):
+- Use bold text for key terms and status indicators (e.g. **CRITICAL**, **BLOCKED**, **FIX**).
+- Use Markdown tables with headers (e.g. | Finding | Severity | File | Remediation |) whenever summarizing multiple issues, comparing options, or listing vulnerabilities.
+- Use fenced code blocks with language identifiers (e.g. \`\`\`typescript, \`\`\`python, \`\`\`diff) for exact fixes and patches.
+- Use numbered and bulleted lists for actionable steps.
+- Use horizontal rules (---) to clearly separate sections.
+Answer using this security context:
+${contextStr}`;
+
           const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -173,11 +185,7 @@ REPOSITORY CONTEXT:
               messages: [
                 {
                   role: 'system',
-                  content: `You are GitSentinel CyberOps AI, an elite security and code review assistant. 
-You are assisting an engineer inspecting security reviews and PR code.
-Be concise, clear, and technical. When providing code fixes, provide exact diff or replacement code with syntax highlighting.
-Answer using this security context:
-${contextStr}`,
+                  content: systemPrompt,
                 },
                 { role: 'user', content: userMessage },
               ],
@@ -225,8 +233,14 @@ ${contextStr}`,
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
           const systemInstruction = `You are GitSentinel CyberOps AI, an elite security and code review assistant. 
-You are assisting an engineer inspecting security reviews and PR code.
-Be concise, clear, and technical. When providing code fixes, provide exact diff or replacement code with syntax highlighting.
+You are assisting an engineer inspecting security reviews, PR code, and repository safety.
+Be concise, clear, and highly technical.
+Format your responses using rich GitHub Flavored Markdown (GFM):
+- Use bold text for key terms and status indicators (e.g. **CRITICAL**, **BLOCKED**, **FIX**).
+- Use Markdown tables with headers (e.g. | Finding | Severity | File | Remediation |) whenever summarizing multiple issues, comparing options, or listing vulnerabilities.
+- Use fenced code blocks with language identifiers (e.g. \`\`\`typescript, \`\`\`python, \`\`\`diff) for exact fixes and patches.
+- Use numbered and bulleted lists for actionable steps.
+- Use horizontal rules (---) to clearly separate sections.
 Answer using this security context:
 ${contextStr}`;
 
@@ -287,17 +301,28 @@ ${contextStr}`;
     if (lowerQ.includes('why') && (lowerQ.includes('block') || lowerQ.includes('fail') || lowerQ.includes('gate'))) {
       if (issues.length > 0) {
         answer = `🛡️ **Security Gate Enforcement: MERGE BLOCKED**\n\nThis Pull Request is blocked because the analysis detected **${issues.length} critical/high security issue(s)** that violate our zero-trust merge policy:\n\n` +
-          issues.map((i: any) => `• **${i.cwe || 'Security Violation'}** (${i.severity.toUpperCase()} in \`${i.filePath}:${i.lineNumber}\`):\n  ${i.message}`).join('\n\n') +
-          `\n\n💡 **Remediation**: Resolve these vulnerabilities or commit the suggested cryptographic and validation patches to unblock the merge gate.`;
+          `| Severity | Category / CWE | File & Line | Issue Message |\n` +
+          `| :--- | :--- | :--- | :--- |\n` +
+          issues.map((i: any) => `| **${i.severity.toUpperCase()}** | ${i.cwe || i.category || 'Security'} | \`${i.filePath}:${i.lineNumber}\` | ${i.message} |`).join('\n') +
+          `\n\n### 🔧 Required Remediation Actions\n\n` +
+          issues.map((i: any, idx: number) => `${idx + 1}. **${i.cwe || 'Fix'}** in \`${i.filePath}\`:\n   ${i.remediation || 'Sanitize inputs and apply parameterized logic.'}`).join('\n\n') +
+          `\n\n---\n\n💡 Commit the recommended cryptographic and validation patches to unblock the merge gate.`;
       } else {
         answer = `✅ **Security Gate: PASS**\n\nNo blocking vulnerabilities were detected in this branch. The code conforms to organization security policies.`;
       }
     } else if (lowerQ.includes('fix') || lowerQ.includes('patch') || lowerQ.includes('how to solve') || lowerQ.includes('remed')) {
       if (issues.length > 0) {
         const issueWithFix = issues.find((i: any) => i.suggestedFix) || issues[0];
-        answer = `💻 **Recommended Security Patch for \`${issueWithFix.filePath}\`**:\n\n**Issue**: ${issueWithFix.message} (${issueWithFix.cwe || 'CWE'})\n\n` +
-          `**Remediation**: ${issueWithFix.remediation || 'Apply the suggested fix below.'}\n\n` +
+        answer = `💻 **Recommended Security Patch for \`${issueWithFix.filePath}\`**:\n\n` +
+          `| Parameter | Details |\n` +
+          `| :--- | :--- |\n` +
+          `| **Target File** | \`${issueWithFix.filePath}:${issueWithFix.lineNumber}\` |\n` +
+          `| **Classification** | **${issueWithFix.severity.toUpperCase()}** (${issueWithFix.cwe || 'CWE Violation'}) |\n` +
+          `| **Root Cause** | ${issueWithFix.message} |\n\n` +
+          `### 🛠️ Code Remediation\n\n` +
+          (issueWithFix.remediation ? `${issueWithFix.remediation}\n\n` : '') +
           '```diff\n' + (issueWithFix.suggestedFix || '// Fix not available') + '\n```\n\n' +
+          `---\n\n` +
           `**Verification**: Once committed, GitSentinel's AST validator will verify the patch and update the gate status.`;
       } else {
         answer = `✅ All files in this PR currently satisfy security checks. No remediation patches are currently required.`;
@@ -306,20 +331,28 @@ ${contextStr}`;
       const secIssue = issues.find((i: any) => i.attackScenario) || issues[0];
       if (secIssue) {
         answer = `⚔️ **Attack Scenario & Threat Vector (${secIssue.cwe || 'Security Impact'})**:\n\n` +
-          `• **Vulnerable Component**: \`${secIssue.filePath}:${secIssue.lineNumber}\`\n` +
-          `• **Impact**: ${secIssue.impact || 'Adversary exploitation allows state manipulation.'}\n\n` +
-          `**Attack Mechanism**:\n${secIssue.attackScenario || 'An attacker can exploit this predictable or unvalidated logic to bypass controls.'}\n\n` +
+          `| Vector Parameter | Description |\n` +
+          `| :--- | :--- |\n` +
+          `| **Vulnerable Component** | \`${secIssue.filePath}:${secIssue.lineNumber}\` |\n` +
+          `| **Threat Classification** | **${secIssue.severity?.toUpperCase() || 'HIGH'}** (${secIssue.category || 'Vulnerability'}) |\n` +
+          `| **Potential Impact** | ${secIssue.impact || 'Adversary exploitation allows state or data compromise.'} |\n\n` +
+          `### 💥 Attack Mechanism\n\n` +
+          `${secIssue.attackScenario || 'An attacker can exploit this predictable or unvalidated logic to bypass controls.'}\n\n` +
+          `---\n\n` +
           `🛡️ **Mitigation**: Use cryptographically secure randomness (CSPRNG) and strict input bounds checking.`;
       } else {
         answer = `No active attack vectors were identified in the changes.`;
       }
     } else if (lowerQ.includes('summary') || lowerQ.includes('overview') || lowerQ.includes('what changed')) {
       answer = `📋 **Pull Request Security Summary**:\n\n` +
-        `• **Repository**: \`${prRecord?.repository?.fullName || 'Active Repo'}\`\n` +
-        `• **PR Title**: ${prRecord?.title || 'PR'}\n` +
-        `• **Audit Status**: ${latestReview?.status?.toUpperCase() || 'COMPLETED'}\n` +
-        `• **Gate Verdict**: ${latestReview?.gateVerdict === 'BLOCK' ? '❌ FAIL (MERGE BLOCKED)' : '✅ PASS'}\n` +
-        `• **Findings Total**: ${issues.length} detected issues (${issues.filter((i: any) => i.severity === 'critical').length} Critical)\n\n` +
+        `| Metric | Status / Value |\n` +
+        `| :--- | :--- |\n` +
+        `| **Repository** | \`${prRecord?.repository?.fullName || 'Active Repo'}\` |\n` +
+        `| **PR Title** | ${prRecord?.title || 'PR'} |\n` +
+        `| **Audit Status** | ${latestReview?.status?.toUpperCase() || 'COMPLETED'} |\n` +
+        `| **Gate Verdict** | ${latestReview?.gateVerdict === 'BLOCK' ? '❌ **BLOCK (MERGE BLOCKED)**' : '✅ **PASS**'} |\n` +
+        `| **Findings Total** | **${issues.length}** issues (${issues.filter((i: any) => i.severity === 'critical').length} Critical) |\n\n` +
+        `### Analysis Notes\n\n` +
         (latestReview?.summary || 'Code inspected against OWASP Top 10 and MITRE CWE benchmarks.');
     } else {
       answer = `🤖 **GitSentinel CyberOps Analysis**:\n\n` +

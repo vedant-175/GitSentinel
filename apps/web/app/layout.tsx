@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from './components/Navbar';
+import { GithubConnectionBanner } from './components/GithubConnectionBanner';
 import { Sidebar } from './components/Sidebar';
 import { Providers } from './components/Providers';
 import { CyberChatbot } from './components/CyberChatbot';
@@ -46,6 +47,7 @@ export default function RootLayout({
         <Providers>
           <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#07090e]">
             <Navbar />
+            <GithubConnectionBanner />
             
             <div className="flex-1 flex w-full">
               <Sidebar />

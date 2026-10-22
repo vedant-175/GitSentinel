@@ -1,10 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@ai-reviewer/db';
 import { syncUserRepositories } from './github-sync';
-import { verifyPassword } from './password';
-import { findGitHubAccountForEmail } from './github-email';
 
 // Auto-detect production URL on Vercel
 if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
@@ -38,8 +35,8 @@ export function validateAuthConfig() {
 
 /**
  * Builds the authentication providers list according to security rules:
- * 1. GithubProvider with minimal OAuth scope ('read:user') - Direct 1-Click GitHub OAuth
- * 2. CredentialsProvider - Supporting both GitHub Username registration/login and Email & Password
+ * 1. GithubProvider with minimal OAuth scope ('read:user') - Primary & Default GitHub OAuth
+ * Credentials-based and username-based authentication are retired in favor of GitHub-First OAuth.
  */
 export function buildProviders() {
   const github = GithubProvider({
@@ -48,7 +45,7 @@ export function buildProviders() {
     authorization: {
       url: 'https://github.com/login/oauth/authorize',
       params: {
-        scope: 'read:user', // Narrow OAuth scope to the minimum
+        scope: 'read:user', // Narrow OAuth scope to the minimum required
       },
     },
   });
@@ -60,204 +57,7 @@ export function buildProviders() {
     },
   };
 
-  const providers: any[] = [github];
-
-  // Enable Credentials login when explicitly configured in dev mode, on Vercel preview/production, or non-test envs
-  const isDevLoginEnabled =
-    (process.env.ENABLE_DEV_LOGIN === 'true' && process.env.NODE_ENV === 'development') ||
-    Boolean(process.env.VERCEL) ||
-    (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEV_LOGIN !== 'true');
-
-  if (isDevLoginEnabled) {
-    const creds = CredentialsProvider({
-      id: 'credentials',
-      name: 'GitSentinel Login',
-      credentials: {
-        username: {
-          label: 'GitHub Username',
-          type: 'text',
-          placeholder: 'Enter GitHub username (e.g. octocat, torvalds)',
-        },
-        email: {
-          label: 'Email',
-          type: 'email',
-          placeholder: 'name@example.com',
-        },
-        password: {
-          label: 'Password',
-          type: 'password',
-        },
-      },
-      async authorize(credentials, req) {
-        // Verify host is localhost or Vercel deployment
-        const rawHost =
-          req?.headers?.host ||
-          (req?.headers as Record<string, string> | undefined)?.['host'] ||
-          '';
-        const host = (typeof rawHost === 'string' ? rawHost : '').split(':')[0].toLowerCase();
-        const isLocalhost =
-          host === 'localhost' ||
-          host === '127.0.0.1' ||
-          host === '[::1]' ||
-          host === '::1';
-        const isVercelHost = host.endsWith('.vercel.app') && Boolean(process.env.VERCEL);
-
-        if (!isLocalhost && !isVercelHost) {
-          throw new Error('Dev credentials login is only permitted on localhost');
-        }
-
-        // =========================================================================
-        // METHOD 1: EMAIL & PASSWORD LOGIN
-        // =========================================================================
-        const email = credentials?.email?.trim().toLowerCase();
-        const password = credentials?.password;
-
-        if (email && password) {
-          // Check if registered email has a GitHub account
-          const ghAccount = await findGitHubAccountForEmail(email);
-
-          // Find user in database
-          let dbUser = null;
-          try {
-            dbUser = await prisma.user.findUnique({
-              where: { email },
-            });
-          } catch (dbErr) {
-            console.warn('[Auth] Database offline during email login:', dbErr);
-          }
-
-          // If user exists in DB, verify password
-          if (dbUser && dbUser.passwordHash) {
-            const isValid = verifyPassword(password, dbUser.passwordHash);
-            if (!isValid) {
-              throw new Error('Invalid email or password');
-            }
-          }
-
-          // User Requirement:
-          // "first login/register should be if someone can type their email and password, if their registered email has github acc in it, so then they must connect with their github"
-          if (ghAccount.hasGithub && ghAccount.login) {
-            if (!dbUser?.githubLogin) {
-              throw new Error(`GITHUB_CONNECT_REQUIRED:${ghAccount.login}`);
-            }
-          }
-
-          const effectiveLogin = dbUser?.githubLogin || ghAccount.login || email.split('@')[0];
-          const displayName = dbUser?.name || effectiveLogin;
-          const userImage = dbUser?.image || (ghAccount.login ? `https://github.com/${ghAccount.login}.png` : undefined);
-
-          // Ensure installations exist for this user
-          let userInstIds = [1];
-          try {
-            if (effectiveLogin) {
-              const insts = await prisma.installation.findMany({
-                where: { accountLogin: { equals: effectiveLogin, mode: 'insensitive' } },
-                select: { githubInstallationId: true },
-              });
-              if (insts.length > 0) {
-                userInstIds = insts.map((i) => Number(i.githubInstallationId));
-              }
-            }
-          } catch (instErr) {
-            console.warn('[Auth] Could not load installations for user:', instErr);
-          }
-
-          return {
-            id: dbUser?.id || `user-${effectiveLogin}`,
-            name: displayName,
-            email: email,
-            login: effectiveLogin,
-            image: userImage,
-            installationIds: userInstIds,
-          };
-        }
-
-        // =========================================================================
-        // METHOD 2: GITHUB USERNAME LOGIN / REGISTRATION
-        // =========================================================================
-        const username = credentials?.username?.trim().replace(/^@/, '');
-        if (!username) {
-          return null;
-        }
-
-        // Dynamically synchronize public repositories for ANY GitHub username
-        let targetLogin = username;
-        try {
-          const syncResult = await syncUserRepositories(username);
-          if (syncResult.login) {
-            targetLogin = syncResult.login;
-          }
-        } catch (syncErr) {
-          console.warn(`[Auth] Sync warning for ${username}:`, syncErr);
-        }
-
-        // Query or create installations for this account
-        let matchingInsts: Array<{ githubInstallationId: bigint; accountLogin: string }> = [];
-        try {
-          matchingInsts = await prisma.installation.findMany({
-            where: {
-              OR: [
-                { accountLogin: { equals: targetLogin, mode: 'insensitive' } },
-                { accountLogin: { equals: username, mode: 'insensitive' } },
-              ],
-            },
-            select: { githubInstallationId: true, accountLogin: true },
-          });
-
-          // Fallback: If not found, ensure a local installation exists so the user can always log in
-          if (matchingInsts.length === 0) {
-            const fallbackInstId = BigInt(Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 900));
-            const fallback = await prisma.installation.create({
-              data: {
-                githubInstallationId: fallbackInstId,
-                accountLogin: targetLogin,
-                accountType: 'User',
-              },
-              select: { githubInstallationId: true, accountLogin: true },
-            });
-            matchingInsts = [fallback];
-          }
-
-          // Upsert User model in DB
-          await prisma.user.upsert({
-            where: { githubLogin: targetLogin },
-            update: {
-              name: targetLogin,
-              image: `https://github.com/${targetLogin}.png`,
-            },
-            create: {
-              githubLogin: targetLogin,
-              name: targetLogin,
-              email: `${targetLogin}@users.noreply.github.com`,
-              image: `https://github.com/${targetLogin}.png`,
-            },
-          }).catch(() => {});
-        } catch (dbErr) {
-          console.warn(`[Auth] Database offline during login for ${targetLogin}, continuing with offline installation.`);
-        }
-
-        const userInstIds = matchingInsts.length > 0
-          ? matchingInsts.map((i) => Number(i.githubInstallationId))
-          : [1];
-        const effectiveLogin = matchingInsts[0]?.accountLogin || targetLogin;
-
-        return {
-          id: `gh-user-${effectiveLogin}`,
-          name: effectiveLogin,
-          email: `${effectiveLogin}@users.noreply.github.com`,
-          login: effectiveLogin,
-          image: `https://github.com/${effectiveLogin}.png`,
-          installationIds: userInstIds,
-        };
-      },
-    });
-
-    // Make authorize callable directly on provider instance
-    creds.authorize = (creds as any).options.authorize;
-    providers.push(creds);
-  }
-
-  return providers;
+  return [github];
 }
 
 export const authOptions: NextAuthOptions = {
@@ -265,20 +65,50 @@ export const authOptions: NextAuthOptions = {
   secret,
   callbacks: {
     // Item 6: Keep network or DB writes out of the jwt callback
-    async jwt({ token, account, profile, user }) {
+    async jwt({ token, account, profile, user, trigger, session }) {
       if (user) {
         token.sub = user.id;
         token.login = (user as any).login || user.name || 'github-developer';
         token.picture = (user as any).image;
+        token.email = user.email || token.email;
+        token.authMethod = (user as any).authMethod || (account?.provider === 'github' ? 'oauth' : 'username');
+        token.isGithubConnected = (user as any).isGithubConnected !== undefined
+          ? (user as any).isGithubConnected
+          : (account?.provider === 'github' || token.authMethod === 'username');
+        token.detectedGithubLogin = (user as any).detectedGithubLogin || null;
+        token.githubLogin = (user as any).githubLogin || null;
         if ((user as any).installationIds) {
           token.installationIds = (user as any).installationIds;
         }
+      }
+      if (account?.provider === 'github') {
+        token.authMethod = 'oauth';
+        token.isGithubConnected = true;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
       }
       if (profile && 'login' in profile && typeof profile.login === 'string') {
         token.login = profile.login;
+        token.githubLogin = profile.login;
+        token.isGithubConnected = true;
+      }
+      if (profile && 'id' in profile && profile.id) {
+        token.githubId = String(profile.id);
+      }
+
+      // Handle client-side session update
+      if (trigger === 'update' && session) {
+        if (session.user?.isGithubConnected !== undefined) {
+          token.isGithubConnected = session.user.isGithubConnected;
+        }
+        if (session.user?.githubLogin) {
+          token.githubLogin = session.user.githubLogin;
+          token.login = session.user.githubLogin;
+        }
+        if (session.user?.detectedGithubLogin !== undefined) {
+          token.detectedGithubLogin = session.user.detectedGithubLogin;
+        }
       }
 
       // Pure in-memory token transformation - NO network calls, NO database writes
@@ -289,11 +119,37 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
         session.user.login = token.login;
         session.user.image = (token.picture as string) || (session.user as any)?.image;
+        session.user.authMethod = token.authMethod || 'oauth';
+        session.user.isGithubConnected = token.isGithubConnected !== false;
+        session.user.detectedGithubLogin = token.detectedGithubLogin;
+        session.user.githubLogin = token.githubLogin || token.login;
+        (session.user as any).githubId = (token as any).githubId || null;
       }
       session.accessToken = token.accessToken;
       if (token.installationIds) {
         session.installationIds = token.installationIds;
       }
+
+      // If email-authenticated user is marked not connected in token, check if DB now has githubLogin
+      if (session?.user?.email && session.user.authMethod === 'email' && !session.user.isGithubConnected) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { githubLogin: true, image: true },
+          });
+          if (dbUser?.githubLogin) {
+            session.user.isGithubConnected = true;
+            session.user.githubLogin = dbUser.githubLogin;
+            session.user.login = dbUser.githubLogin;
+            if (dbUser.image) {
+              session.user.image = dbUser.image;
+            }
+          }
+        } catch {
+          // Ignore if db offline
+        }
+      }
+
       return session;
     },
   },
@@ -302,7 +158,8 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'github' && profile) {
         try {
           const ghLogin = (profile as any).login;
-          const ghId = (profile as any).id ? BigInt((profile as any).id) : null;
+          const rawId = (profile as any).id;
+          const ghId = rawId ? BigInt(rawId) : null;
           const ghEmail = (profile as any).email || user?.email;
           const ghAvatar = (profile as any).avatar_url || user?.image;
           const ghName = (profile as any).name || ghLogin;
@@ -313,23 +170,68 @@ export const authOptions: NextAuthOptions = {
               console.warn('[Auth] sync error on OAuth sign in:', e)
             );
 
-            // Link or create User record
-            await prisma.user.upsert({
-              where: { githubLogin: ghLogin },
-              update: {
-                githubId: ghId,
-                image: ghAvatar,
-                name: ghName,
-                ...(ghEmail ? { email: ghEmail } : {}),
-              },
-              create: {
-                githubLogin: ghLogin,
-                githubId: ghId,
-                name: ghName,
-                email: ghEmail,
-                image: ghAvatar,
-              },
-            });
+            // Step 1: Look up by stable numeric GitHub ID (provider identity)
+            const existingUser = ghId
+              ? await prisma.user.findUnique({
+                  where: { githubId: ghId },
+                }).catch(() => null)
+              : null;
+
+            if (existingUser) {
+              // Update mutable fields (username rename, avatar, name)
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                  githubLogin: ghLogin,
+                  image: ghAvatar || existingUser.image,
+                  name: ghName || existingUser.name,
+                },
+              }).catch((e) => console.warn('[Auth] Failed to update user by githubId:', e));
+            } else {
+              // Step 2: Check if there's an existing record with matching githubLogin (legacy record without githubId)
+              const existingByLogin = await prisma.user.findUnique({
+                where: { githubLogin: ghLogin },
+              }).catch(() => null);
+
+              if (existingByLogin && !existingByLogin.githubId) {
+                // Link the stable numeric ID safely
+                await prisma.user.update({
+                  where: { id: existingByLogin.id },
+                  data: {
+                    githubId: ghId,
+                    name: ghName || existingByLogin.name,
+                    image: ghAvatar || existingByLogin.image,
+                  },
+                }).catch((e) => console.warn('[Auth] Failed to link githubId to existing user:', e));
+              } else if (!existingByLogin) {
+                // Step 3: Create new User.
+                // Prevent unsafe collision with email/password accounts:
+                // Never merge accounts solely because email matches unless verified!
+                let safeEmail = ghEmail;
+                if (safeEmail) {
+                  const existingEmailUser = await prisma.user.findUnique({
+                    where: { email: safeEmail },
+                  }).catch(() => null);
+
+                  if (existingEmailUser) {
+                    // Do NOT overwrite or merge legacy account; assign non-colliding fallback
+                    safeEmail = `${ghLogin}@users.noreply.github.com`;
+                  }
+                } else {
+                  safeEmail = `${ghLogin}@users.noreply.github.com`;
+                }
+
+                await prisma.user.create({
+                  data: {
+                    githubId: ghId,
+                    githubLogin: ghLogin,
+                    name: ghName,
+                    email: safeEmail,
+                    image: ghAvatar,
+                  },
+                }).catch((e) => console.warn('[Auth] Failed to create new user on OAuth sign in:', e));
+              }
+            }
           }
         } catch (err) {
           console.warn('[Auth Event] Could not upsert user on OAuth sign in:', err);
@@ -339,6 +241,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
 };
 
