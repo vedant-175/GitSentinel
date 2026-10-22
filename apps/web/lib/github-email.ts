@@ -85,5 +85,41 @@ export async function findGitHubAccountForEmail(email: string): Promise<GitHubAc
     console.warn('[findGitHubAccountForEmail] GitHub search lookup warning:', err);
   }
 
+  // 4. Fallback: Check if email prefix matches an active GitHub user (for users with private GitHub emails)
+  const prefix = cleanEmail.split('@')[0];
+  if (prefix && prefix.length >= 2 && !prefix.includes('+')) {
+    try {
+      const headers: Record<string, string> = {
+        'User-Agent': 'GitSentinel-App',
+        Accept: 'application/vnd.github.v3+json',
+      };
+      const token = process.env.GITHUB_PAT || process.env.GITHUB_TOKEN;
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+
+      const res = await fetch(`https://api.github.com/users/${encodeURIComponent(prefix)}`, {
+        headers,
+        signal: AbortSignal.timeout(3000),
+      });
+
+      if (res.ok) {
+        const user = await res.json();
+        if (user && user.login && user.type === 'User') {
+          return {
+            hasGithub: true,
+            login: user.login,
+            avatarUrl: user.avatar_url,
+            id: user.id,
+            source: 'github_search',
+          };
+        }
+      }
+    } catch {
+      // Ignore fallback check timeout
+    }
+  }
+
   return { hasGithub: false };
 }
+

@@ -134,17 +134,11 @@ export function buildProviders() {
             }
           }
 
-          // User Requirement:
-          // "first login/register should be if someone can type their email and password, if their registered email has github acc in it, so then they must connect with their github"
-          if (ghAccount.hasGithub && ghAccount.login) {
-            if (!dbUser?.githubLogin) {
-              throw new Error(`GITHUB_CONNECT_REQUIRED:${ghAccount.login}`);
-            }
-          }
-
-          const effectiveLogin = dbUser?.githubLogin || ghAccount.login || email.split('@')[0];
+          const isGithubConnected = Boolean(dbUser?.githubLogin);
+          const detectedLogin = ghAccount.hasGithub && ghAccount.login ? ghAccount.login : null;
+          const effectiveLogin = dbUser?.githubLogin || detectedLogin || email.split('@')[0];
           const displayName = dbUser?.name || effectiveLogin;
-          const userImage = dbUser?.image || (ghAccount.login ? `https://github.com/${ghAccount.login}.png` : undefined);
+          const userImage = dbUser?.image || (detectedLogin ? `https://github.com/${detectedLogin}.png` : undefined);
 
           // Ensure installations exist for this user
           let userInstIds = [1];
@@ -168,6 +162,10 @@ export function buildProviders() {
             email: email,
             login: effectiveLogin,
             image: userImage,
+            authMethod: 'email',
+            isGithubConnected,
+            detectedGithubLogin: detectedLogin,
+            githubLogin: dbUser?.githubLogin || null,
             installationIds: userInstIds,
           };
         }
@@ -247,6 +245,10 @@ export function buildProviders() {
           email: `${effectiveLogin}@users.noreply.github.com`,
           login: effectiveLogin,
           image: `https://github.com/${effectiveLogin}.png`,
+          authMethod: 'username',
+          isGithubConnected: true,
+          detectedGithubLogin: effectiveLogin,
+          githubLogin: effectiveLogin,
           installationIds: userInstIds,
         };
       },
@@ -265,20 +267,47 @@ export const authOptions: NextAuthOptions = {
   secret,
   callbacks: {
     // Item 6: Keep network or DB writes out of the jwt callback
-    async jwt({ token, account, profile, user }) {
+    async jwt({ token, account, profile, user, trigger, session }) {
       if (user) {
         token.sub = user.id;
         token.login = (user as any).login || user.name || 'github-developer';
         token.picture = (user as any).image;
+        token.email = user.email || token.email;
+        token.authMethod = (user as any).authMethod || (account?.provider === 'github' ? 'oauth' : 'username');
+        token.isGithubConnected = (user as any).isGithubConnected !== undefined
+          ? (user as any).isGithubConnected
+          : (account?.provider === 'github' || token.authMethod === 'username');
+        token.detectedGithubLogin = (user as any).detectedGithubLogin || null;
+        token.githubLogin = (user as any).githubLogin || null;
         if ((user as any).installationIds) {
           token.installationIds = (user as any).installationIds;
         }
+      }
+      if (account?.provider === 'github') {
+        token.authMethod = 'oauth';
+        token.isGithubConnected = true;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
       }
       if (profile && 'login' in profile && typeof profile.login === 'string') {
         token.login = profile.login;
+        token.githubLogin = profile.login;
+        token.isGithubConnected = true;
+      }
+
+      // Handle client-side session update
+      if (trigger === 'update' && session) {
+        if (session.user?.isGithubConnected !== undefined) {
+          token.isGithubConnected = session.user.isGithubConnected;
+        }
+        if (session.user?.githubLogin) {
+          token.githubLogin = session.user.githubLogin;
+          token.login = session.user.githubLogin;
+        }
+        if (session.user?.detectedGithubLogin !== undefined) {
+          token.detectedGithubLogin = session.user.detectedGithubLogin;
+        }
       }
 
       // Pure in-memory token transformation - NO network calls, NO database writes
@@ -289,11 +318,36 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
         session.user.login = token.login;
         session.user.image = (token.picture as string) || (session.user as any)?.image;
+        session.user.authMethod = token.authMethod;
+        session.user.isGithubConnected = token.isGithubConnected;
+        session.user.detectedGithubLogin = token.detectedGithubLogin;
+        session.user.githubLogin = token.githubLogin;
       }
       session.accessToken = token.accessToken;
       if (token.installationIds) {
         session.installationIds = token.installationIds;
       }
+
+      // If email-authenticated user is marked not connected in token, check if DB now has githubLogin
+      if (session?.user?.email && session.user.authMethod === 'email' && !session.user.isGithubConnected) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { githubLogin: true, image: true },
+          });
+          if (dbUser?.githubLogin) {
+            session.user.isGithubConnected = true;
+            session.user.githubLogin = dbUser.githubLogin;
+            session.user.login = dbUser.githubLogin;
+            if (dbUser.image) {
+              session.user.image = dbUser.image;
+            }
+          }
+        } catch {
+          // Ignore if db offline
+        }
+      }
+
       return session;
     },
   },

@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   Search,
   FolderGit2,
@@ -21,11 +22,13 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   X,
   ArrowRight,
 } from 'lucide-react';
 import { syncUserReposAction, analyseRepositoryAction } from '../actions/repo-actions';
 import { formatTimeAgo } from '@/lib/date-format';
+import { GithubConnectionModal } from '../components/GithubConnectionModal';
 
 interface RepoItem {
   id: number;
@@ -63,6 +66,7 @@ export function RepositoriesView({
   currentUserLogin = '',
 }: RepositoriesViewProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -71,10 +75,15 @@ export function RepositoriesView({
 
   // Add Repository / Sync Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [syncTarget, setSyncTarget] = useState('');
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [syncedRepos, setSyncedRepos] = useState<RepoItem[] | null>(null);
+
+  const isEmailUser = session?.user?.authMethod === 'email';
+  const isGithubConnected = session?.user?.isGithubConnected;
+  const detectedGithubLogin = session?.user?.detectedGithubLogin;
 
   // Analysis loading states per repo
   const [analysingId, setAnalysingId] = useState<number | null>(null);
@@ -280,6 +289,59 @@ export function RepositoriesView({
         </div>
       </div>
 
+      {/* GitHub Connection Alert Card for Email Users */}
+      {isEmailUser && !isGithubConnected && (
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6 text-left shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>GitHub is not connected. You have to connect with GitHub.</span>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold">
+                    Action Required
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">
+                  You are logged in with email <span className="font-semibold text-slate-800 dark:text-zinc-200">{session?.user?.email}</span>. GitSentinel requires a connected GitHub account to monitor repositories, check pull requests, and run AI security gates.
+                </p>
+                {detectedGithubLogin && (
+                  <div className="mt-2.5 inline-flex items-center gap-2 rounded-lg bg-amber-500/15 border border-amber-500/25 px-3 py-1.5 text-xs text-amber-900 dark:text-amber-200">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <span>
+                      We detected that your registered email is linked with GitHub account <strong>@{detectedGithubLogin}</strong>.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center">
+              {detectedGithubLogin ? (
+                <button
+                  type="button"
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  <FolderGit2 className="h-3.5 w-3.5" />
+                  <span>Connect @{detectedGithubLogin}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  <FolderGit2 className="h-3.5 w-3.5" />
+                  <span>Connect with GitHub</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. Four Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Repositories */}
@@ -456,36 +518,68 @@ export function RepositoriesView({
           </div>
         ) : currentUserLogin ? (
           /* Case 2: User is logged in, but has 0 repos synced */
-          <div className="rounded-2xl border border-dashed border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-center shadow-xs">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 mb-3.5">
-              <FolderGit2 className="h-6 w-6" />
+          isEmailUser && !isGithubConnected ? (
+            <div className="rounded-2xl border border-dashed border-amber-500/40 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-center shadow-xs">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 mb-3.5">
+                <AlertTriangle className="h-7 w-7" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                GitHub is Not Connected
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+                You are signed in with email. You have to connect with GitHub to import and review your repositories.
+              </p>
+              {detectedGithubLogin && (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3.5 py-2 text-xs text-amber-800 dark:text-amber-300">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <span>
+                    We detected that your registered email is linked with GitHub account <strong>@{detectedGithubLogin}</strong>.
+                  </span>
+                </div>
+              )}
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <FolderGit2 className="h-4 w-4" />
+                  <span>{detectedGithubLogin ? `Connect @${detectedGithubLogin}` : 'Connect with GitHub'}</span>
+                </button>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              No repositories synchronized yet for @{currentUserLogin}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 max-w-md mx-auto leading-relaxed">
-              GitSentinel monitors your GitHub repositories for security vulnerabilities, code smells, and automated PR reviews. Click below to synchronize your public repositories.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                disabled={syncLoading}
-                onClick={() => handleSyncAccount(currentUserLogin)}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                <RefreshCw className={`h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
-                <span>{syncLoading ? 'Synchronizing from GitHub...' : `Sync @${currentUserLogin}'s Repositories`}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-              >
-                <Plus className="h-4 w-4 text-slate-500 dark:text-zinc-400" />
-                <span>Import Another Account / Org</span>
-              </button>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-center shadow-xs">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 mb-3.5">
+                <FolderGit2 className="h-6 w-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                No repositories synchronized yet for @{currentUserLogin}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1.5 max-w-md mx-auto leading-relaxed">
+                GitSentinel monitors your GitHub repositories for security vulnerabilities, code smells, and automated PR reviews. Click below to synchronize your public repositories.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  disabled={syncLoading}
+                  onClick={() => handleSyncAccount(currentUserLogin)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
+                  <span>{syncLoading ? 'Synchronizing from GitHub...' : `Sync @${currentUserLogin}'s Repositories`}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-200 shadow-xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 text-slate-500 dark:text-zinc-400" />
+                  <span>Import Another Account / Org</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           /* Case 3: Visitor is NOT logged in and 0 repos loaded */
           <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-8 sm:p-12 text-center shadow-xs">
@@ -880,6 +974,13 @@ export function RepositoriesView({
           </div>
         </div>
       )}
+
+      {/* GitHub Account Connection Modal */}
+      <GithubConnectionModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        detectedLogin={detectedGithubLogin}
+      />
     </div>
   );
 }

@@ -28,23 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Check if email is associated with a GitHub account
-    // Requirement: "if their registered email has github acc in it, so then they must connect with their github"
     const ghInfo = await findGitHubAccountForEmail(email);
-    if (ghInfo.hasGithub && ghInfo.login) {
-      return NextResponse.json(
-        {
-          success: false,
-          githubRequired: true,
-          githubUser: {
-            login: ghInfo.login,
-            avatarUrl: ghInfo.avatarUrl || `https://github.com/${ghInfo.login}.png`,
-            id: ghInfo.id,
-          },
-          message: `Your registered email is associated with GitHub account @${ghInfo.login}. You must connect with your GitHub account.`,
-        },
-        { status: 409 }
-      );
-    }
 
     // 2. Check if user already exists in database
     try {
@@ -79,6 +63,12 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Account created successfully! You can now sign in.',
         user,
+        detectedGithubUser: ghInfo.hasGithub && ghInfo.login
+          ? {
+              login: ghInfo.login,
+              avatarUrl: ghInfo.avatarUrl || `https://github.com/${ghInfo.login}.png`,
+            }
+          : null,
       });
     } catch (dbErr: any) {
       console.warn('[Register] Database offline or error, falling back to local registration:', dbErr);
@@ -87,6 +77,12 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Account registered successfully!',
         user: { email, name },
+        detectedGithubUser: ghInfo.hasGithub && ghInfo.login
+          ? {
+              login: ghInfo.login,
+              avatarUrl: ghInfo.avatarUrl || `https://github.com/${ghInfo.login}.png`,
+            }
+          : null,
       });
     }
   } catch (err: any) {
