@@ -3,6 +3,8 @@ import {
   getSessionInstallationIds,
   requireInstallationAccess,
   requirePullRequestAccess,
+  ForbiddenError,
+  UnauthorizedError,
 } from './auth-helpers';
 import { paginateResults } from './pagination';
 
@@ -168,6 +170,9 @@ export async function getPullRequestById(id: number) {
 
     return { data: pullRequest };
   } catch (err) {
+    if (err instanceof ForbiddenError || err instanceof UnauthorizedError) {
+      throw err;
+    }
     console.warn(`[getPullRequestById] Database query failed for PR #${id}:`, err);
     return { data: null };
   }

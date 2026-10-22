@@ -1,0 +1,143 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { checkApiRateLimit } from '../../../lib/rate-limit';
+
+export const dynamic = 'force-dynamic';
+
+// Valid GitHub username format (1-39 chars, alphanumeric and single hyphens, cannot start/end with hyphen)
+const GITHUB_USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
+
+/**
+ * Public Repository Exploration Endpoint (Non-Authenticated)
+ *
+ * Rules:
+ * 1. Does NOT create an authenticated user session.
+ * 2. Does NOT create or alter user records in the database.
+ * 3. Does NOT grant private repository access or elevated permissions.
+ * 4. Only queries public GitHub repositories via GitHub's public API.
+ * 5. Rate-limited and validated against abuse.
+ */
+export async function GET(req: NextRequest) {
+  // 1. Enforce API rate limiting
+  const rateLimitResponse = await checkApiRateLimit(req);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const { searchParams } = new URL(req.url);
+  const rawUsername = searchParams.get('username') || searchParams.get('q') || '';
+  const cleanUsername = rawUsername.trim().replace(/^@/, '');
+
+  if (!cleanUsername) {
+    return NextResponse.json(
+      { error: 'GitHub username is required. Please enter a valid username (e.g. octocat, torvalds).' },
+      { status: 400 }
+    );
+  }
+
+  if (!GITHUB_USERNAME_REGEX.test(cleanUsername)) {
+    return NextResponse.json(
+      { error: 'Invalid GitHub username format. Usernames may only contain alphanumeric characters and single hyphens.' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const headers: Record<string, string> = {
+      'User-Agent': 'GitSentinel-Public-Explorer/1.0',
+      Accept: 'application/vnd.github.v3+json',
+    };
+
+    // Use server token if available to prevent unauthenticated IP rate limits on GitHub API
+    const ghToken = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+    if (ghToken) {
+      headers['Authorization'] = `token ${ghToken}`;
+    }
+
+    // 2. Fetch public user profile
+    const userRes = await fetch(
+      `https://api.github.com/users/${encodeURIComponent(cleanUsername)}`,
+      { headers, signal: AbortSignal.timeout(8000) }
+    );
+
+    if (userRes.status === 404) {
+      return NextResponse.json(
+        { error: `GitHub user @${cleanUsername} was not found on GitHub.` },
+        { status: 404 }
+      );
+    }
+
+    if (userRes.status === 403 || userRes.status === 429) {
+      return NextResponse.json(
+        {
+          error: 'GitHub API rate limit exceeded. Please try again shortly or sign in with GitHub for direct access.',
+          code: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
+    }
+
+    if (!userRes.ok) {
+      return NextResponse.json(
+        { error: `GitHub API error (${userRes.status}). Could not inspect user.` },
+        { status: userRes.status }
+      );
+    }
+
+    const userData = await userRes.json();
+
+    // 3. Fetch public repositories
+    const reposRes = await fetch(
+      `https://api.github.com/users/${encodeURIComponent(cleanUsername)}/repos?per_page=100&sort=updated`,
+      { headers, signal: AbortSignal.timeout(8000) }
+    );
+
+    let repos: any[] = [];
+    if (reposRes.ok) {
+      const rawRepos = await reposRes.json();
+      if (Array.isArray(rawRepos)) {
+        repos = rawRepos
+          .filter((r) => !r.private) // strictly public repositories only
+          .map((r) => ({
+            id: r.id,
+            name: r.name,
+            fullName: r.full_name,
+            description: r.description || 'Public GitHub repository.',
+            defaultBranch: r.default_branch || 'main',
+            stars: r.stargazers_count ?? 0,
+            forks: r.forks_count ?? 0,
+            language: r.language || 'Code',
+            htmlUrl: r.html_url,
+            updatedAt: r.updated_at,
+            isPrivate: false,
+            openIssuesCount: r.open_issues_count ?? 0,
+          }));
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        login: userData.login,
+        name: userData.name || userData.login,
+        avatarUrl: userData.avatar_url,
+        bio: userData.bio || '',
+        publicRepos: userData.public_repos ?? repos.length,
+        htmlUrl: userData.html_url,
+      },
+      reposCount: repos.length,
+      repos,
+      notice: 'Public exploration preview. To run AI code reviews, automated security scanning, or connect private repositories, please sign in with GitHub.',
+    });
+  } catch (err: any) {
+    if (err.name === 'TimeoutError' || err.code === 23) {
+      return NextResponse.json(
+        { error: 'GitHub API request timed out. Please check your internet connection and try again.' },
+        { status: 504 }
+      );
+    }
+
+    console.error('[Public Explore] Error inspecting user:', err);
+    return NextResponse.json(
+      { error: 'Failed to explore repositories due to an unexpected error.' },
+      { status: 500 }
+    );
+  }
+}

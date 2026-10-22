@@ -39,6 +39,7 @@ export function Navbar() {
     { label: 'Overview', href: '/', active: pathname === '/' },
     { label: 'Pull requests', href: '/pull-requests', active: pathname.startsWith('/pull-requests') },
     { label: 'Repositories', href: '/repositories', active: pathname.startsWith('/repositories') },
+    { label: 'Explore', href: '/explore', active: pathname.startsWith('/explore') },
     { label: 'AI Code Explorer', href: '/code-explorer', active: pathname.startsWith('/code-explorer') },
     { label: 'Evaluations', href: '/eval', active: pathname.startsWith('/eval') },
     { label: 'Logs', href: '/logs', active: pathname.startsWith('/logs') },
