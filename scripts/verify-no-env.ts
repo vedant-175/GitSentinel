@@ -37,18 +37,24 @@ export function verifyNoTrackedEnvFiles(rootDir = process.cwd()): {
     return base === '.env' || base.startsWith('.env.') || base.endsWith('.env');
   });
 
-  // 2. Check git archive file listing
+  // 2. Check git archive / tree file listing
   let archivedFilesOutput = '';
   try {
-    // List file paths that git archive would export
-    archivedFilesOutput = execSync('git archive --format=tar HEAD | tar -t', {
-      cwd: rootDir,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-      shell: 'bash',
-    });
+    if (process.platform === 'win32') {
+      archivedFilesOutput = execSync('git ls-tree -r --name-only HEAD', {
+        cwd: rootDir,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+    } else {
+      archivedFilesOutput = execSync('git archive --format=tar HEAD | tar -t', {
+        cwd: rootDir,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: 'bash',
+      });
+    }
   } catch {
-    // On Windows without bash/tar in PATH, fall back to checking git archive via git ls-tree
     try {
       archivedFilesOutput = execSync('git ls-tree -r --name-only HEAD', {
         cwd: rootDir,

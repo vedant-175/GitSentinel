@@ -88,6 +88,10 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      # Step 8b: Verify No Tracked Secrets or .env Files (DevSecOps Hygiene)
+      - name: Verify No Tracked .env Files
+        run: npm run check:env-tracked
+
       # Step 9: Typecheck
       - name: Run Typecheck
         run: npm run typecheck
@@ -95,6 +99,14 @@ jobs:
       # Step 10: Test (Node test runner strictly exits non-zero on failure)
       - name: Run Unit & Integration Tests
         run: npm run test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_code_review?schema=public
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: ci-testing-secret-key-32-chars-minimum
+
+      # Step 10b: Security Regression Suite (Phase 5 Matrix)
+      - name: Run Security Regression Suite
+        run: npm run test:security
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_code_review?schema=public
           REDIS_URL: redis://localhost:6379

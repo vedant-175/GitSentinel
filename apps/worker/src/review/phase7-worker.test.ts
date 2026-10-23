@@ -26,6 +26,49 @@ class TestMockProvider implements LLMProvider {
   }
 }
 
+function createTestMockOctokit(headSha: string) {
+  return {
+    rest: {
+      pulls: {
+        get: async () => ({
+          data: {
+            head: { sha: headSha },
+            body: 'PR description',
+          },
+        }),
+        listFiles: async () => ({ data: [] }),
+        listReviewComments: async () => ({ data: [] }),
+        listReviews: async () => ({ data: [] }),
+        createReview: async (params: any) => ({ data: { id: 7001, ...params } }),
+        createReviewComment: async (params: any) => ({ data: { id: 8001, ...params } }),
+      },
+      issues: {
+        listComments: async () => ({ data: [] }),
+        createComment: async () => ({ data: { id: 9001 } }),
+        updateComment: async () => ({ data: { id: 9002 } }),
+      },
+      repos: {
+        compareCommitsWithBasehead: async () => ({ data: { files: [] } }),
+        getContent: async () => { throw new Error('Not found'); },
+      },
+      checks: {
+        create: async () => ({ data: { id: 1 } }),
+        update: async () => ({ data: { id: 1 } }),
+      },
+      users: {
+        getAuthenticated: async () => ({ data: { id: 12345 } }),
+      },
+    },
+    paginate: async (fn: any, params: any) => {
+      if (typeof fn === 'function') {
+        const res = await fn(params);
+        return res?.data || res || [];
+      }
+      return [];
+    },
+  };
+}
+
 describe('Phase 7 Worker: Security Gate & Review Provenance', () => {
   itDb('evaluates BLOCK gate verdict for critical security issue and records review.started audit log', async () => {
     const timestamp = Date.now();
@@ -98,7 +141,7 @@ index 0000000..1111111
       mockDiff,
       undefined,
       `job-gate-${timestamp}`,
-      { llmProviderOverride: mockProvider }
+      { llmProviderOverride: mockProvider, octokitOverride: createTestMockOctokit(`commit-gate-${timestamp}`) }
     );
 
     assert.ok(result.reviewId > 0);
@@ -185,7 +228,7 @@ index 0000000..1111111
       mockDiff,
       undefined,
       `job-pass-${timestamp}`,
-      { llmProviderOverride: mockProvider }
+      { llmProviderOverride: mockProvider, octokitOverride: createTestMockOctokit(`commit-pass-${timestamp}`) }
     );
 
     const savedReview = await prisma.review.findUnique({

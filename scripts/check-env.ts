@@ -41,8 +41,8 @@ function checkWebEnv(): EnvCheckResult[] {
   const nextAuthSecret = process.env.NEXTAUTH_SECRET;
   if (!nextAuthSecret) {
     results.push({ variable: 'NEXTAUTH_SECRET', required: true, status: 'missing' });
-  } else if (nextAuthSecret.length < 16) {
-    results.push({ variable: 'NEXTAUTH_SECRET', required: true, status: 'invalid', reason: 'Must be at least 16 characters' });
+  } else if (nextAuthSecret.length < 32) {
+    results.push({ variable: 'NEXTAUTH_SECRET', required: true, status: 'invalid', reason: 'Must be at least 32 characters in production' });
   } else {
     results.push({ variable: 'NEXTAUTH_SECRET', required: true, status: 'ok' });
   }
@@ -121,7 +121,7 @@ function checkWorkerEnv(): EnvCheckResult[] {
       variable: 'LLM_PROVIDER',
       required: true,
       status: 'missing',
-      reason: 'Must be set to "gemini", "openai", "anthropic", or "mock" (test only)',
+      reason: 'Must be set to "groq", "gemini", "openai", "anthropic", or "mock" (test only)',
     });
   } else if (provider === 'mock') {
     if (!isTest) {
@@ -134,9 +134,23 @@ function checkWorkerEnv(): EnvCheckResult[] {
     } else {
       results.push({ variable: 'LLM_PROVIDER', required: true, status: 'ok' });
     }
+  } else if (provider === 'groq') {
+    results.push({ variable: 'LLM_PROVIDER', required: true, status: 'ok' });
+    const groqKey = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY;
+    if (!groqKey) {
+      results.push({ variable: 'GROQ_API_KEYS / GROQ_API_KEY', required: true, status: 'missing', reason: 'Required when LLM_PROVIDER=groq' });
+    } else {
+      results.push({ variable: 'GROQ_API_KEYS / GROQ_API_KEY', required: true, status: 'ok' });
+    }
+    const groqModel = process.env.GROQ_MODEL;
+    if (!groqModel) {
+      results.push({ variable: 'GROQ_MODEL', required: true, status: 'missing', reason: 'Required when LLM_PROVIDER=groq' });
+    } else {
+      results.push({ variable: 'GROQ_MODEL', required: true, status: 'ok' });
+    }
   } else if (provider === 'gemini') {
     results.push({ variable: 'LLM_PROVIDER', required: true, status: 'ok' });
-    const geminiKey = process.env.GEMINI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEYS;
     if (!geminiKey) {
       results.push({ variable: 'GEMINI_API_KEY', required: true, status: 'missing', reason: 'Required when LLM_PROVIDER=gemini' });
     } else {
@@ -150,7 +164,7 @@ function checkWorkerEnv(): EnvCheckResult[] {
     }
   } else if (provider === 'openai') {
     results.push({ variable: 'LLM_PROVIDER', required: true, status: 'ok' });
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEYS;
     if (!openaiKey) {
       results.push({ variable: 'OPENAI_API_KEY', required: true, status: 'missing', reason: 'Required when LLM_PROVIDER=openai' });
     } else {
@@ -164,7 +178,7 @@ function checkWorkerEnv(): EnvCheckResult[] {
     }
   } else if (provider === 'anthropic') {
     results.push({ variable: 'LLM_PROVIDER', required: true, status: 'ok' });
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEYS;
     if (!anthropicKey) {
       results.push({ variable: 'ANTHROPIC_API_KEY', required: true, status: 'missing', reason: 'Required when LLM_PROVIDER=anthropic' });
     } else {
@@ -181,7 +195,7 @@ function checkWorkerEnv(): EnvCheckResult[] {
       variable: 'LLM_PROVIDER',
       required: true,
       status: 'invalid',
-      reason: `Unknown provider "${provider}". Allowed: gemini, openai, anthropic, mock (test only)`,
+      reason: `Unknown provider "${provider}". Allowed: groq, gemini, openai, anthropic, mock (test only)`,
     });
   }
 
