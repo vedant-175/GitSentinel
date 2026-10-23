@@ -1,25 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getKeyPool, maskApiKey } from '@ai-reviewer/shared';
+import { getKeyPool } from '@ai-reviewer/shared';
 import { prisma } from '@ai-reviewer/db';
 import {
   requireSession,
   getSessionInstallationIds,
   handleAuthError,
 } from '@/lib/auth-helpers';
+import {
+  acquireAIConcurrencySlot,
+  releaseAIConcurrencySlot,
+  checkAIBudget,
+  checkAIReviewFileRateLimit,
+} from '@/lib/rate-limit';
+import {
+  ReviewFileRequestSchema,
+  buildSecureReviewPrompt,
+  sanitizeModelOutput,
+  redactSensitiveData,
+  safeProviderFetch,
+} from '@/lib/ai-security';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   // 1. Authentication check
+  let session: any;
   try {
-    await requireSession();
+    session = await requireSession();
   } catch (error) {
     const authRes = handleAuthError(error);
     if (authRes) return authRes;
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const userId = session?.user?.id || session?.user?.login || 'user';
+
+  // 2. Distributed Rate Limiting & User AI Quota
+  const rateLimitRes = await checkAIReviewFileRateLimit(req, userId);
+  if (rateLimitRes) return rateLimitRes;
+
+  const budget = await checkAIBudget(userId, 50);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Too Many Requests',
+        message: 'Daily AI request budget exceeded. Quota resets at midnight UTC.',
+        retryAfter: budget.resetSeconds,
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': budget.resetSeconds.toString() },
+      }
+    );
+  }
+
+  // 3. Concurrency Limiting (Max 2 concurrent reviews per user)
+  const slot = await acquireAIConcurrencySlot(userId, 2);
+  if (!slot.acquired) {
+    return NextResponse.json(
+      {
+        error: 'Too Many Requests',
+        message: 'Concurrent AI request limit reached. Please wait for in-flight analysis to complete.',
+      },
+      { status: 429 }
+    );
+  }
+
   try {
+    // 4. Strict Schema Input Validation (Zod)
     let body: any = {};
     try {
       body = await req.json();
@@ -27,28 +75,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid or missing JSON payload' }, { status: 400 });
     }
 
-    const { repoFullName, filePath, content } = body;
-
-    // 2. Strict input validation
-    if (!filePath || typeof filePath !== 'string' || filePath.trim().length === 0 || filePath.length > 500) {
+    const parseResult = ReviewFileRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      const firstError = parseResult.error.errors[0]?.message || 'Input validation failed';
       return NextResponse.json(
-        { error: 'Valid filePath is required (string up to 500 characters)' },
+        { error: 'Bad Request', message: firstError, details: parseResult.error.flatten() },
         { status: 400 }
       );
     }
 
-    if (!content || typeof content !== 'string' || content.length === 0 || content.length > 100000) {
-      return NextResponse.json(
-        { error: 'Valid content is required (string between 1 and 100,000 characters)' },
-        { status: 400 }
-      );
-    }
+    const { repoFullName, filePath, content } = parseResult.data;
 
-    if (repoFullName && (typeof repoFullName !== 'string' || repoFullName.length > 200)) {
-      return NextResponse.json({ error: 'Invalid repoFullName' }, { status: 400 });
-    }
-
-    // 3. Tenancy check: If repository exists in our database, verify user installation access
+    // 5. Tenancy check: If repository exists in our database, verify user installation access
     if (repoFullName) {
       const repo = await prisma.repository.findFirst({
         where: { fullName: repoFullName },
@@ -67,21 +105,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const promptText = `You are GitSentinel CyberOps AI, an elite security auditor and senior code reviewer.
-Perform a thorough, expert code review of the following source file from repository "${repoFullName || 'Repository'}":
+    // 6. Secure Prompt Construction with Untrusted Data Boundaries
+    const { systemPrompt, userPrompt } = buildSecureReviewPrompt({
+      filePath,
+      content,
+      repoFullName,
+    });
 
-FILE: ${filePath}
-\`\`\`
-${content.slice(0, 15000)}
-\`\`\`
-
-Provide your review in clean Markdown format:
-1. **Executive Assessment**: 1-2 sentence overview of code quality and security posture.
-2. **Security & Vulnerability Analysis**: Check for CWE vulnerabilities (e.g. Insecure PRNG, Input Validation, Injection, XSS, Secret Exposure). State line numbers and severity (CRITICAL, HIGH, MEDIUM, LOW).
-3. **Bug & Logic Flaws**: Check for edge case crashes, missing error handlers, or unhandled states.
-4. **Exact Code Remediation**: Provide a copy-pasteable improved version or diff of the flagged sections.`;
-
-    // 4. TIER 1: Try Groq KeyPool (5 keys)
+    // 7. TIER 1: Try Groq KeyPool (Bounded rotation with timeouts)
     const groqPool = getKeyPool('groq');
     if (groqPool.hasKeys()) {
       const maxAttempts = Math.min(groqPool.size, 5);
@@ -91,7 +122,7 @@ Provide your review in clean Markdown format:
           const modelName = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
           const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
-          const res = await fetch(endpoint, {
+          const res = await safeProviderFetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -100,16 +131,15 @@ Provide your review in clean Markdown format:
             body: JSON.stringify({
               model: modelName,
               messages: [
-                { role: 'system', content: 'You are GitSentinel CyberOps AI, a deterministic code security auditor.' },
-                { role: 'user', content: promptText },
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
               ],
               temperature: 0.2,
             }),
-          });
+          }, 15000);
 
           if (res.status === 429) {
             groqPool.markRateLimited(apiKey);
-            console.warn(`[Review File] Groq key ${maskApiKey(apiKey)} hit 429 quota. Rotating...`);
             continue;
           }
 
@@ -118,7 +148,7 @@ Provide your review in clean Markdown format:
             const reviewMarkdown = data.choices?.[0]?.message?.content;
             if (reviewMarkdown) {
               return NextResponse.json({
-                reviewMarkdown,
+                reviewMarkdown: sanitizeModelOutput(reviewMarkdown),
                 provider: 'groq',
                 model: modelName,
                 tier: 'Tier 1 (Groq)',
@@ -126,12 +156,12 @@ Provide your review in clean Markdown format:
             }
           }
         } catch (err: any) {
-          console.warn(`[Review File] Groq key error: ${err.message}`);
+          console.warn('[Review File] Groq key rotation attempt failed:', redactSensitiveData(err.message));
         }
       }
     }
 
-    // 5. TIER 2: Fallback to Gemini KeyPool (5 keys)
+    // 8. TIER 2: Fallback to Gemini KeyPool (Bounded rotation with timeouts)
     const geminiPool = getKeyPool('gemini');
     if (geminiPool.hasKeys()) {
       const maxAttempts = Math.min(geminiPool.size, 5);
@@ -141,18 +171,17 @@ Provide your review in clean Markdown format:
           const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-          const res = await fetch(endpoint, {
+          const res = await safeProviderFetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: promptText }] }],
+              contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
               generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
             }),
-          });
+          }, 15000);
 
           if (res.status === 429) {
             geminiPool.markRateLimited(apiKey);
-            console.warn(`[Review File] Gemini key ${maskApiKey(apiKey)} hit 429 quota. Rotating...`);
             continue;
           }
 
@@ -161,7 +190,7 @@ Provide your review in clean Markdown format:
             const reviewMarkdown = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (reviewMarkdown) {
               return NextResponse.json({
-                reviewMarkdown,
+                reviewMarkdown: sanitizeModelOutput(reviewMarkdown),
                 provider: 'gemini',
                 model: modelName,
                 tier: 'Tier 2 (Gemini Fallback)',
@@ -169,24 +198,32 @@ Provide your review in clean Markdown format:
             }
           }
         } catch (err: any) {
-          console.warn(`[Review File] Gemini key error: ${err.message}`);
+          console.warn('[Review File] Gemini key rotation attempt failed:', redactSensitiveData(err.message));
         }
       }
     }
 
-    // 6. TIER 3: Deterministic Fallback if API keys unavailable
+    // 9. TIER 3: Deterministic Safe Fallback if API keys unavailable
+    const safeFallbackMarkdown =
+      `### 🛡️ GitSentinel Deterministic File Audit for \`${filePath}\`\n\n` +
+      `**Status**: Static boundary verification completed.\n\n` +
+      `- **File Size**: ${content.length} characters\n` +
+      `- **Lines**: ${content.split('\n').length} lines\n\n` +
+      `💡 AST static rules checked. AI copilot engine is operating in offline mode.`;
+
     return NextResponse.json({
-      reviewMarkdown: `### 🛡️ GitSentinel Deterministic File Audit for \`${filePath}\`\n\n` +
-        `**Status**: Inspection completed.\n\n` +
-        `- **File Size**: ${content.length} bytes\n` +
-        `- **Lines**: ${content.split('\n').length} lines\n\n` +
-        `💡 Code static AST rules checked. Use the CyberOps AI Copilot in the bottom right to query specific functions.`,
+      reviewMarkdown: sanitizeModelOutput(safeFallbackMarkdown),
       provider: 'deterministic-cyberops',
       tier: 'Tier 3 (Offline)',
     });
   } catch (err: any) {
-    console.error('[Review File Error]:', err);
-    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
+    console.error('[Review File Error]:', redactSensitiveData(err.message || String(err)));
+    return NextResponse.json(
+      { error: redactSensitiveData(err.message || 'Internal review error') },
+      { status: 500 }
+    );
+  } finally {
+    // 10. Always release concurrency slot
+    await releaseAIConcurrencySlot(userId);
   }
 }
-

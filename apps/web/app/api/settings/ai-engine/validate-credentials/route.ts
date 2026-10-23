@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminSession, handleAuthError } from '@/lib/auth-helpers';
-import { getKeyPool, maskApiKey } from '@ai-reviewer/shared';
+import { getKeyPool } from '@ai-reviewer/shared';
+import { safeProviderFetch, redactSensitiveData } from '@/lib/ai-security';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
       const startTime = performance.now();
 
       // Non-destructive ping using standard chat completion with 1 token
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await safeProviderFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
           messages: [{ role: 'user', content: 'ping' }],
           max_tokens: 1,
         }),
-      });
+      }, 10000);
 
       const latencyMs = Math.round(performance.now() - startTime);
 
@@ -52,16 +53,16 @@ export async function POST(req: NextRequest) {
           provider: 'groq',
           model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
           latencyMs,
-          testedKey: maskApiKey(activeKey),
+          testedKeyMasked: '****',
           poolSize: groqPool.size,
           activeKeys: groqPool.getActiveKeysCount(),
         });
       } else {
-        const errorText = await res.text();
+        const errorText = await res.text().catch(() => '');
         return NextResponse.json({
           success: false,
           status: res.status,
-          error: `Groq handshake failed (HTTP ${res.status}): ${errorText.slice(0, 100)}`,
+          error: redactSensitiveData(`Groq handshake failed (HTTP ${res.status}): ${errorText.slice(0, 100)}`),
         }, { status: 400 });
       }
     } else if (normalizedProvider === 'gemini') {
@@ -78,14 +79,14 @@ export async function POST(req: NextRequest) {
       const startTime = performance.now();
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
-      const res = await fetch(endpoint, {
+      const res = await safeProviderFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
           generationConfig: { maxOutputTokens: 1 },
         }),
-      });
+      }, 10000);
 
       const latencyMs = Math.round(performance.now() - startTime);
 
@@ -95,16 +96,16 @@ export async function POST(req: NextRequest) {
           provider: 'gemini',
           model: targetModel,
           latencyMs,
-          testedKey: maskApiKey(activeKey),
+          testedKeyMasked: '****',
           poolSize: geminiPool.size,
           activeKeys: geminiPool.getActiveKeysCount(),
         });
       } else {
-        const errorText = await res.text();
+        const errorText = await res.text().catch(() => '');
         return NextResponse.json({
           success: false,
           status: res.status,
-          error: `Gemini handshake failed (HTTP ${res.status}): ${errorText.slice(0, 100)}`,
+          error: redactSensitiveData(`Gemini handshake failed (HTTP ${res.status}): ${errorText.slice(0, 100)}`),
         }, { status: 400 });
       }
     }

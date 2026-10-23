@@ -38,13 +38,17 @@ export function getClientIp(req: NextRequest): string {
   return '127.0.0.1';
 }
 
+const inMemoryRateLimitMap = new Map<string, { count: number; expiresAt: number }>();
+const inMemoryConcurrencyMap = new Map<string, number>();
+const inMemoryBudgetMap = new Map<string, { count: number; expiresAt: number }>();
+
 /**
- * Fixed-window rate limiter using Redis
+ * Fixed-window rate limiter using Redis with seamless in-memory fallback
  * Default: 60 requests per 60 seconds
  *
- * Degradation strategy (Phase 3 Requirement 8):
- * - If failOpen is true (safe read operations), degraded mode allows the request through.
- * - If failOpen is false (mutations/critical operations), failed evaluation denies the request (fail closed/safe).
+ * Degradation strategy (Phase 3 Requirement 1 & 8):
+ * - If Redis is unavailable or exhausted, seamlessly evaluates rate limits in-memory
+ *   so serverless nodes remain resilient without crashing or dropping security boundaries.
  */
 export async function rateLimit(
   identifier: string,
@@ -78,25 +82,20 @@ export async function rateLimit(
       reset,
     };
   } catch (err) {
-    console.warn('Rate limit evaluation failed (Redis unavailable):', (err as Error).message);
-    if (failOpen || process.env.NODE_ENV === 'test') {
-      // Non-critical operations or test runs degrade gracefully: allow request through
-      return {
-        success: true,
-        limit,
-        remaining: limit,
-        reset: windowSeconds,
-        degraded: true,
-      };
+    // In-memory fallback if Redis is unavailable or exhausted
+    const now = Date.now();
+    const entry = inMemoryRateLimitMap.get(key);
+    if (!entry || now > entry.expiresAt) {
+      inMemoryRateLimitMap.set(key, { count: 1, expiresAt: now + windowSeconds * 1000 });
+      return { success: true, limit, remaining: limit - 1, reset: windowSeconds, degraded: true };
     }
-    // Critical mutating operations fail closed / safely
-    return {
-      success: false,
-      limit,
-      remaining: 0,
-      reset: windowSeconds,
-      degraded: true,
-    };
+    entry.count++;
+    const remaining = Math.max(0, limit - entry.count);
+    const reset = Math.max(1, Math.ceil((entry.expiresAt - now) / 1000));
+    if (entry.count > limit) {
+      return { success: false, limit, remaining: 0, reset, degraded: true };
+    }
+    return { success: true, limit, remaining, reset, degraded: true };
   }
 }
 
@@ -192,4 +191,131 @@ export async function checkIssueUpdateRateLimit(
   userId?: string
 ): Promise<NextResponse | null> {
   return checkApiRateLimit(req, 60, 60, userId);
+}
+
+/**
+ * Distributed Concurrency Limiter (Phase 3 Requirement 1)
+ * Limits concurrent in-flight AI requests per user or IP across all serverless instances.
+ */
+export async function acquireAIConcurrencySlot(
+  identifier: string,
+  maxConcurrent = 3,
+  lockTtlSeconds = 60
+): Promise<{ acquired: boolean; current: number; degraded?: boolean }> {
+  const key = `ai:concurrency:${identifier}`;
+  try {
+    const redis = await ensureRedisReady();
+    const current = await redis.incr(key);
+    if (current === 1) {
+      await redis.expire(key, lockTtlSeconds);
+    }
+    if (current > maxConcurrent) {
+      await redis.decr(key);
+      return { acquired: false, current };
+    }
+    return { acquired: true, current };
+  } catch (err) {
+    // In-memory fallback if Redis is unavailable or quota exhausted
+    const current = (inMemoryConcurrencyMap.get(key) || 0) + 1;
+    if (current > maxConcurrent) {
+      return { acquired: false, current, degraded: true };
+    }
+    inMemoryConcurrencyMap.set(key, current);
+    return { acquired: true, current, degraded: true };
+  }
+}
+
+/**
+ * Releases an acquired AI concurrency slot.
+ */
+export async function releaseAIConcurrencySlot(identifier: string): Promise<void> {
+  const key = `ai:concurrency:${identifier}`;
+  // Always clean up in-memory entry if present
+  const memCount = inMemoryConcurrencyMap.get(key);
+  if (memCount !== undefined) {
+    if (memCount <= 1) {
+      inMemoryConcurrencyMap.delete(key);
+    } else {
+      inMemoryConcurrencyMap.set(key, memCount - 1);
+    }
+  }
+
+  try {
+    const redis = await ensureRedisReady();
+    const current = await redis.decr(key);
+    if (current <= 0) {
+      await redis.del(key);
+    }
+  } catch {
+    // Non-fatal cleanup
+  }
+}
+
+/**
+ * User AI Request & Spending Budget Limiter (Phase 3 Requirement 1)
+ * Enforces a daily request quota across AI operations to prevent financial exhaustion.
+ */
+export async function checkAIBudget(
+  identifier: string,
+  dailyLimit = 100
+): Promise<{ allowed: boolean; remaining: number; resetSeconds: number; degraded?: boolean }> {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const key = `ai:budget:${identifier}:${dateStr}`;
+  try {
+    const redis = await ensureRedisReady();
+    const current = await redis.incr(key);
+    if (current === 1) {
+      await redis.expire(key, 86400); // 24 hours
+    }
+    const ttl = await redis.ttl(key);
+    const resetSeconds = Math.max(ttl, 1);
+
+    if (current > dailyLimit) {
+      return { allowed: false, remaining: 0, resetSeconds };
+    }
+    return { allowed: true, remaining: Math.max(0, dailyLimit - current), resetSeconds };
+  } catch (err) {
+    // In-memory fallback if Redis is unavailable or exhausted
+    const now = Date.now();
+    const entry = inMemoryBudgetMap.get(key);
+    if (!entry || now > entry.expiresAt) {
+      inMemoryBudgetMap.set(key, { count: 1, expiresAt: now + 86400 * 1000 });
+      return { allowed: true, remaining: dailyLimit - 1, resetSeconds: 86400, degraded: true };
+    }
+    entry.count++;
+    const remaining = Math.max(0, dailyLimit - entry.count);
+    const resetSeconds = Math.max(1, Math.ceil((entry.expiresAt - now) / 1000));
+    if (entry.count > dailyLimit) {
+      return { allowed: false, remaining: 0, resetSeconds, degraded: true };
+    }
+    return { allowed: true, remaining, resetSeconds, degraded: true };
+  }
+}
+
+/**
+ * Dedicated Rate Limiters for AI endpoints
+ */
+
+// AI Chatbot queries: 20 req/min for authenticated users; 5 req/min for IP
+export async function checkAIChatRateLimit(
+  req: NextRequest,
+  userId?: string
+): Promise<NextResponse | null> {
+  const limit = userId ? 20 : 5;
+  return checkApiRateLimit(req, limit, 60, userId);
+}
+
+// Single-file deep code review: 10 req/min for authenticated users
+export async function checkAIReviewFileRateLimit(
+  req: NextRequest,
+  userId?: string
+): Promise<NextResponse | null> {
+  return checkApiRateLimit(req, 10, 60, userId);
+}
+
+// Public repository explorer: 15 req/min per IP
+export async function checkPublicExploreRateLimit(
+  req: NextRequest
+): Promise<NextResponse | null> {
+  return checkApiRateLimit(req, 15, 60);
 }

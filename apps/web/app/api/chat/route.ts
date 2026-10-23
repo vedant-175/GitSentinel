@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@ai-reviewer/db';
-import { getKeyPool, maskApiKey } from '@ai-reviewer/shared';
+import { getKeyPool } from '@ai-reviewer/shared';
 import {
   requireSession,
   getSessionInstallationIds,
@@ -8,38 +8,93 @@ import {
   assertInstallationAccess,
   handleAuthError,
 } from '@/lib/auth-helpers';
+import {
+  acquireAIConcurrencySlot,
+  releaseAIConcurrencySlot,
+  checkAIBudget,
+  checkAIChatRateLimit,
+} from '@/lib/rate-limit';
+import {
+  ChatRequestSchema,
+  buildSecureChatPrompt,
+  sanitizeModelOutput,
+  validateGeneratedPatch,
+  redactSensitiveData,
+  safeProviderFetch,
+} from '@/lib/ai-security';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   // 1. Session check
+  let session: any;
   try {
-    await requireSession();
+    session = await requireSession();
   } catch (error) {
     const authRes = handleAuthError(error);
     if (authRes) return authRes;
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const userId = session?.user?.id || session?.user?.login || 'user';
+
+  // 2. Distributed Rate Limiting & User AI Quota
+  const rateLimitRes = await checkAIChatRateLimit(req, userId);
+  if (rateLimitRes) return rateLimitRes;
+
+  const budget = await checkAIBudget(userId, 100);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Too Many Requests',
+        message: 'Daily AI request budget exceeded. Quota resets at midnight UTC.',
+        retryAfter: budget.resetSeconds,
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': budget.resetSeconds.toString() },
+      }
+    );
+  }
+
+  // 3. Concurrency Limiting (Max 3 concurrent chat requests per user)
+  const slot = await acquireAIConcurrencySlot(userId, 3);
+  if (!slot.acquired) {
+    return NextResponse.json(
+      {
+        error: 'Too Many Requests',
+        message: 'Concurrent AI request limit reached. Please wait for current query to finish.',
+      },
+      { status: 429 }
+    );
+  }
+
   try {
+    // 4. Strict Schema Input Validation (Zod)
     let body: any = {};
     try {
       body = await req.json();
     } catch {
       return NextResponse.json({ error: 'Invalid or missing JSON payload' }, { status: 400 });
     }
-    const { prId, repoId, message, messages = [] } = body;
 
-    const userMessage = (message || (messages[messages.length - 1]?.content) || '').trim();
-    if (!userMessage) {
-      return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
+    const parseResult = ChatRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      const firstError = parseResult.error.errors[0]?.message || 'Invalid chat request schema';
+      return NextResponse.json(
+        { error: 'Bad Request', message: firstError, details: parseResult.error.flatten() },
+        { status: 400 }
+      );
     }
+
+    const { prId, repoId, message, messages = [] } = parseResult.data;
+    const userMessage = (message || (messages[messages.length - 1]?.content) || '').trim();
 
     const installationIds = await getSessionInstallationIds().catch(() => []);
 
-    // 2. Tenancy verification: Ensure user is authorized for the targeted PR or repo
+    // 5. Tenancy verification: Ensure user is authorized for the targeted PR or repo
     if (prId) {
-      const parsedPrId = parseInt(prId, 10);
+      const parsedPrId = typeof prId === 'number' ? prId : parseInt(prId, 10);
       if (!isNaN(parsedPrId)) {
         try {
           await assertPullRequestAccess(parsedPrId, installationIds);
@@ -51,7 +106,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (repoId) {
-      const parsedRepoId = parseInt(repoId, 10);
+      const parsedRepoId = typeof repoId === 'number' ? repoId : parseInt(repoId, 10);
       if (!isNaN(parsedRepoId)) {
         try {
           await assertInstallationAccess(parsedRepoId, installationIds);
@@ -64,14 +119,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Gather Context (PR, Review, Issues, Gate Verdict)
+    // 6. Gather Context (PR, Review, Issues, Gate Verdict)
     let contextStr = '';
     let prRecord: any = null;
     let repoRecord: any = null;
 
     try {
       if (prId) {
-        const parsedPrId = parseInt(prId, 10);
+        const parsedPrId = typeof prId === 'number' ? prId : parseInt(prId, 10);
         if (!isNaN(parsedPrId)) {
           prRecord = await prisma.pullRequest.findUnique({
             where: { id: parsedPrId },
@@ -88,7 +143,7 @@ export async function POST(req: NextRequest) {
           });
         }
       } else if (repoId) {
-        const parsedRepoId = parseInt(repoId, 10);
+        const parsedRepoId = typeof repoId === 'number' ? repoId : parseInt(repoId, 10);
         if (!isNaN(parsedRepoId)) {
           repoRecord = await prisma.repository.findUnique({
             where: { id: parsedRepoId },
@@ -96,7 +151,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (dbErr) {
-      console.warn('[Chat API] Database offline during context fetch, proceeding with memory fallback:', dbErr);
+      console.warn('[Chat API] Database offline during context fetch, proceeding with fallback:', redactSensitiveData(String(dbErr)));
     }
 
     if (prRecord) {
@@ -129,60 +184,6 @@ ${iss.suggestedFix || 'None'}
   )
   .join('\n')}
 `;
-    } else if (prId) {
-      if (String(prId).includes('3')) {
-        contextStr = `
-PULL REQUEST CONTEXT:
-- Title: "Add rate limiting middleware and user lookup"
-- Repository: "GitSentinel/platform"
-- PR Number: #3
-- Security Gate Verdict: BLOCK (MERGE BLOCKED)
-- Detected Vulnerabilities (1 Critical Issue):
-  [Issue 1]
-  - File: packages/db/src/client.ts:42
-  - Severity: CRITICAL
-  - Category: Security (SQL Injection)
-  - CWE: CWE-89 | OWASP: A03:2021-Injection
-  - Attack Scenario: Passing malicious payload "' OR 1=1 --" to the raw query parameter allows extracting all user credentials.
-  - Remediation Advice: Always use parameterized queries or ORM findUnique. Never concatenate untrusted strings into SQL.
-  - Suggested Fix:
-const user = await prisma.user.findUnique({
-  where: { id: sanitizedUserId }
-});
-`;
-      } else if (String(prId).includes('5')) {
-        contextStr = `
-PULL REQUEST CONTEXT:
-- Title: "Full stack authentication and token generation"
-- Repository: "platform/api-gateway"
-- PR Number: #5
-- Security Gate Verdict: BLOCK
-- Detected Vulnerabilities (1 High Issue):
-  [Issue 1]
-  - File: apps/worker/src/config.py:18
-  - Severity: HIGH
-  - Category: Security (Hardcoded Secret)
-  - CWE: CWE-798 | OWASP: A07:2021-Identification & Auth Failures
-  - Attack Scenario: Leaked JWT signing key in git history allows forging admin tokens.
-  - Suggested Fix:
-JWT_SECRET = os.environ.get("JWT_SECRET")
-`;
-      } else if (String(prId).includes('6')) {
-        contextStr = `
-PULL REQUEST CONTEXT:
-- Title: "File upload and document download route"
-- Repository: "platform/auth-service"
-- PR Number: #6
-- Security Gate Verdict: BLOCK
-- Detected Vulnerabilities (1 High Issue):
-  [Issue 1]
-  - File: apps/web/app/api/download/route.ts:29
-  - Severity: HIGH
-  - Category: Security (Path Traversal)
-  - CWE: CWE-22 | OWASP: A01:2021-Broken Access Control
-  - Attack Scenario: Requesting "../../.env" reads application environment secrets and database passwords.
-`;
-      }
     } else if (repoRecord || repoId) {
       contextStr = `
 REPOSITORY CONTEXT:
@@ -192,10 +193,14 @@ REPOSITORY CONTEXT:
 `;
     }
 
-    // 2. Multi-Tier Cascading KeyPool Resolution:
-    // TIER 1: Groq Keys (Priority #1)
+    // 7. Secure Prompt Construction with Untrusted Data Isolation
+    const { systemPrompt, userPrompt } = buildSecureChatPrompt({
+      contextStr,
+      userMessage,
+    });
+
+    // 8. Multi-Tier Cascading KeyPool Resolution with Timeouts
     const groqPool = getKeyPool('groq');
-    // TIER 2: Gemini Keys (Priority #2 Fallback)
     const geminiPool = getKeyPool('gemini');
 
     // Attempt Tier 1: Groq (5 keys with 429 rotation)
@@ -207,19 +212,7 @@ REPOSITORY CONTEXT:
           const modelName = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
           const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
-          const systemPrompt = `You are GitSentinel CyberOps AI, an elite security and code review assistant. 
-You are assisting an engineer inspecting security reviews, PR code, and repository safety.
-Be concise, clear, and highly technical.
-Format your responses using rich GitHub Flavored Markdown (GFM):
-- Use bold text for key terms and status indicators (e.g. **CRITICAL**, **BLOCKED**, **FIX**).
-- Use Markdown tables with headers (e.g. | Finding | Severity | File | Remediation |) whenever summarizing multiple issues, comparing options, or listing vulnerabilities.
-- Use fenced code blocks with language identifiers (e.g. \`\`\`typescript, \`\`\`python, \`\`\`diff) for exact fixes and patches.
-- Use numbered and bulleted lists for actionable steps.
-- Use horizontal rules (---) to clearly separate sections.
-Answer using this security context:
-${contextStr}`;
-
-          const response = await fetch(endpoint, {
+          const response = await safeProviderFetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -228,19 +221,15 @@ ${contextStr}`;
             body: JSON.stringify({
               model: modelName,
               messages: [
-                {
-                  role: 'system',
-                  content: systemPrompt,
-                },
-                { role: 'user', content: userMessage },
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
               ],
               temperature: 0.2,
             }),
-          });
+          }, 15000);
 
           if (response.status === 429) {
             groqPool.markRateLimited(apiKey);
-            console.warn(`[Chat API] Groq key ${maskApiKey(apiKey)} hit 429 quota. Rotating to next Groq key in pool...`);
             continue;
           }
 
@@ -248,23 +237,20 @@ ${contextStr}`;
             const data = await response.json();
             const reply = data.choices?.[0]?.message?.content;
             if (reply) {
+              const sanitizedReply = sanitizeModelOutput(reply);
               return NextResponse.json({
-                response: reply,
+                response: sanitizedReply,
                 provider: 'groq',
                 model: modelName,
                 tier: 'Tier 1 (Groq)',
                 activePoolSize: groqPool.getActiveKeysCount(),
               });
             }
-          } else {
-            const errBody = await response.text().catch(() => '');
-            console.warn(`[Chat API] Groq attempt with key ${maskApiKey(apiKey)} returned HTTP ${response.status}:`, errBody);
           }
         } catch (groqErr: any) {
-          console.warn(`[Chat API] Groq attempt with key ${maskApiKey(apiKey)} failed:`, groqErr.message);
+          console.warn('[Chat API] Groq attempt failed:', redactSensitiveData(groqErr.message));
         }
       }
-      console.warn('[Chat API] All Groq keys rate-limited or exhausted. Falling back to Tier 2 (Gemini)...');
     }
 
     // Attempt Tier 2: Gemini (5 keys with 429 rotation)
@@ -276,26 +262,14 @@ ${contextStr}`;
           const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-          const systemInstruction = `You are GitSentinel CyberOps AI, an elite security and code review assistant. 
-You are assisting an engineer inspecting security reviews, PR code, and repository safety.
-Be concise, clear, and highly technical.
-Format your responses using rich GitHub Flavored Markdown (GFM):
-- Use bold text for key terms and status indicators (e.g. **CRITICAL**, **BLOCKED**, **FIX**).
-- Use Markdown tables with headers (e.g. | Finding | Severity | File | Remediation |) whenever summarizing multiple issues, comparing options, or listing vulnerabilities.
-- Use fenced code blocks with language identifiers (e.g. \`\`\`typescript, \`\`\`python, \`\`\`diff) for exact fixes and patches.
-- Use numbered and bulleted lists for actionable steps.
-- Use horizontal rules (---) to clearly separate sections.
-Answer using this security context:
-${contextStr}`;
-
-          const response = await fetch(endpoint, {
+          const response = await safeProviderFetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [
                 {
                   role: 'user',
-                  parts: [{ text: `${systemInstruction}\n\nUser Question: ${userMessage}` }],
+                  parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
                 },
               ],
               generationConfig: {
@@ -303,11 +277,10 @@ ${contextStr}`;
                 maxOutputTokens: 1024,
               },
             }),
-          });
+          }, 15000);
 
           if (response.status === 429) {
             geminiPool.markRateLimited(apiKey);
-            console.warn(`[Chat API] Gemini key ${maskApiKey(apiKey)} hit 429 quota. Rotating to next Gemini key in pool...`);
             continue;
           }
 
@@ -315,26 +288,23 @@ ${contextStr}`;
             const data = await response.json();
             const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (reply) {
+              const sanitizedReply = sanitizeModelOutput(reply);
               return NextResponse.json({
-                response: reply,
+                response: sanitizedReply,
                 provider: 'gemini',
                 model: modelName,
                 tier: 'Tier 2 Fallback (Gemini)',
                 activePoolSize: geminiPool.getActiveKeysCount(),
               });
             }
-          } else {
-            const errBody = await response.text().catch(() => '');
-            console.warn(`[Chat API] Gemini attempt with key ${maskApiKey(apiKey)} returned HTTP ${response.status}:`, errBody);
           }
         } catch (geminiErr: any) {
-          console.warn(`[Chat API] Gemini attempt with key ${maskApiKey(apiKey)} failed:`, geminiErr.message);
+          console.warn('[Chat API] Gemini attempt failed:', redactSensitiveData(geminiErr.message));
         }
       }
-      console.warn('[Chat API] All Gemini keys exhausted. Falling back to Deterministic CyberOps.');
     }
 
-    // 4. Deterministic CyberOps Intelligent Assistant (Works 100% offline with zero keys)
+    // 9. Deterministic CyberOps Intelligent Assistant (Zero-Key Safe Fallback)
     const lowerQ = userMessage.toLowerCase();
     const latestReview = prRecord?.reviews?.[0];
     const issues = latestReview?.issues || [];
@@ -356,6 +326,9 @@ ${contextStr}`;
     } else if (lowerQ.includes('fix') || lowerQ.includes('patch') || lowerQ.includes('how to solve') || lowerQ.includes('remed')) {
       if (issues.length > 0) {
         const issueWithFix = issues.find((i: any) => i.suggestedFix) || issues[0];
+        const patchContent = issueWithFix.suggestedFix || '// Fix not available';
+        const patchValidation = validateGeneratedPatch(patchContent);
+
         answer = `💻 **Recommended Security Patch for \`${issueWithFix.filePath}\`**:\n\n` +
           `| Parameter | Details |\n` +
           `| :--- | :--- |\n` +
@@ -364,7 +337,9 @@ ${contextStr}`;
           `| **Root Cause** | ${issueWithFix.message} |\n\n` +
           `### 🛠️ Code Remediation\n\n` +
           (issueWithFix.remediation ? `${issueWithFix.remediation}\n\n` : '') +
-          '```diff\n' + (issueWithFix.suggestedFix || '// Fix not available') + '\n```\n\n' +
+          (patchValidation.valid
+            ? '```diff\n' + patchContent + '\n```\n\n'
+            : '> [!WARNING]\n> Generated patch failed automated safety validation and was withheld.\n\n') +
           `---\n\n` +
           `**Verification**: Once committed, GitSentinel's AST validator will verify the patch and update the gate status.`;
       } else {
@@ -407,16 +382,19 @@ ${contextStr}`;
 
     const totalPoolSize = groqPool.size + geminiPool.size;
     return NextResponse.json({
-      response: answer,
+      response: sanitizeModelOutput(answer),
       provider: 'deterministic-cyberops',
       activePoolSize: totalPoolSize,
       note: totalPoolSize > 0 ? 'Fallback used' : 'Offline / Zero-Key Engine Active',
     });
   } catch (err: any) {
-    console.error('[Chat API Error]:', err);
+    console.error('[Chat API Error]:', redactSensitiveData(err.message || String(err)));
     return NextResponse.json(
-      { error: 'Failed to process chat query: ' + (err.message || String(err)) },
+      { error: 'Failed to process chat query: ' + redactSensitiveData(err.message || String(err)) },
       { status: 500 }
     );
+  } finally {
+    // 10. Always release concurrency slot
+    await releaseAIConcurrencySlot(userId);
   }
 }
