@@ -10,7 +10,7 @@ import {
   AuditAction,
 } from '@ai-reviewer/shared';
 import { revalidatePath } from 'next/cache';
-import { requirePermissionForRepo, requireSession } from '@/lib/auth-helpers';
+import { requirePermissionForRepo, requireSession, getServerOAuthToken } from '@/lib/auth-helpers';
 import { setCachedRepoConfig } from '@/lib/queue';
 import { checkConfigMutationRateLimit } from '@/lib/rate-limit';
 import { recordAuditLog } from '@/lib/audit';
@@ -156,7 +156,7 @@ export async function syncUserReposAction(targetUsername?: string) {
       if (!username) {
         username = session?.user?.login;
       }
-      accessToken = session?.accessToken;
+      accessToken = await getServerOAuthToken().catch(() => undefined);
     } catch {
       // In unauthenticated context, proceed with targetUsername
     }
@@ -190,7 +190,7 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
     try {
       const session = await requireSession();
       userLogin = session?.user?.login || (session?.user as any)?.name || '';
-      accessToken = session?.accessToken;
+      accessToken = await getServerOAuthToken().catch(() => undefined);
     } catch {
       // In development mode or unauthenticated preview, gracefully proceed
     }

@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from './auth';
+import { getToken } from 'next-auth/jwt';
+import { authOptions, getAuthSecret } from './auth';
 import { prisma } from '@ai-reviewer/db';
 import {
   Role,
@@ -47,6 +48,7 @@ export function clearInstallationAccessCache(userKey?: string) {
 let sessionOverride: (() => Promise<any>) | null = null;
 let sessionInstallationIdsOverride: (() => Promise<bigint[]>) | null = null;
 let roleOverride: ((userLogin: string, installationId: number | bigint) => Promise<RoleType> | RoleType) | null = null;
+let serverOAuthTokenOverride: (() => Promise<string | undefined> | string | undefined) | null = null;
 
 export function setSessionOverride(fn: (() => Promise<any>) | null) {
   sessionOverride = fn;
@@ -58,6 +60,66 @@ export function setSessionInstallationIdsOverride(fn: (() => Promise<bigint[]>) 
 
 export function setRoleOverride(fn: ((userLogin: string, installationId: number | bigint) => Promise<RoleType> | RoleType) | null) {
   roleOverride = fn;
+}
+
+export function setServerOAuthTokenOverride(fn: (() => Promise<string | undefined> | string | undefined) | null) {
+  serverOAuthTokenOverride = fn;
+}
+
+/**
+ * Securely retrieves the GitHub OAuth access token on the server side only.
+ * This token is NEVER exposed to browser-visible session objects.
+ */
+export async function getServerOAuthToken(req?: Request | any): Promise<string | undefined> {
+  if (serverOAuthTokenOverride) {
+    return serverOAuthTokenOverride();
+  }
+
+  const secret = getAuthSecret();
+
+  try {
+    if (req) {
+      let adaptedReq = req;
+      if (typeof req.headers?.get === 'function' && !req.cookies) {
+        const cookieHeader = req.headers.get('cookie') || '';
+        const cookieMap: Record<string, string> = {};
+        cookieHeader.split(';').forEach((c: string) => {
+          const [k, ...v] = c.trim().split('=');
+          if (k) cookieMap[k] = v.join('=');
+        });
+        adaptedReq = {
+          cookies: cookieMap,
+          headers: req.headers,
+        };
+      }
+      const token = await getToken({ req: adaptedReq as any, secret });
+      return (token?.accessToken as string) || undefined;
+    }
+
+    // In Server Components or Server Actions, inspect request cookies
+    try {
+      const { cookies, headers } = await import('next/headers');
+      const cookieStore = await cookies();
+      const headerStore = await headers();
+
+      const cookieMap: Record<string, string> = {};
+      for (const cookie of cookieStore.getAll()) {
+        cookieMap[cookie.name] = cookie.value;
+      }
+
+      const adaptedReq = {
+        cookies: cookieMap,
+        headers: headerStore,
+      };
+
+      const token = await getToken({ req: adaptedReq as any, secret });
+      return (token?.accessToken as string) || undefined;
+    } catch {
+      return undefined;
+    }
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -112,13 +174,15 @@ export async function resolveUserInstallations(
     return cached.installationIds;
   }
 
+  const effectiveAccessToken = session.accessToken || (await getServerOAuthToken().catch(() => undefined));
+
   let accessibleIds: bigint[] = [];
 
-  if (session.accessToken) {
+  if (effectiveAccessToken) {
     try {
       const res = await fetchFn('https://api.github.com/user/installations', {
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${effectiveAccessToken}`,
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
           'User-Agent': 'ai-reviewer-app',
@@ -181,7 +245,7 @@ export async function resolveUserInstallations(
     if (dbInstallations.length === 0) {
       try {
         const { syncUserRepositories } = await import('./github-sync');
-        await syncUserRepositories(session.user.login, session.accessToken);
+        await syncUserRepositories(session.user.login, effectiveAccessToken);
         const refreshed = await prisma.installation.findMany({
           where: {
             accountLogin: {
@@ -204,7 +268,7 @@ export async function resolveUserInstallations(
   // Update fixed-interval cache
   installationAccessCache.set(userKey, {
     installationIds: accessibleIds,
-    cachedAt: now,
+    cachedAt: Date.now(),
   });
 
   return accessibleIds;
@@ -220,9 +284,10 @@ export async function getSessionInstallationIds(
     return sessionInstallationIdsOverride();
   }
   const session = await requireSession();
+  const serverToken = await getServerOAuthToken().catch(() => undefined);
   return resolveUserInstallations(
     {
-      accessToken: session.accessToken,
+      accessToken: serverToken,
       installationIds: session.installationIds,
       user: {
         id: session.user.id,

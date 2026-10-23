@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@ai-reviewer/db';
 import { syncUserRepositories } from '@/lib/github-sync';
+import { getServerOAuthToken } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest) {
     // Ensure installation exists and sync public repositories immediately
     let syncedReposCount = 0;
     try {
-      const syncResult = await syncUserRepositories(verifiedLogin, session.accessToken);
+      const oauthToken = await getServerOAuthToken(request).catch(() => undefined);
+      const syncResult = await syncUserRepositories(verifiedLogin, oauthToken);
       syncedReposCount = syncResult.repos?.length || 0;
     } catch (syncErr) {
       console.warn(`[Connect GitHub] Failed auto-sync for ${verifiedLogin}:`, syncErr);

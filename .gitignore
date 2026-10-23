@@ -46,3 +46,4 @@ coverage/
 .turbo/
 .vercel/
 .eslintcache
+*.zip

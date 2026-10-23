@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../lib/auth';
+import { requireSession } from '../../../../lib/auth-helpers';
 import { prisma } from '@ai-reviewer/db';
 import { verifyPassword } from '../../../../lib/password';
 
@@ -18,8 +17,10 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    let session: any;
+    try {
+      session = await requireSession();
+    } catch {
       return NextResponse.json(
         { error: 'You must be signed in with GitHub to link an existing account.' },
         { status: 401 }

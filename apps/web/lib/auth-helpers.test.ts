@@ -439,21 +439,21 @@ test('Item 6: installation access is refreshed at a fixed interval and cross-ref
   }) as typeof fetch;
 
   // 1. Initial resolution: calls GitHub API, filters out 9999999, only returns webhookInst
-  const ids1 = await resolveUserInstallations(session, 100, mockFetch);
+  const ids1 = await resolveUserInstallations(session, 1000, mockFetch);
   assert.equal(fetchCallCount, 1);
   assert.equal(ids1.length, 1);
   assert.equal(ids1[0], webhookInst.githubInstallationId);
 
-  // 2. Second call within refreshIntervalMs (100ms) -> uses cached result, DOES NOT call fetch
-  const ids2 = await resolveUserInstallations(session, 100, mockFetch);
+  // 2. Second call within refreshIntervalMs (1000ms) -> uses cached result, DOES NOT call fetch
+  const ids2 = await resolveUserInstallations(session, 1000, mockFetch);
   assert.equal(fetchCallCount, 1);
   assert.deepEqual(ids2, ids1);
 
-  // 3. Wait for refresh interval to expire (wait 110ms)
-  await new Promise((resolve) => setTimeout(resolve, 110));
+  // 3. Wait for refresh interval to expire (wait 1100ms)
+  await new Promise((resolve) => setTimeout(resolve, 1100));
 
   // 4. Third call after expiration -> refreshes against GitHub API and DB
-  const ids3 = await resolveUserInstallations(session, 100, mockFetch);
+  const ids3 = await resolveUserInstallations(session, 1000, mockFetch);
   assert.equal(fetchCallCount, 2);
   assert.deepEqual(ids3, ids1);
 });
