@@ -128,56 +128,77 @@ if (process.env.NODE_ENV !== 'production') {
   globalThis.reviewQueueGlobal = reviewQueue;
 }
 
+const inMemoryDeliveryMap = new Map<string, { state: 'processing' | 'done'; expiresAt: number }>();
+
 /**
  * Delivery deduplication state machine:
  * - 'processing': locked while enqueuing
  * - 'done': successfully enqueued
  *
  * Item 9: set the delivery-dedupe key AFTER a successful enqueue (or delete it in a catch),
- * and use a per-delivery "processing/done" state.
+ * and use a per-delivery "processing/done" state with in-memory fallback.
  */
 export async function acquireDeliveryLock(
   deliveryId: string,
   _ttlSeconds = 86400
 ): Promise<'new' | 'already_done' | 'in_flight'> {
-  const redis = await ensureRedisReady();
   const key = `github:delivery:${deliveryId}`;
 
-  // Check current state first
-  const existing = await redis.get(key);
-  if (existing === 'done') {
-    return 'already_done';
-  }
-  if (existing === 'processing') {
-    return 'in_flight';
-  }
+  try {
+    const redis = await ensureRedisReady();
 
-  // Set processing state with NX (30s lock for processing duration)
-  const acquired = await redis.set(key, 'processing', 'EX', 30, 'NX');
-  if (acquired === 'OK') {
+    // Check current state first
+    const existing = await redis.get(key);
+    if (existing === 'done') {
+      return 'already_done';
+    }
+    if (existing === 'processing') {
+      return 'in_flight';
+    }
+
+    // Set processing state with NX (30s lock for processing duration)
+    const acquired = await redis.set(key, 'processing', 'EX', 30, 'NX');
+    if (acquired === 'OK') {
+      return 'new';
+    }
+
+    const currentState = await redis.get(key);
+    return currentState === 'done' ? 'already_done' : 'in_flight';
+  } catch (err) {
+    // In-memory fallback if Redis is unavailable or quota exhausted
+    const now = Date.now();
+    const entry = inMemoryDeliveryMap.get(key);
+    if (entry && now < entry.expiresAt) {
+      if (entry.state === 'done') return 'already_done';
+      return 'in_flight';
+    }
+    inMemoryDeliveryMap.set(key, { state: 'processing', expiresAt: now + 30000 });
     return 'new';
   }
-
-  const currentState = await redis.get(key);
-  return currentState === 'done' ? 'already_done' : 'in_flight';
 }
 
 export async function markDeliveryDone(
   deliveryId: string,
   ttlSeconds = 86400
 ): Promise<void> {
-  const redis = await ensureRedisReady();
   const key = `github:delivery:${deliveryId}`;
-  await redis.set(key, 'done', 'EX', ttlSeconds);
+  inMemoryDeliveryMap.set(key, { state: 'done', expiresAt: Date.now() + ttlSeconds * 1000 });
+  try {
+    const redis = await ensureRedisReady();
+    await redis.set(key, 'done', 'EX', ttlSeconds);
+  } catch {
+    // In-memory fallback applied
+  }
 }
 
 export async function releaseDeliveryLock(deliveryId: string): Promise<void> {
+  const key = `github:delivery:${deliveryId}`;
+  inMemoryDeliveryMap.delete(key);
   try {
     const redis = await ensureRedisReady();
-    const key = `github:delivery:${deliveryId}`;
     await redis.del(key);
   } catch (err) {
-    console.warn(`Failed to release delivery lock for ${deliveryId}:`, err);
+    // In-memory fallback applied
   }
 }
 

@@ -221,7 +221,14 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
       }
     }
 
+    const REPO_NAME_REGEX = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
+
     if (!repo) {
+      const session = await requireSession().catch(() => null);
+      if (!session) {
+        return { success: false, error: 'Unauthorized: Authentication required to analyze repository' };
+      }
+
       // Resolve repository full name
       let resolvedFullName = repoFullName;
       if (!resolvedFullName && userLogin) {
@@ -237,8 +244,8 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
         }
       }
 
-      if (!resolvedFullName) {
-        return { success: false, error: `Repository #${repoId} not found` };
+      if (!resolvedFullName || !REPO_NAME_REGEX.test(resolvedFullName)) {
+        return { success: false, error: `Repository #${repoId} not found or invalid format` };
       }
 
       repo = {

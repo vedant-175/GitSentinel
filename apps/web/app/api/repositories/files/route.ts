@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@ai-reviewer/db';
 import { requireSession, getSessionInstallationIds } from '@/lib/auth-helpers';
+import { checkApiRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+const REPO_FULL_NAME_REGEX = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
 
 interface FileItem {
   name: string;
@@ -12,6 +15,9 @@ interface FileItem {
 }
 
 export async function POST(req: NextRequest) {
+  const rateLimitRes = await checkApiRateLimit(req, 60, 60);
+  if (rateLimitRes) return rateLimitRes;
+
   try {
     let body: any = {};
     try {
@@ -22,8 +28,11 @@ export async function POST(req: NextRequest) {
 
     const { repoFullName, path = '', defaultBranch = 'main' } = body;
 
-    if (!repoFullName || typeof repoFullName !== 'string') {
-      return NextResponse.json({ error: 'repoFullName is required' }, { status: 400 });
+    if (!repoFullName || typeof repoFullName !== 'string' || !REPO_FULL_NAME_REGEX.test(repoFullName) || repoFullName.length > 200) {
+      return NextResponse.json(
+        { error: 'Valid repoFullName in owner/repo format is required (max 200 characters)' },
+        { status: 400 }
+      );
     }
 
     // Path traversal validation

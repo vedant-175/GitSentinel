@@ -5,6 +5,7 @@ import {
   requireSession,
   getSessionInstallationIds,
   getUserRoleForInstallation,
+  clearInstallationAccessCache,
 } from '@/lib/auth-helpers';
 import {
   Permission,
@@ -107,6 +108,8 @@ export async function POST(req: NextRequest) {
         role,
       },
     });
+
+    clearInstallationAccessCache();
 
     await recordAuditLog({
       installationId: inst.id,
