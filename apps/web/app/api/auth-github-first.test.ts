@@ -63,7 +63,7 @@ test('1. Successful GitHub OAuth login: token and session callbacks populate sta
   assert.equal((sess.user as any).githubId, '583231');
   assert.equal(sess.user.authMethod, 'oauth');
   assert.equal(sess.user.isGithubConnected, true);
-  assert.equal(sess.accessToken, 'gho_oauth_secret_token_123');
+  assert.equal((sess as any).accessToken, undefined);
 });
 
 // =============================================================================

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getServerOAuthToken } from '@/lib/auth-helpers';
 import { syncUserRepositories } from '@/lib/github-sync';
 import { getRepositoryById } from '@/lib/data';
 import { getRepositoryAnalytics } from '@/lib/analytics';
@@ -32,7 +33,8 @@ export default async function RepositoryAnalyticsPage({
     const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
     if (currentUserLogin) {
       try {
-        const syncResult = await syncUserRepositories(currentUserLogin, session?.accessToken);
+        const serverToken = await getServerOAuthToken().catch(() => undefined);
+        const syncResult = await syncUserRepositories(currentUserLogin, serverToken);
         const matched = syncResult.repos?.find((r: any) => r.id === repoId || String(r.id) === id);
         if (matched) {
           repo = {

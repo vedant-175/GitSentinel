@@ -3,45 +3,82 @@ import GithubProvider from 'next-auth/providers/github';
 import { prisma } from '@ai-reviewer/db';
 import { syncUserRepositories } from './github-sync';
 
-// Auto-detect production URL on Vercel
-if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'gitsentinel-red.vercel.app';
-  if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes('localhost')) {
+// Auto-detect production URL on Vercel only if NEXTAUTH_URL is not set in environment
+if (!process.env.NEXTAUTH_URL) {
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelUrl) {
     process.env.NEXTAUTH_URL = `https://${vercelUrl}`;
   }
 }
 
-const clientId = process.env.NEXTAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
-const clientSecret = process.env.NEXTAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
-const secret = process.env.NEXTAUTH_SECRET || 'gitsentinel-production-fallback-secret-key-32chars';
+/**
+ * Safely resolves NEXTAUTH_SECRET without any hardcoded production secrets.
+ * - In production: strictly requires NEXTAUTH_SECRET with at least 32 characters, failing closed if missing.
+ * - In development / testing: allows explicit configuration from .env or development fallback.
+ * - Never logs secrets.
+ * - Does not generate random ephemeral secrets on startup.
+ */
+export function getAuthSecret(): string {
+  const envSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
+  if (!envSecret || envSecret.trim().length < 32) {
+    if (isProduction && !isBuildPhase) {
+      throw new Error(
+        'FATAL: NEXTAUTH_SECRET environment variable is missing or less than 32 characters in production. Boot aborted.'
+      );
+    }
+    if (envSecret && envSecret.trim().length > 0) {
+      return envSecret.trim();
+    }
+    // Only in non-production environments when secret is unset:
+    return 'development-only-local-secret-do-not-use-in-production-32-chars';
+  }
+
+  return envSecret.trim();
+}
 
 /**
  * Validates authentication environment configuration.
- * It is a fatal boot error to set ENABLE_DEV_LOGIN=true in any environment other than development.
+ * Fails safely when required production configuration or secrets are missing.
  */
 export function validateAuthConfig() {
+  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
   if (
     process.env.ENABLE_DEV_LOGIN === 'true' &&
     process.env.NODE_ENV !== 'development' &&
-    process.env.NEXT_PHASE !== 'phase-production-build'
+    !isBuildPhase
   ) {
     throw new Error(
       'FATAL: ENABLE_DEV_LOGIN=true is strictly forbidden when NODE_ENV is not "development". Boot aborted.'
     );
   }
-}
 
-// Boot validation is exported and called during provider build and server boot
+  // Ensure production secret is present and meets minimum entropy requirement (>= 32 chars)
+  const envSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+  if (isProduction && !isBuildPhase && (!envSecret || envSecret.trim().length < 32)) {
+    throw new Error(
+      'FATAL: NEXTAUTH_SECRET is required in production and must be at least 32 characters long. Boot aborted.'
+    );
+  }
+}
 
 /**
  * Builds the authentication providers list according to security rules:
- * 1. GithubProvider with minimal OAuth scope ('read:user') - Primary & Default GitHub OAuth
+ * 1. GithubProvider with minimal OAuth scope ('read:user') and cryptographic state validation.
  * Credentials-based and username-based authentication are retired in favor of GitHub-First OAuth.
  */
 export function buildProviders() {
+  const clientId = process.env.NEXTAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
+  const clientSecret = process.env.NEXTAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
+
   const github = GithubProvider({
     clientId: clientId || '',
     clientSecret: clientSecret || '',
+    checks: ['state'],
     authorization: {
       url: 'https://github.com/login/oauth/authorize',
       params: {
@@ -49,7 +86,8 @@ export function buildProviders() {
       },
     },
   });
-  // Ensure scope is strictly read:user on provider definition
+  // Ensure checks and scope are set directly on the provider definition
+  (github as any).checks = ['state'];
   (github as any).authorization = {
     url: 'https://github.com/login/oauth/authorize',
     params: {
@@ -62,9 +100,29 @@ export function buildProviders() {
 
 export const authOptions: NextAuthOptions = {
   providers: buildProviders(),
-  secret,
+  get secret() {
+    return getAuthSecret();
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL)
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL),
+      },
+    },
+  },
   callbacks: {
-    // Item 6: Keep network or DB writes out of the jwt callback
+    // Keep network or DB writes out of normal sign in jwt callback
     async jwt({ token, account, profile, user, trigger, session }) {
       if (user) {
         token.sub = user.id;
@@ -85,6 +143,7 @@ export const authOptions: NextAuthOptions = {
         token.authMethod = 'oauth';
         token.isGithubConnected = true;
       }
+      // Store provider access token ONLY on server-side encrypted JWT
       if (account?.access_token) {
         token.accessToken = account.access_token;
       }
@@ -97,21 +156,45 @@ export const authOptions: NextAuthOptions = {
         token.githubId = String(profile.id);
       }
 
-      // Handle client-side session update
-      if (trigger === 'update' && session) {
-        if (session.user?.isGithubConnected !== undefined) {
-          token.isGithubConnected = session.user.isGithubConnected;
+      // Step 4: Harden client-triggered session updates against spoofing.
+      // Never trust client-supplied GitHub identity, account-linking status, installation IDs, or permissions.
+      if (trigger === 'update') {
+        // Allow ONLY benign cosmetic display name from client
+        if (session?.user?.name && typeof session.user.name === 'string') {
+          token.name = session.user.name.slice(0, 100);
         }
-        if (session.user?.githubLogin) {
-          token.githubLogin = session.user.githubLogin;
-          token.login = session.user.githubLogin;
-        }
-        if (session.user?.detectedGithubLogin !== undefined) {
-          token.detectedGithubLogin = session.user.detectedGithubLogin;
+
+        // Re-verify authoritative identity and account-linking status from server database
+        if (token.sub) {
+          try {
+            const verifiedUser = await prisma.user.findUnique({
+              where: { id: token.sub },
+              select: {
+                name: true,
+                image: true,
+                githubLogin: true,
+                githubId: true,
+              },
+            });
+            if (verifiedUser) {
+              if (verifiedUser.githubLogin) {
+                token.githubLogin = verifiedUser.githubLogin;
+                token.login = verifiedUser.githubLogin;
+                token.isGithubConnected = true;
+              }
+              if (verifiedUser.githubId) {
+                token.githubId = String(verifiedUser.githubId);
+              }
+              if (verifiedUser.name) token.name = verifiedUser.name;
+              if (verifiedUser.image) token.picture = verifiedUser.image;
+            }
+          } catch {
+            // Database temporarily offline - maintain existing verified token state
+          }
         }
       }
 
-      // Pure in-memory token transformation - NO network calls, NO database writes
+      // Pure in-memory token transformation - NO untrusted writes
       return token;
     },
     async session({ session, token }) {
@@ -125,7 +208,11 @@ export const authOptions: NextAuthOptions = {
         session.user.githubLogin = token.githubLogin || token.login;
         (session.user as any).githubId = (token as any).githubId || null;
       }
-      session.accessToken = token.accessToken;
+
+      // Step 3: Do NOT return GitHub access token in browser-visible session!
+      // session.accessToken is intentionally NOT populated here.
+      delete (session as any).accessToken;
+
       if (token.installationIds) {
         session.installationIds = token.installationIds;
       }
