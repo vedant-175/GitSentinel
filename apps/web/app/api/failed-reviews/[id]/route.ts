@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, serializeWithBigInt } from '@ai-reviewer/db';
-import { getSessionInstallationIds, UnauthorizedError, ForbiddenError } from '@/lib/auth-helpers';
+import {
+  requireSession,
+  getSessionInstallationIds,
+  UnauthorizedError,
+  ForbiddenError,
+} from '@/lib/auth-helpers';
 import { checkApiRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
