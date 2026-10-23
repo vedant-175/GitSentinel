@@ -41,6 +41,8 @@ export const DEFAULT_INSTALLATION_REFRESH_INTERVAL_MS = 60 * 1000; // 60s fixed 
 export function clearInstallationAccessCache(userKey?: string) {
   if (userKey) {
     installationAccessCache.delete(userKey);
+    installationAccessCache.delete(`user:${userKey}`);
+    installationAccessCache.delete(`gh:${userKey}`);
   } else {
     installationAccessCache.clear();
   }
@@ -157,20 +159,31 @@ export async function requireSession() {
 
 /**
  * Resolves user installation access and caches it for a fixed interval.
- * Item 5 & 6: Installations come ONLY from GitHub App installation webhooks in our database;
- * the user-to-server token's /user/installations is used just to decide which of them the user may see.
- * Refreshes at a fixed interval instead of trusting a stale JWT.
+ * Phase 4: Keyed strictly by authenticated user ID (never 'anonymous' or unauthenticated strings).
+ * Cross-references GitHub OAuth /user/installations against database installations.
+ * Fails closed if OAuth token is revoked (401/403).
  */
 export async function resolveUserInstallations(
   session: {
     accessToken?: string;
     installationIds?: number[];
-    user: { id?: string; login?: string };
+    user: { id?: string; login?: string; githubId?: string | bigint };
   },
   refreshIntervalMs = DEFAULT_INSTALLATION_REFRESH_INTERVAL_MS,
   fetchFn: typeof fetch = fetch
 ): Promise<bigint[]> {
-  const userKey = session.user.id || session.user.login || 'anonymous';
+  // Strict user cache key: requires authenticated user identity to prevent cross-user authorization
+  const userKey = session.user?.id
+    ? `user:${session.user.id}`
+    : session.user?.githubId
+    ? `gh:${session.user.githubId}`
+    : session.user?.login && session.installationIds
+    ? `dev:${session.user.login}`
+    : null;
+
+  if (!userKey) {
+    return [];
+  }
 
   const cached = installationAccessCache.get(userKey);
   const now = Date.now();
@@ -216,6 +229,11 @@ export async function resolveUserInstallations(
         }
       } else {
         console.warn(`GitHub /user/installations returned status ${res.status}`);
+        // If GitHub token was revoked (401/403), immediately invalidate cache and fail closed
+        if (res.status === 401 || res.status === 403) {
+          installationAccessCache.delete(userKey);
+          return [];
+        }
         if (cached) return cached.installationIds;
       }
     } catch (err) {
@@ -236,40 +254,8 @@ export async function resolveUserInstallations(
     accessibleIds = dbInstallations.map((i) => i.githubInstallationId);
   }
 
-  // Account login fallback if no accessible IDs were resolved yet
-  if (accessibleIds.length === 0 && session.user?.login) {
-    const dbInstallations = await prisma.installation.findMany({
-      where: {
-        accountLogin: {
-          equals: session.user.login,
-          mode: 'insensitive',
-        },
-      },
-      select: { githubInstallationId: true },
-    });
-
-    if (dbInstallations.length === 0) {
-      try {
-        const { syncUserRepositories } = await import('./github-sync');
-        await syncUserRepositories(session.user.login, effectiveAccessToken);
-        const refreshed = await prisma.installation.findMany({
-          where: {
-            accountLogin: {
-              equals: session.user.login,
-              mode: 'insensitive',
-            },
-          },
-          select: { githubInstallationId: true },
-        });
-        accessibleIds = refreshed.map((i) => i.githubInstallationId);
-      } catch (syncErr) {
-        console.warn('Failed auto-sync in resolveUserInstallations:', syncErr);
-        accessibleIds = [];
-      }
-    } else {
-      accessibleIds = dbInstallations.map((i) => i.githubInstallationId);
-    }
-  }
+  // Phase 4 Requirement 1: Insecure username fallback removed.
+  // Never treat matching usernames as proof of installation ownership.
 
   // Update fixed-interval cache
   installationAccessCache.set(userKey, {
@@ -478,7 +464,7 @@ export async function requireReviewAccess(reviewId: number) {
  * - Otherwise defaults to Role.VIEWER (or Role.REVIEWER if user has member access)
  */
 export async function getUserRoleForInstallation(
-  session: { user: { login?: string; name?: string; id?: string } },
+  session: { user: { login?: string; name?: string; id?: string; githubId?: string | bigint } },
   installationId: number | bigint
 ): Promise<RoleType> {
   const userLogin = (
@@ -518,14 +504,30 @@ export async function getUserRoleForInstallation(
     return Role.VIEWER;
   }
 
-  // Account login is naturally the organization/user installation owner
-  if (userLogin && inst.accountLogin.toLowerCase() === userLogin) {
-    return Role.OWNER;
-  }
-
-  // Check explicit member record
+  // 1. Check explicit member record first
   if (userLogin && inst.members && inst.members.length > 0) {
     return normalizeRole(inst.members[0].role);
+  }
+
+  // 2. Ownership verification:
+  // Phase 4 Requirement 1: Never treat matching usernames as proof of installation ownership.
+  // Organizations: matching username to organization accountLogin is strictly forbidden.
+  // Personal accounts (accountType === 'User'): verify authenticated user's stable GitHub ID or DB user record.
+  if (inst.accountType === 'User' && userLogin && inst.accountLogin.toLowerCase() === userLogin) {
+    if (session.user?.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { githubLogin: true, githubId: true },
+      }).catch(() => null);
+
+      if (dbUser && dbUser.githubLogin?.toLowerCase() === inst.accountLogin.toLowerCase()) {
+        return Role.OWNER;
+      }
+    } else if (session.user?.githubId) {
+      return Role.OWNER;
+    }
+    // Forged or unverified username without verified session identity cannot claim ownership
+    return Role.VIEWER;
   }
 
   // Default for authorized members without explicit custom assignment is REVIEWER

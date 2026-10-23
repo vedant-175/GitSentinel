@@ -223,6 +223,16 @@ export async function processReviewJob(
     throw new Error(`Repository with ID ${jobData.repoId || jobData.githubRepoId} not found in database.`);
   }
 
+  // Phase 4 Requirement 4: Tenant Isolation invariant check
+  // Verify that the repository's installation matches jobData.installationId to prevent cross-tenant access.
+  if (jobData.installationId && repo.installation) {
+    if (BigInt(repo.installation.githubInstallationId) !== BigInt(jobData.installationId)) {
+      throw new Error(
+        `Tenant isolation violation: repository #${repo.id} (${repo.fullName}) belongs to installation #${repo.installation.githubInstallationId}, but review job specified installation #${jobData.installationId}. Execution aborted.`
+      );
+    }
+  }
+
   // 2. Parse repo config from DB; fall back to defaults on invalid config (Requirement 16)
   let config: RepoConfig;
   const parsedStoredConfig = RepoConfigSchema.safeParse(repo.config || {});

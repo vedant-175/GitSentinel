@@ -19,6 +19,7 @@ import {
   enqueueInstallationSyncJob,
   enqueueInstallationReposSyncJob,
 } from '@/lib/queue';
+import { clearInstallationAccessCache } from '@/lib/auth-helpers';
 
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
 
@@ -409,6 +410,7 @@ export async function POST(req: NextRequest) {
         receivedAt,
       });
 
+      clearInstallationAccessCache();
       await markDeliveryDone(deliveryId);
       console.log(`📥 Installation ${instData.action}: ID ${instData.installation.id}. Enqueued job: ${jobId}`);
       return NextResponse.json({ ok: true, jobId, event: 'installation' }, { status: 202 });
@@ -441,6 +443,7 @@ export async function POST(req: NextRequest) {
         receivedAt,
       });
 
+      clearInstallationAccessCache();
       await markDeliveryDone(deliveryId);
       console.log(`📥 Installation repos ${reposData.action}: ID ${reposData.installation.id}. Enqueued job: ${jobId}`);
       return NextResponse.json({ ok: true, jobId, event: 'installation_repositories' }, { status: 202 });
