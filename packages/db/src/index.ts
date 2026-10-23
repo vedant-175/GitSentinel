@@ -6,6 +6,11 @@ declare global {
 }
 
 if (!process.env.DATABASE_URL) {
+  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+  if (isProduction && !isBuildPhase) {
+    throw new Error('FATAL: DATABASE_URL environment variable is missing in production. Boot aborted.');
+  }
   process.env.DATABASE_URL =
     'postgresql://postgres:postgres@127.0.0.1:5433/ai_code_review?schema=public';
 }

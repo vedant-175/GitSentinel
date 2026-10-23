@@ -47,8 +47,12 @@
   },
   "overrides": {
     "braces": "^3.0.3",
-    "postcss": "^8.5.3",
-    "source-map-js": "^1.2.2"
+    "postcss": "^8.5.31",
+    "postcss-selector-parser": "^7.1.7",
+    "source-map-js": "^1.2.2",
+    "next": {
+      "postcss": "^8.5.31"
+    }
   },
   "engines": {
     "node": ">=22.0.0"

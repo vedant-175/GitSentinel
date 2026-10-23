@@ -88,6 +88,10 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      # Step 8b: Verify No Tracked Secrets or .env Files (DevSecOps Hygiene)
+      - name: Verify No Tracked .env Files
+        run: npm run check:env-tracked
+
       # Step 9: Typecheck
       - name: Run Typecheck
         run: npm run typecheck

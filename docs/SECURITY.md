@@ -106,3 +106,63 @@ If you discover a security vulnerability or bypass in GitSentinel:
    - Minimal reproducible proof-of-concept (PoC).
    - Affected endpoints or files.
 4. We acknowledge receipt within 48 hours and provide a remediation timeline before public disclosure.
+
+---
+
+## 6. Incident Response & Credential Rotation Playbook
+
+In the event of an inadvertent secret exposure, suspected key compromise, or revoked permissions:
+
+### A. GitHub App Private Key Compromise
+1. **Generate New Key**: Navigate to GitHub App Settings -> General -> **Generate a private key**.
+2. **Update Environment**:
+   - Vercel: Update `GITHUB_PRIVATE_KEY` in Project Settings -> Environment Variables.
+   - Worker: Update `GITHUB_PRIVATE_KEY` on worker hosting environment (e.g. Render / AWS / Docker).
+3. **Purge Cache & Restart**:
+   - Deploy new environment variables and restart worker instances.
+   - In-memory cached Octokit installation tokens are automatically purged on 401/403 responses.
+4. **Revoke Old Key**: Delete the compromised private key from GitHub App Settings.
+
+### B. Webhook Secret Rotation
+1. **GitHub App Settings**: Enter a new cryptographic 32+ character secret under **Webhook secret**.
+2. **Synchronize Server**:
+   - Set `GITHUB_WEBHOOK_SECRET` in Vercel environment variables.
+   - Deploy the new configuration. Webhook signature validation will seamlessly verify incoming deliveries signed with the new secret.
+
+### C. OAuth App Client Secret Rotation
+1. **GitHub OAuth / App Settings**: Generate a new client secret under **Client secrets**.
+2. **Update Production Environment**: Set `NEXTAUTH_GITHUB_CLIENT_SECRET` (and `GITHUB_CLIENT_SECRET`) in Vercel.
+3. **Delete Old Secret**: Delete the compromised secret in GitHub after validating successful sign-ins.
+
+### D. NextAuth Session Secret (`NEXTAUTH_SECRET`) Rotation
+1. **Generate Cryptographic Secret**: `openssl rand -hex 32`.
+2. **Update Vercel**: Set `NEXTAUTH_SECRET` in Vercel environment variables.
+3. **Impact**: Existing active user sessions (JWTs) signed with the old secret will become invalid and fail safely, prompting users to re-authenticate via GitHub OAuth. No database state or repo links are lost.
+
+### E. AI Provider Key Rotation
+1. **Revoke Old Key**: In Groq, Google AI Studio, or OpenAI dashboard, revoke compromised keys.
+2. **Update Key Pool**: Update `GROQ_API_KEYS`, `GEMINI_API_KEYS`, etc., in the worker and web environment variables.
+3. **Verification**: Execute `npm run check:env` to verify new keys prior to releasing traffic.
+
+---
+
+## 7. Production Hardening & Operational Resilience
+
+### A. Serverless Execution & Timeouts
+- **Vercel Webhooks**: `POST /api/webhooks/github` acknowledges valid webhooks within <50ms by verifying the HMAC signature and enqueuing jobs to BullMQ. Long-running code reviews never execute synchronously within serverless HTTP handlers.
+- **Serverless Function Limits**: All dashboard queries and API endpoints are bounded with database query limits (`take: 50`) and timeouts.
+
+### B. Worker Resilience & Concurrency
+- **Fairness & Quota Control**: Per-installation slot limits prevent a single tenant from monopolizing worker capacity. Jobs exceeding capacity are rescheduled using jittered exponential backoff (`computeJitteredBackoff`).
+- **Commit Idempotency**: `acquireReviewLock` with Redis atomic leases guarantees only one worker reviews a specific `(repoFullName, prNumber, commitSha)` tuple. Newer commit pushes cancel superseded pending reviews (`HeadShaChangedError`).
+- **Queue Cleanup**: BullMQ retains the last 1,000 completed and 5,000 failed jobs, preventing unbounded Redis memory exhaustion.
+
+### C. HTTP Security Headers
+All browser interactions are protected with strict security headers configured in `next.config.mjs`:
+- `Content-Security-Policy`: Restricts scripts, styles, fonts, objects, and connect endpoints; strictly prohibits clickjacking via `frame-ancestors 'none'`.
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()`
+- `poweredByHeader: false`
