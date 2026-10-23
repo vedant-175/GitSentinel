@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
 import { authOptions, getAuthSecret } from './auth';
@@ -142,7 +143,12 @@ export async function requireSession() {
       installationIds: [],
     };
   }
-  const session = await getServerSession(authOptions);
+  let session = null;
+  try {
+    session = await getServerSession(authOptions);
+  } catch {
+    session = null;
+  }
   if (!session || !session.user) {
     throw new UnauthorizedError('Authentication required');
   }
@@ -564,6 +570,77 @@ export async function requirePermissionForReview(
   const role = await getUserRoleForInstallation(session, installationId);
   assertPermission(role, permission);
   return { review, session, role };
+}
+
+/**
+ * Ensures user has an active session AND administrative privileges (OWNER or ADMIN).
+ * Throws UnauthorizedError (401) if not logged in.
+ * Throws ForbiddenError (403) if authenticated but lacks admin privileges.
+ */
+export async function requireAdminSession() {
+  const session = await requireSession();
+  const userLogin = (
+    session?.user?.login ||
+    (session?.user as any)?.name ||
+    (session?.user as any)?.id ||
+    ''
+  ).trim().toLowerCase();
+
+  // If roleOverride is set (e.g. in test contexts)
+  if (roleOverride) {
+    const role = await roleOverride(userLogin, 0);
+    if (role === Role.ADMIN || role === Role.OWNER) {
+      return { session, role };
+    }
+    throw new ForbiddenError('Administrator privileges required');
+  }
+
+  // Check if session has accessible installation IDs
+  const installationIds = await getSessionInstallationIds();
+  if (installationIds.length > 0) {
+    for (const instId of installationIds) {
+      const role = await getUserRoleForInstallation(session, instId);
+      if (role === Role.ADMIN || role === Role.OWNER) {
+        return { session, role, installationId: instId };
+      }
+    }
+  }
+
+  // Check direct DB membership if user has any ADMIN or OWNER roles
+  if (userLogin) {
+    try {
+      const adminMembership = await prisma.installationMember.findFirst({
+        where: {
+          userLogin: { equals: userLogin, mode: 'insensitive' },
+          role: { in: ['ADMIN', 'OWNER'] },
+        },
+      });
+      if (adminMembership) {
+        return { session, role: normalizeRole(adminMembership.role) };
+      }
+    } catch {
+      // ignore db error
+    }
+  }
+
+  throw new ForbiddenError('Administrator privileges required');
+}
+
+/**
+ * Uniformly formats authorization and authentication errors into standard NextResponses.
+ */
+export function handleAuthError(error: unknown) {
+  if (error instanceof UnauthorizedError || (error as any)?.name === 'UnauthorizedError') {
+    return NextResponse.json({ error: (error as Error).message || 'Unauthorized' }, { status: 401 });
+  }
+  if (
+    error instanceof ForbiddenError ||
+    (error as any)?.name === 'ForbiddenError' ||
+    (error as any)?.name === 'RbacForbiddenError'
+  ) {
+    return NextResponse.json({ error: (error as Error).message || 'Forbidden' }, { status: 403 });
+  }
+  return null;
 }
 
 

@@ -4,6 +4,7 @@ import {
   requireSession,
   getSessionInstallationIds,
   getUserRoleForInstallation,
+  handleAuthError,
 } from '@/lib/auth-helpers';
 import { Permission, assertPermission, AuditAction, RbacForbiddenError } from '@ai-reviewer/shared';
 import { reviewQueue } from '@/lib/queue';
@@ -25,8 +26,18 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 1. Rate limiting (10 req/min for expensive review retry)
-  const rateLimitResponse = await checkFailedReviewRetryRateLimit(req);
+  // 1. Authentication check
+  let session;
+  try {
+    session = await requireSession();
+  } catch (err) {
+    const authRes = handleAuthError(err);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // 2. Rate limiting (10 req/min for expensive review retry)
+  const rateLimitResponse = await checkFailedReviewRetryRateLimit(req, session?.user?.id || (session?.user as any)?.login);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
@@ -36,7 +47,6 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const session = await requireSession();
     const installationIds = await getSessionInstallationIds();
 
     const failedReview = await prisma.failedReview.findUnique({
@@ -201,6 +211,8 @@ export async function POST(
 
     return NextResponse.json({ success: true, newJobId });
   } catch (err) {
+    const authRes = handleAuthError(err);
+    if (authRes) return authRes;
     if (err instanceof RbacForbiddenError) {
       return NextResponse.json({ error: err.message }, { status: 403 });
     }

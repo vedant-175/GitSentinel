@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireSession, getSessionInstallationIds, getUserRoleForInstallation } from '@/lib/auth-helpers';
+import {
+  requireSession,
+  getSessionInstallationIds,
+  getUserRoleForInstallation,
+  handleAuthError,
+} from '@/lib/auth-helpers';
 import { Permission, assertPermission } from '@ai-reviewer/shared';
 import { recordAuditLog } from '@/lib/audit';
 import { prisma } from '@ai-reviewer/db';
@@ -12,17 +17,16 @@ export async function POST(req: NextRequest) {
     const installationIds = await getSessionInstallationIds();
     const targetGithubInstId = installationIds[0];
 
-    const userRole = targetGithubInstId
-      ? await getUserRoleForInstallation(session, targetGithubInstId)
-      : 'VIEWER';
+    if (!targetGithubInstId) {
+      return NextResponse.json({ error: 'Forbidden: No accessible installations' }, { status: 403 });
+    }
 
-    assertPermission(userRole, Permission.CONFIG_VIEW);
+    const userRole = await getUserRoleForInstallation(session, targetGithubInstId);
+    assertPermission(userRole, Permission.CONFIG_UPDATE);
 
-    const inst = targetGithubInstId
-      ? await prisma.installation.findUnique({
-          where: { githubInstallationId: targetGithubInstId },
-        })
-      : null;
+    const inst = await prisma.installation.findUnique({
+      where: { githubInstallationId: targetGithubInstId },
+    });
 
     // Dispatches a real test audit notification event
     await recordAuditLog({
@@ -47,9 +51,8 @@ export async function POST(req: NextRequest) {
       message: 'Test notification logged successfully to system audit trail.',
     });
   } catch (error: any) {
-    if (error?.name === 'UnauthorizedError') {
-      return NextResponse.json({ error: 'Unauthorized', message: error.message }, { status: 401 });
-    }
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
     return NextResponse.json({ error: error.message || 'Notification test failed' }, { status: 500 });
   }
 }

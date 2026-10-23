@@ -40,6 +40,7 @@ export interface GetLogsParams {
   repository?: string; // 'ALL' | repo name
   search?: string;
   timeframe?: string; // '24h' | '7d' | '30d' | '1h'
+  isDemo?: boolean; // When true (or unauthenticated), strictly returns synthetic demo logs
 }
 
 export interface SystemLogsData {
@@ -222,18 +223,21 @@ export async function fetchSystemLogs(params: GetLogsParams = {}): Promise<Syste
   let dbRepos: { fullName: string }[] = [];
   let allRows: any[] = [];
 
-  try {
-    totalAuditLogsCount = await prisma.auditLog.count();
-    dbRepos = await prisma.repository.findMany({
-      select: { fullName: true },
-      orderBy: { fullName: 'asc' },
-    });
-    allRows = await prisma.auditLog.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 3500,
-    });
-  } catch (dbErr) {
-    console.warn('[Logs] PostgreSQL connection unavailable or offline, using fallback system logs:', dbErr);
+  // Protect real operational logs: only query database if not in demo mode
+  if (!params.isDemo) {
+    try {
+      totalAuditLogsCount = await prisma.auditLog.count();
+      dbRepos = await prisma.repository.findMany({
+        select: { fullName: true },
+        orderBy: { fullName: 'asc' },
+      });
+      allRows = await prisma.auditLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 3500,
+      });
+    } catch (dbErr) {
+      console.warn('[Logs] PostgreSQL connection unavailable or offline, using fallback system logs:', dbErr);
+    }
   }
 
   // If DB was not seeded yet or offline, default to authentic ground truth

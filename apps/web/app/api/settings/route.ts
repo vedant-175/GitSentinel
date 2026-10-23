@@ -71,12 +71,33 @@ export async function GET(req: NextRequest) {
 
     // 2. Resolve Selected Repository
     let selectedRepo = null;
-    if (inst && inst.repositories.length > 0) {
-      if (repoIdParam) {
-        selectedRepo = inst.repositories.find((r) => r.id === parseInt(repoIdParam, 10)) || inst.repositories[0];
-      } else {
-        selectedRepo = inst.repositories[0];
+    if (repoIdParam) {
+      const parsedRepoId = parseInt(repoIdParam, 10);
+      if (!isNaN(parsedRepoId)) {
+        const repoCheck = await prisma.repository.findFirst({
+          where: {
+            id: parsedRepoId,
+            installation: {
+              githubInstallationId: {
+                in: installationIds,
+              },
+            },
+          },
+          select: {
+            id: true,
+            fullName: true,
+            defaultBranch: true,
+            config: true,
+            organizationPolicy: true,
+          },
+        });
+        if (!repoCheck) {
+          return NextResponse.json({ error: 'Forbidden: Access denied to repository' }, { status: 403 });
+        }
+        selectedRepo = repoCheck;
       }
+    } else if (inst && inst.repositories.length > 0) {
+      selectedRepo = inst.repositories[0];
     }
 
     // 3. AI Review Engine Telemetry (Real Backend Data)
@@ -309,15 +330,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'repositoryId is required to update repository security policies' }, { status: 400 });
     }
 
-    // 1. RBAC: User must have CONFIG_UPDATE or POLICY_UPDATE (OWNER or ADMIN)
-    const targetGithubInstId = installationIds[0];
-    const userRole = targetGithubInstId
-      ? await getUserRoleForInstallation(session, targetGithubInstId)
-      : 'VIEWER';
-
-    assertPermission(userRole, Permission.CONFIG_UPDATE);
-
-    // 2. Fetch repository
+    // 1. Fetch repository
     const repo = await prisma.repository.findUnique({
       where: { id: repositoryId },
       include: { installation: true },
@@ -326,6 +339,16 @@ export async function PATCH(req: NextRequest) {
     if (!repo) {
       return NextResponse.json({ error: 'Repository not found' }, { status: 404 });
     }
+
+    // 2. Tenancy check: User must have access to the repository's installation
+    const hasAccess = installationIds.some((id) => BigInt(id) === BigInt(repo.installation.githubInstallationId));
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden: Access denied to repository' }, { status: 403 });
+    }
+
+    // 3. RBAC: User must have CONFIG_UPDATE permission for THIS installation (OWNER or ADMIN)
+    const userRole = await getUserRoleForInstallation(session, repo.installation.githubInstallationId);
+    assertPermission(userRole, Permission.CONFIG_UPDATE);
 
     // 3. Update Repository Configuration if provided
     let updatedConfig = repo.config;

@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireSession } from '@/lib/auth-helpers';
+import { requireAdminSession, handleAuthError } from '@/lib/auth-helpers';
 import { getKeyPool, maskApiKey } from '@ai-reviewer/shared';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSession();
+    await requireAdminSession();
+  } catch (error) {
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Administrator privileges required' }, { status: 403 });
+  }
+
+  try {
     const { provider } = await req.json();
 
     const normalizedProvider = (provider || 'groq').toLowerCase();

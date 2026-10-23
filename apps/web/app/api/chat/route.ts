@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@ai-reviewer/db';
 import { getKeyPool, maskApiKey } from '@ai-reviewer/shared';
+import {
+  requireSession,
+  getSessionInstallationIds,
+  assertPullRequestAccess,
+  assertInstallationAccess,
+  handleAuthError,
+} from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  // 1. Session check
+  try {
+    await requireSession();
+  } catch (error) {
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     let body: any = {};
     try {
@@ -19,7 +35,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
     }
 
-    // 1. Gather Context (PR, Review, Issues, Gate Verdict)
+    const installationIds = await getSessionInstallationIds().catch(() => []);
+
+    // 2. Tenancy verification: Ensure user is authorized for the targeted PR or repo
+    if (prId) {
+      const parsedPrId = parseInt(prId, 10);
+      if (!isNaN(parsedPrId)) {
+        try {
+          await assertPullRequestAccess(parsedPrId, installationIds);
+        } catch {
+          return NextResponse.json(
+            { error: 'Forbidden: Access denied to pull request context' },
+            { status: 403 }
+          );
+        }
+      }
+    } else if (repoId) {
+      const parsedRepoId = parseInt(repoId, 10);
+      if (!isNaN(parsedRepoId)) {
+        try {
+          await assertInstallationAccess(parsedRepoId, installationIds);
+        } catch {
+          return NextResponse.json(
+            { error: 'Forbidden: Access denied to repository context' },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
+    // 3. Gather Context (PR, Review, Issues, Gate Verdict)
     let contextStr = '';
     let prRecord: any = null;
     let repoRecord: any = null;
@@ -209,7 +254,6 @@ ${contextStr}`;
                 model: modelName,
                 tier: 'Tier 1 (Groq)',
                 activePoolSize: groqPool.getActiveKeysCount(),
-                usedKey: maskApiKey(apiKey),
               });
             }
           } else {
@@ -277,7 +321,6 @@ ${contextStr}`;
                 model: modelName,
                 tier: 'Tier 2 Fallback (Gemini)',
                 activePoolSize: geminiPool.getActiveKeysCount(),
-                usedKey: maskApiKey(apiKey),
               });
             }
           } else {

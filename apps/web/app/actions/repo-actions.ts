@@ -17,7 +17,10 @@ import { recordAuditLog } from '@/lib/audit';
 
 export async function updateRepoConfig(repoId: number, newConfig: RepoConfig) {
   try {
-    // 0. Rate limiting (30 mutations per minute)
+    // 1. Enforce RBAC permission: CONFIG_UPDATE (OWNER or ADMIN only)
+    const { repo, session, role } = await requirePermissionForRepo(repoId, Permission.CONFIG_UPDATE);
+
+    // 2. Rate limiting (30 mutations per minute)
     const rateCheck = await checkConfigMutationRateLimit(String(repoId));
     if (!rateCheck.allowed) {
       return {
@@ -26,13 +29,10 @@ export async function updateRepoConfig(repoId: number, newConfig: RepoConfig) {
       };
     }
 
-    // 1. Enforce RBAC permission: CONFIG_UPDATE (OWNER or ADMIN only)
-    const { repo, session, role } = await requirePermissionForRepo(repoId, Permission.CONFIG_UPDATE);
-
-    // 2. Validate config with Zod schema
+    // 3. Validate config with Zod schema
     const validatedConfig = RepoConfigSchema.parse(newConfig);
 
-    // 3. Update database scoped by repository
+    // 4. Update database scoped by repository
     await prisma.repository.update({
       where: { id: repo.id },
       data: {
@@ -210,6 +210,15 @@ export async function analyseRepositoryAction(repoId: number, repoFullName?: str
       });
     } catch (dbErr) {
       console.warn('[analyseRepositoryAction] Database query failed, continuing with fallback:', dbErr);
+    }
+
+    if (repo && repo.installation?.githubInstallationId) {
+      const { getSessionInstallationIds } = await import('@/lib/auth-helpers');
+      const installationIds = await getSessionInstallationIds().catch(() => []);
+      const hasAccess = installationIds.some((id) => BigInt(id) === BigInt(repo.installation.githubInstallationId));
+      if (!hasAccess) {
+        return { success: false, error: 'Forbidden: Access denied to repository' };
+      }
     }
 
     if (!repo) {
