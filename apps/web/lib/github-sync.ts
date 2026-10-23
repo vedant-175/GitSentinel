@@ -437,7 +437,7 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
           if (!r.full_name) continue;
           try {
             const prsRes = await fetch(
-              `https://api.github.com/repos/${r.full_name}/pulls?state=all&per_page=10&sort=updated`,
+              `https://api.github.com/repos/${r.full_name}/pulls?state=all&per_page=30&sort=created&direction=desc`,
               { headers: authHeaders }
             );
             if (prsRes.ok) {
@@ -512,7 +512,7 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
   if (collectedPRsMap.size === 0 && (username.toLowerCase() === 'vedant-175' || username.toLowerCase() === 'copilot')) {
     try {
       const gitSentinelRes = await fetch(
-        'https://api.github.com/repos/vedant-175/GitSentinel/pulls?state=all&per_page=10',
+        'https://api.github.com/repos/vedant-175/GitSentinel/pulls?state=all&per_page=30&sort=created&direction=desc',
         { headers: authHeaders }
       );
       if (gitSentinelRes.ok) {
@@ -540,7 +540,14 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
     }
   }
 
-  const rawPrList = Array.from(collectedPRsMap.values());
+  const rawPrList = Array.from(collectedPRsMap.values()).sort((a, b) => {
+    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) {
+      return timeB - timeA;
+    }
+    return (b.number || 0) - (a.number || 0);
+  });
   if (rawPrList.length === 0) {
     return [];
   }
@@ -656,6 +663,15 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
     }
 
     if (savedPrs.length > 0) {
+      savedPrs.sort((a, b) => {
+        const timeA = a.openedAt ? new Date(a.openedAt).getTime() : 0;
+        const timeB = b.openedAt ? new Date(b.openedAt).getTime() : 0;
+        if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) return timeB - timeA;
+        const numA = Number(a.githubPrNumber || 0);
+        const numB = Number(b.githubPrNumber || 0);
+        if (numA !== numB) return numB - numA;
+        return (b.id || 0) - (a.id || 0);
+      });
       return savedPrs;
     }
   } catch (dbErr) {
@@ -712,7 +728,7 @@ async function syncRepositoryPullRequests(repositoryId: number, repoFullName: st
     }
 
     const prsRes = await fetch(
-      `https://api.github.com/repos/${repoFullName}/pulls?state=all&per_page=10&sort=updated`,
+      `https://api.github.com/repos/${repoFullName}/pulls?state=all&per_page=30&sort=created&direction=desc`,
       { headers: authHeaders }
     );
 

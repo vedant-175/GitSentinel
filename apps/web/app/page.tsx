@@ -132,8 +132,19 @@ export default async function OverviewPage() {
     pullRequests.map((p) => p.repository?.fullName || p.repositoryId || 'repo')
   ).size;
 
-  // 4. Map recent PRs
-  const recentPRs = pullRequests.slice(0, 5).map((pr: any) => {
+  // 4. Map recent PRs (most recent at top)
+  const recentPRs = [...pullRequests]
+    .sort((a: any, b: any) => {
+      const timeA = a.openedAt ? new Date(a.openedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const timeB = b.openedAt ? new Date(b.openedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) return timeB - timeA;
+      const numA = Number(a.githubPrNumber || a.number || a.id) || 0;
+      const numB = Number(b.githubPrNumber || b.number || b.id) || 0;
+      if (numA !== numB) return numB - numA;
+      return (b.id || 0) - (a.id || 0);
+    })
+    .slice(0, 5)
+    .map((pr: any) => {
     const latestReview = pr.reviews?.[0];
     const verdict = latestReview?.verdict;
     const isEvaluating = latestReview?.status === 'pending' || latestReview?.status === 'posting';

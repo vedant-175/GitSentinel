@@ -52,7 +52,15 @@ export function RepoDetailView({
     (analytics.severityBreakdown as any[])?.find((s: any) => s.severity === 'suggestion')?.count || 1;
   const totalIssuesCount = criticalCount + warningCount + suggestionCount;
 
-  const pullRequests = repo.pullRequests || [];
+  const pullRequests = [...(repo.pullRequests || [])].sort((a: any, b: any) => {
+    const timeA = a.openedAt ? new Date(a.openedAt).getTime() : 0;
+    const timeB = b.openedAt ? new Date(b.openedAt).getTime() : 0;
+    if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) return timeB - timeA;
+    const numA = Number(a.githubPrNumber || a.number || a.id) || 0;
+    const numB = Number(b.githubPrNumber || b.number || b.id) || 0;
+    if (numA !== numB) return numB - numA;
+    return (b.id || 0) - (a.id || 0);
+  });
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fade-in text-slate-900 dark:text-zinc-100 font-sans">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -48,6 +48,7 @@ interface PRCardData {
   timeAgo: string;
   findingsCount: number;
   issues: IssueItem[] | null;
+  rawDate?: string | Date | null;
 }
 
 export function CyberPRQueue({
@@ -57,6 +58,13 @@ export function CyberPRQueue({
   const router = useRouter();
   const effectiveLogin = currentUserLogin || 'vedant-175';
   const [prs, setPrs] = useState<any[]>(initialPullRequests || []);
+
+  useEffect(() => {
+    if (initialPullRequests) {
+      setPrs(initialPullRequests);
+    }
+  }, [initialPullRequests]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'OPEN' | 'APPROVED' | 'CHANGES'>('ALL');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
@@ -145,7 +153,26 @@ export function CyberPRQueue({
       timeAgo: pr.openedAt ? formatTimeAgo(pr.openedAt) : 'recently',
       findingsCount: issues.length,
       issues: issues.length > 0 ? issues : null,
+      rawDate: pr.openedAt || pr.createdAt || pr.created_at || null,
     };
+  });
+
+  // Ensure recent pull requests are always shown at top
+  prsToDisplay.sort((a, b) => {
+    // 1. Newest openedAt / created date first
+    const timeA = a.rawDate ? new Date(a.rawDate).getTime() : 0;
+    const timeB = b.rawDate ? new Date(b.rawDate).getTime() : 0;
+    if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) {
+      return timeB - timeA;
+    }
+    // 2. Higher PR number first (#7 before #3)
+    const numA = Number(a.id) || 0;
+    const numB = Number(b.id) || 0;
+    if (numA !== numB) {
+      return numB - numA;
+    }
+    // 3. Fallback to DB id descending
+    return (b.dbId || 0) - (a.dbId || 0);
   });
 
   const allCount = prsToDisplay.length;

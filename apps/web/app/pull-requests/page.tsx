@@ -34,6 +34,17 @@ export default async function PullRequestsPage() {
     }
   }
 
+  // Sort descending so the most recent PRs appear at the top
+  dbPullRequests.sort((a: any, b: any) => {
+    const timeA = a.openedAt ? new Date(a.openedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+    const timeB = b.openedAt ? new Date(b.openedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+    if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) return timeB - timeA;
+    const numA = Number(a.githubPrNumber || a.number || a.id) || 0;
+    const numB = Number(b.githubPrNumber || b.number || b.id) || 0;
+    if (numA !== numB) return numB - numA;
+    return (b.id || 0) - (a.id || 0);
+  });
+
   return (
     <CyberPRQueue
       initialPullRequests={dbPullRequests}
