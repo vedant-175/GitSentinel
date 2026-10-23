@@ -100,6 +100,14 @@ jobs:
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: ci-testing-secret-key-32-chars-minimum
 
+      # Step 10b: Security Regression Suite (Phase 5 Matrix)
+      - name: Run Security Regression Suite
+        run: npm run test:security
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_code_review?schema=public
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: ci-testing-secret-key-32-chars-minimum
+
       # Step 11: Build Application Workspaces
       - name: Build All Workspaces
         run: npm run build

@@ -131,8 +131,8 @@ export async function getServerOAuthToken(req?: Request | any): Promise<string |
 export async function requireSession() {
   if (sessionOverride) {
     const session = await sessionOverride();
-    if (!session || !session.user) {
-      throw new UnauthorizedError('Authentication required');
+    if (!session || !session.user || (session.expires && new Date(session.expires).getTime() < Date.now())) {
+      throw new UnauthorizedError('Authentication required or session expired');
     }
     return session;
   }
@@ -151,8 +151,8 @@ export async function requireSession() {
   } catch {
     session = null;
   }
-  if (!session || !session.user) {
-    throw new UnauthorizedError('Authentication required');
+  if (!session || !session.user || (session.expires && new Date(session.expires).getTime() < Date.now())) {
+    throw new UnauthorizedError('Authentication required or session expired');
   }
   return session;
 }

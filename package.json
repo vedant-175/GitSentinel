@@ -19,6 +19,7 @@
     "typecheck": "npm run build:packages && npm run typecheck:workspaces",
     "typecheck:workspaces": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present && node --import tsx --test eval/eval.test.ts scripts/phase-g.test.ts",
+    "test:security": "npx tsx --tsconfig apps/web/tsconfig.json --test apps/web/lib/security-regression.test.ts",
     "test:webhook": "tsx scripts/test-webhook-e2e.ts",
     "test:load": "tsx scripts/load-test-queue.ts",
     "test:load:100": "tsx scripts/load-test-100.ts",
