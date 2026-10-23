@@ -3,10 +3,10 @@ import GithubProvider from 'next-auth/providers/github';
 import { prisma } from '@ai-reviewer/db';
 import { syncUserRepositories } from './github-sync';
 
-// Auto-detect production URL on Vercel
-if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'gitsentinel-red.vercel.app';
-  if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes('localhost')) {
+// Auto-detect production URL on Vercel only if NEXTAUTH_URL is not set in environment
+if (!process.env.NEXTAUTH_URL) {
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelUrl) {
     process.env.NEXTAUTH_URL = `https://${vercelUrl}`;
   }
 }
