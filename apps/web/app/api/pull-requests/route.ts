@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, serializeWithBigInt } from '@ai-reviewer/db';
 import {
+  requireSession,
   getSessionInstallationIds,
   requireInstallationAccess,
   UnauthorizedError,
@@ -12,11 +13,11 @@ import { parsePaginationParams, paginateResults } from '@/lib/pagination';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  // 1. Rate limiting
-  const rateLimitResponse = await checkApiRateLimit(req);
-  if (rateLimitResponse) return rateLimitResponse;
-
   try {
+    await requireSession();
+    // 1. Rate limiting
+    const rateLimitResponse = await checkApiRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
     const { searchParams } = new URL(req.url);
     const repoIdParam = searchParams.get('repo_id');
     const stateParam = searchParams.get('state');

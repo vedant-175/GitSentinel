@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const instIdParam = searchParams.get('installationId');
 
     const targetInstId = instIdParam ? BigInt(instIdParam) : installationIds[0];
-    if (!targetInstId || !installationIds.includes(targetInstId)) {
+    if (!targetInstId || !installationIds.some((id) => BigInt(id) === targetInstId)) {
       return NextResponse.json({ error: 'Forbidden: Installation not accessible' }, { status: 403 });
     }
 
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     const { userLogin, role, installationId } = parseResult.data;
     const targetGithubInstId = BigInt(installationId);
 
-    if (!installationIds.includes(targetGithubInstId)) {
+    if (!installationIds.some((id) => BigInt(id) === targetGithubInstId)) {
       return NextResponse.json({ error: 'Forbidden: Installation not accessible' }, { status: 403 });
     }
 
