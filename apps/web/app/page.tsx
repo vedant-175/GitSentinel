@@ -14,9 +14,7 @@ import {
 import { prisma } from '@ai-reviewer/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getServerOAuthToken } from '@/lib/auth-helpers';
 import { getRepositories, getPullRequests } from '@/lib/data';
-import { syncUserRepositories, syncUserPullRequests } from '@/lib/github-sync';
 import { formatTimeAgo } from '@/lib/date-format';
 import { ReviewActivityChart } from './components/ReviewActivityChart';
 
@@ -43,7 +41,6 @@ function getAuthorBg(name: string) {
 export default async function OverviewPage() {
   const session = await getServerSession(authOptions).catch(() => null);
   const currentUserLogin = session?.user?.login || (session?.user as any)?.name || '';
-  const serverOAuthToken = await getServerOAuthToken().catch(() => undefined);
 
   // 1. Fetch repositories
   let repositories: any[] = [];
@@ -54,25 +51,6 @@ export default async function OverviewPage() {
     console.warn('[OverviewPage] Failed to fetch repositories:', err);
   }
 
-  // If DB has 0 repositories and user is logged in, auto-sync live GitHub repositories
-  if (currentUserLogin && repositories.length === 0) {
-    try {
-      const syncResult = await syncUserRepositories(currentUserLogin, serverOAuthToken);
-      if (syncResult.success) {
-        const refreshed = await getRepositories({ limit: 500 }).catch(() => null);
-        if (refreshed?.data && refreshed.data.length > 0) {
-          repositories = refreshed.data;
-        } else if (syncResult.repos && syncResult.repos.length > 0) {
-          repositories = syncResult.repos;
-        } else {
-          repositories = [];
-        }
-      }
-    } catch (syncErr) {
-      console.warn('[OverviewPage] Failed to auto-sync user repositories:', syncErr);
-    }
-  }
-
   // 2. Fetch pull requests
   let pullRequests: any[] = [];
   try {
@@ -80,23 +58,6 @@ export default async function OverviewPage() {
     pullRequests = prRes?.data || [];
   } catch (err) {
     console.warn('[OverviewPage] Failed to fetch pull requests:', err);
-  }
-
-  // If DB has 0 pull requests and user is logged in, auto-sync user's real PRs from GitHub
-  if (currentUserLogin && pullRequests.length === 0) {
-    try {
-      const synced = await syncUserPullRequests(currentUserLogin, serverOAuthToken);
-      const refreshedPrs = await getPullRequests({ limit: 50 }).catch(() => null);
-      if (refreshedPrs?.data && refreshedPrs.data.length > 0) {
-        pullRequests = refreshedPrs.data;
-      } else if (synced && synced.length > 0) {
-        pullRequests = synced;
-      } else {
-        pullRequests = [];
-      }
-    } catch (syncPrErr) {
-      console.warn('[OverviewPage] Failed to auto-sync user pull requests:', syncPrErr);
-    }
   }
 
   const repoCount = repositories.length;
@@ -132,8 +93,19 @@ export default async function OverviewPage() {
     pullRequests.map((p) => p.repository?.fullName || p.repositoryId || 'repo')
   ).size;
 
-  // 4. Map recent PRs
-  const recentPRs = pullRequests.slice(0, 5).map((pr: any) => {
+  // 4. Map recent PRs (most recent at top)
+  const recentPRs = [...pullRequests]
+    .sort((a: any, b: any) => {
+      const timeA = a.openedAt ? new Date(a.openedAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const timeB = b.openedAt ? new Date(b.openedAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      if (timeA !== timeB && !isNaN(timeA) && !isNaN(timeB)) return timeB - timeA;
+      const numA = Number(a.githubPrNumber || a.number || a.id) || 0;
+      const numB = Number(b.githubPrNumber || b.number || b.id) || 0;
+      if (numA !== numB) return numB - numA;
+      return (b.id || 0) - (a.id || 0);
+    })
+    .slice(0, 5)
+    .map((pr: any) => {
     const latestReview = pr.reviews?.[0];
     const verdict = latestReview?.verdict;
     const isEvaluating = latestReview?.status === 'pending' || latestReview?.status === 'posting';

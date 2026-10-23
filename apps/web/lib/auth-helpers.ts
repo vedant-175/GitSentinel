@@ -227,6 +227,23 @@ export async function resolveUserInstallations(
         } else {
           accessibleIds = [];
         }
+
+        // For verified OAuth sessions: Also check for user's personal User installation in DB
+        if (session.user?.login) {
+          const personalInst = await prisma.installation.findFirst({
+            where: {
+              accountLogin: {
+                equals: session.user.login,
+                mode: 'insensitive',
+              },
+              accountType: 'User',
+            },
+            select: { githubInstallationId: true },
+          });
+          if (personalInst && !accessibleIds.some((id) => id === personalInst.githubInstallationId)) {
+            accessibleIds.push(personalInst.githubInstallationId);
+          }
+        }
       } else {
         console.warn(`GitHub /user/installations returned status ${res.status}`);
         // If GitHub token was revoked (401/403), immediately invalidate cache and fail closed
@@ -284,6 +301,7 @@ export async function getSessionInstallationIds(
       user: {
         id: session.user.id,
         login: session.user.login,
+        githubId: (session.user as any).githubId,
       },
     },
     refreshIntervalMs

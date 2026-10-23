@@ -156,6 +156,23 @@ export const authOptions: NextAuthOptions = {
         token.githubId = String(profile.id);
       }
 
+      if (!token.installationIds && token.login) {
+        try {
+          const inst = await prisma.installation.findFirst({
+            where: {
+              accountLogin: { equals: token.login as string, mode: 'insensitive' },
+              accountType: 'User',
+            },
+            select: { githubInstallationId: true },
+          });
+          if (inst) {
+            token.installationIds = [Number(inst.githubInstallationId)];
+          }
+        } catch {
+          // ignore if DB is offline
+        }
+      }
+
       // Step 4: Harden client-triggered session updates against spoofing.
       // Never trust client-supplied GitHub identity, account-linking status, installation IDs, or permissions.
       if (trigger === 'update') {

@@ -23,14 +23,34 @@ interface SidebarProps {
 export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }: SidebarProps) {
   const pathname = usePathname();
 
-  const [prCount, setPrCount] = useState<number | undefined>(initialPrCount);
-  const [repoCount, setRepoCount] = useState<number | undefined>(initialRepoCount);
+  const [prCount, setPrCount] = useState<number | undefined>(() => {
+    if (typeof initialPrCount === 'number') return initialPrCount;
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('gitsentinel_sidebar_prCount');
+      if (cached !== null) return parseInt(cached, 10);
+    }
+    return undefined;
+  });
+  const [repoCount, setRepoCount] = useState<number | undefined>(() => {
+    if (typeof initialRepoCount === 'number') return initialRepoCount;
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('gitsentinel_sidebar_repoCount');
+      if (cached !== null) return parseInt(cached, 10);
+    }
+    return undefined;
+  });
 
-  // Fetch real active counts on mount
+  // Fetch real active counts on mount (throttled via sessionStorage)
   useEffect(() => {
     let isMounted = true;
     async function fetchCounts() {
       try {
+        const lastFetch = typeof window !== 'undefined' ? sessionStorage.getItem('gitsentinel_sidebar_last_fetch') : null;
+        if (lastFetch && Date.now() - Number(lastFetch) < 30000) {
+          // Cached within last 30 seconds
+          return;
+        }
+
         const [prRes, repoRes] = await Promise.all([
           fetch('/api/pull-requests').then((r) => (r.ok ? r.json() : null)).catch(() => null),
           fetch('/api/repositories').then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -48,10 +68,13 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
             : null;
           if (prList !== null) {
             setPrCount(prList.length);
+            sessionStorage.setItem('gitsentinel_sidebar_prCount', String(prList.length));
           }
           if (repoList !== null) {
             setRepoCount(repoList.length);
+            sessionStorage.setItem('gitsentinel_sidebar_repoCount', String(repoList.length));
           }
+          sessionStorage.setItem('gitsentinel_sidebar_last_fetch', String(Date.now()));
         }
       } catch (_) {
         // Ignore fetch errors

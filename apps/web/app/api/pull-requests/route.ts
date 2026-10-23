@@ -78,7 +78,9 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      orderBy: { id: 'desc' },
+      orderBy: cursor
+        ? { id: 'desc' }
+        : [{ openedAt: 'desc' }, { githubPrNumber: 'desc' }, { id: 'desc' }],
     });
 
     const paginated = paginateResults(pullRequests, limit);

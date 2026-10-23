@@ -120,7 +120,9 @@ export async function getPullRequests(
         },
       },
     },
-    orderBy: { id: 'desc' },
+    orderBy: cursor
+      ? { id: 'desc' }
+      : [{ openedAt: 'desc' }, { githubPrNumber: 'desc' }, { id: 'desc' }],
   });
 
   return paginateResults(pullRequests, limit);
@@ -200,7 +202,7 @@ export async function getRepositoryById(id: number) {
               orderBy: { completedAt: 'desc' },
             },
           },
-          orderBy: { id: 'desc' },
+          orderBy: [{ openedAt: 'desc' }, { githubPrNumber: 'desc' }, { id: 'desc' }],
         },
       },
     });

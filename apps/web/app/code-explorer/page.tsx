@@ -23,34 +23,7 @@ export default async function CodeExplorerPage({
     repositories = [];
   }
 
-  // If DB is empty and user is logged in, attempt to fetch live repos from GitHub
-  if (currentUserLogin && repositories.length === 0) {
-    try {
-      const ghRes = await fetch(
-        `https://api.github.com/users/${encodeURIComponent(currentUserLogin)}/repos?per_page=50&sort=updated`,
-        {
-          headers: {
-            'User-Agent': 'GitSentinel-Surveillance/1.0',
-            Accept: 'application/vnd.github.v3+json',
-          },
-          next: { revalidate: 60 },
-        }
-      );
-      if (ghRes.ok) {
-        const data = await ghRes.json();
-        if (Array.isArray(data)) {
-          repositories = data.map((r: any) => ({
-            id: r.id,
-            fullName: r.full_name,
-            defaultBranch: r.default_branch || 'main',
-            description: r.description || '',
-          }));
-        }
-      }
-    } catch (fetchErr) {
-      console.warn('[CodeExplorerPage] GitHub live fetch error:', fetchErr);
-    }
-  }
+
 
   // Fallback repo options if completely empty
   const fallbackRepos = [
