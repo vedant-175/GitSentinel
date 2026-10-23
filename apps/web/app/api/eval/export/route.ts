@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { requireAdminSession, handleAuthError } from '@/lib/auth-helpers';
 
 export async function GET() {
+  try {
+    await requireAdminSession();
+  } catch (error) {
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Administrator privileges required' }, { status: 403 });
+  }
+
   const possiblePaths = [
     path.join(process.cwd(), 'eval', 'results.json'),
     path.join(process.cwd(), '..', '..', 'eval', 'results.json'),

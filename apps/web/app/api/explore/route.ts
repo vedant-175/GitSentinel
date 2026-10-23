@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkApiRateLimit } from '../../../lib/rate-limit';
+import {
+  checkPublicExploreRateLimit,
+  acquireAIConcurrencySlot,
+  releaseAIConcurrencySlot,
+  getClientIp,
+} from '../../../lib/rate-limit';
+import { ExploreQuerySchema } from '../../../lib/ai-security';
 
 export const dynamic = 'force-dynamic';
-
-// Valid GitHub username format (1-39 chars, alphanumeric and single hyphens, cannot start/end with hyphen)
-const GITHUB_USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
 
 /**
  * Public Repository Exploration Endpoint (Non-Authenticated)
@@ -17,24 +20,28 @@ const GITHUB_USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38
  * 5. Rate-limited and validated against abuse.
  */
 export async function GET(req: NextRequest) {
-  // 1. Enforce API rate limiting
-  const rateLimitResponse = await checkApiRateLimit(req);
+  // 1. Enforce per-IP public rate limiting (15 req/min)
+  const rateLimitResponse = await checkPublicExploreRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
+
+  const ip = getClientIp(req);
+  const slot = await acquireAIConcurrencySlot(ip, 2);
+  if (!slot.acquired) {
+    return NextResponse.json(
+      { error: 'Too Many Requests', message: 'Too many concurrent exploration requests from this IP.' },
+      { status: 429 }
+    );
+  }
 
   const { searchParams } = new URL(req.url);
   const rawUsername = searchParams.get('username') || searchParams.get('q') || '';
   const cleanUsername = rawUsername.trim().replace(/^@/, '');
 
-  if (!cleanUsername) {
+  const queryValidation = ExploreQuerySchema.safeParse({ username: cleanUsername });
+  if (!queryValidation.success) {
+    await releaseAIConcurrencySlot(ip);
     return NextResponse.json(
-      { error: 'GitHub username is required. Please enter a valid username (e.g. octocat, torvalds).' },
-      { status: 400 }
-    );
-  }
-
-  if (!GITHUB_USERNAME_REGEX.test(cleanUsername)) {
-    return NextResponse.json(
-      { error: 'Invalid GitHub username format. Usernames may only contain alphanumeric characters and single hyphens.' },
+      { error: queryValidation.error.errors[0]?.message || 'Invalid GitHub username format' },
       { status: 400 }
     );
   }
@@ -139,5 +146,7 @@ export async function GET(req: NextRequest) {
       { error: 'Failed to explore repositories due to an unexpected error.' },
       { status: 500 }
     );
+  } finally {
+    await releaseAIConcurrencySlot(ip);
   }
 }

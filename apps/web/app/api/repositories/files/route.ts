@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@ai-reviewer/db';
+import { requireSession, getSessionInstallationIds } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,10 +13,49 @@ interface FileItem {
 
 export async function POST(req: NextRequest) {
   try {
-    const { repoFullName, path = '', defaultBranch = 'main' } = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid or missing JSON payload' }, { status: 400 });
+    }
 
-    if (!repoFullName) {
+    const { repoFullName, path = '', defaultBranch = 'main' } = body;
+
+    if (!repoFullName || typeof repoFullName !== 'string') {
       return NextResponse.json({ error: 'repoFullName is required' }, { status: 400 });
+    }
+
+    // Path traversal validation
+    if (path && (typeof path !== 'string' || path.includes('..') || path.includes('\0') || path.length > 500)) {
+      return NextResponse.json(
+        { error: 'Invalid path parameter: directory traversal sequences are disallowed' },
+        { status: 400 }
+      );
+    }
+
+    // Tenancy check: If repository is registered in GitSentinel, verify user has installation access
+    const registeredRepo = await prisma.repository.findFirst({
+      where: { fullName: repoFullName },
+      include: { installation: true },
+    });
+
+    if (registeredRepo) {
+      const session = await requireSession().catch(() => null);
+      if (!session) {
+        return NextResponse.json(
+          { error: 'Unauthorized: Authentication required for registered repositories' },
+          { status: 401 }
+        );
+      }
+      const installationIds = await getSessionInstallationIds().catch(() => []);
+      const hasAccess = installationIds.some((id) => BigInt(id) === BigInt(registeredRepo.installation.githubInstallationId));
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Forbidden: Access denied to repository files' },
+          { status: 403 }
+        );
+      }
     }
 
     const cleanPath = (path || '').replace(/^\/+|\/+$/g, '');

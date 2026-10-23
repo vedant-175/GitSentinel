@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     let targetInstId: number | bigint;
     if (installationIdParam) {
       const parsedId = BigInt(installationIdParam);
-      if (!installationIds.includes(parsedId)) {
+      if (!installationIds.some((id) => BigInt(id) === parsedId)) {
         return NextResponse.json({ error: 'Forbidden: Installation not accessible' }, { status: 403 });
       }
       targetInstId = parsedId;

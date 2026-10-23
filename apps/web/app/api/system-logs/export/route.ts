@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireSession } from '@/lib/auth-helpers';
 import { fetchSystemLogs } from '@/lib/logs-data';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await requireSession().catch(() => null);
     const { searchParams } = new URL(req.url);
     const format = searchParams.get('format') || 'csv';
     const tab = searchParams.get('tab') || 'all';
@@ -12,6 +14,20 @@ export async function GET(req: NextRequest) {
     const component = searchParams.get('component') || 'ALL';
     const repository = searchParams.get('repository') || 'ALL';
     const search = searchParams.get('search') || '';
+    const demoParam = searchParams.get('demo') === 'true';
+
+    // Protect real operational logs: if unauthenticated and not explicitly requesting synthetic demo data, reject with 401
+    if (!session && !demoParam) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Authentication required to export real operational system logs. To export synthetic demo logs, append ?demo=true',
+        },
+        { status: 401 }
+      );
+    }
+
+    const isDemo = demoParam || !session;
 
     const data = await fetchSystemLogs({
       page: 1,
@@ -21,16 +37,18 @@ export async function GET(req: NextRequest) {
       component,
       repository,
       search,
+      isDemo,
     });
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filenamePrefix = isDemo ? 'system-logs-demo' : 'system-logs';
 
     if (format === 'json') {
       return new NextResponse(JSON.stringify(data.logs, null, 2), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="system-logs-${timestamp}.json"`,
+          'Content-Disposition': `attachment; filename="${filenamePrefix}-${timestamp}.json"`,
         },
       });
     }
@@ -53,13 +71,13 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="system-logs-${timestamp}.csv"`,
+        'Content-Disposition': `attachment; filename="${filenamePrefix}-${timestamp}.csv"`,
       },
     });
   } catch (err: any) {
     console.error('System logs export error:', err);
     return NextResponse.json(
-      { error: 'Failed to export logs' },
+      { error: 'Failed to export system logs' },
       { status: 500 }
     );
   }

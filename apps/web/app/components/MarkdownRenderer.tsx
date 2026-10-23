@@ -141,16 +141,20 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           ),
 
           // Links
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => {
+            const safeHref =
+              href && /^(?:https?:\/\/|\/|#|mailto:)/i.test(href) ? href : '#blocked-link';
+            return (
+              <a
+                href={safeHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 font-medium underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              >
+                {children}
+              </a>
+            );
+          },
 
           // Tables (GFM)
           table: ({ children }) => (

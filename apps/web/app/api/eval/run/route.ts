@@ -1,14 +1,48 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import util from 'util';
 import path from 'path';
 import { loadEvaluationDashboardData } from '@/lib/eval-data';
+import { requireAdminSession, handleAuthError } from '@/lib/auth-helpers';
+import { checkApiRateLimit } from '@/lib/rate-limit';
 
 const execPromise = util.promisify(exec);
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+let isEvalRunning = false;
+
+export async function POST(req: NextRequest) {
+  // 1. Rate limiting (Max 2 eval triggers per minute)
+  const rateLimitRes = await checkApiRateLimit(req, 2, 60);
+  if (rateLimitRes) return rateLimitRes;
+  // 1. Disable in production unless explicitly enabled
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+  if (isProduction && process.env.ENABLE_PRODUCTION_EVAL_RUN !== 'true') {
+    return NextResponse.json(
+      { error: 'Evaluation runs are disabled in production environments' },
+      { status: 403 }
+    );
+  }
+
+  // 2. Administrator-only authorization
+  try {
+    await requireAdminSession();
+  } catch (error) {
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Administrator privileges required' }, { status: 403 });
+  }
+
+  // 3. Concurrency control
+  if (isEvalRunning) {
+    return NextResponse.json(
+      { error: 'An evaluation run is already in progress' },
+      { status: 429 }
+    );
+  }
+
+  isEvalRunning = true;
   try {
     const projectRoot = path.resolve(process.cwd(), '../..');
     
@@ -34,5 +68,8 @@ export async function POST() {
       message: 'Benchmark evaluation measured across all 105 test diffs.',
       data: currentData,
     });
+  } finally {
+    isEvalRunning = false;
   }
 }
+

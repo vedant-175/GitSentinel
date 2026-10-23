@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireSession } from '@/lib/auth-helpers';
 import { fetchSystemLogs } from '@/lib/logs-data';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await requireSession().catch(() => null);
     const { searchParams } = new URL(req.url);
     const page = searchParams.get('page') ? Number(searchParams.get('page')) : 1;
     const pageSize = searchParams.get('pageSize') ? Number(searchParams.get('pageSize')) : 10;
@@ -14,6 +16,10 @@ export async function GET(req: NextRequest) {
     const repository = searchParams.get('repository') || 'ALL';
     const search = searchParams.get('search') || '';
     const timeframe = searchParams.get('timeframe') || '24h';
+    const forceDemo = searchParams.get('demo') === 'true';
+
+    // Unauthenticated callers strictly receive synthetic demo logs; real operational logs require authentication
+    const isDemo = forceDemo || !session;
 
     const data = await fetchSystemLogs({
       page,
@@ -24,11 +30,13 @@ export async function GET(req: NextRequest) {
       repository,
       search,
       timeframe,
+      isDemo,
     });
 
     return NextResponse.json({
       success: true,
       data,
+      isDemo,
     });
   } catch (err: any) {
     console.error('System logs API error:', err);

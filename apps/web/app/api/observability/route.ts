@@ -93,6 +93,13 @@ interface ObservabilityResponse {
   }>;
 }
 
+import {
+  requireSession,
+  requireAdminSession,
+  getSessionInstallationIds,
+  handleAuthError,
+} from '@/lib/auth-helpers';
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const traceId = searchParams.get('traceId');
@@ -100,11 +107,32 @@ export async function GET(req: NextRequest) {
   // If a specific trace is requested (by reviewId or correlationId)
   if (traceId) {
     try {
+      await requireSession();
+    } catch (error) {
+      const authRes = handleAuthError(error);
+      if (authRes) return authRes;
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const installationIds: bigint[] = await getSessionInstallationIds().catch(() => []);
+    const isAdmin = await requireAdminSession().then(() => true).catch(() => false);
+
+    try {
       await ensureRedisReady();
       // Try Redis first
       const rawTrace = await redisProducerConnection.get(`review:trace:${traceId}`);
       if (rawTrace) {
-        return NextResponse.json(JSON.parse(rawTrace));
+        const parsedTrace = JSON.parse(rawTrace);
+        if (!isAdmin && parsedTrace.repositoryId) {
+          const repo = await prisma.repository.findUnique({
+            where: { id: parsedTrace.repositoryId },
+            include: { installation: true },
+          });
+          if (repo && !installationIds.some((id) => BigInt(id) === BigInt(repo.installation.githubInstallationId))) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          }
+        }
+        return NextResponse.json(parsedTrace);
       }
     } catch {
       // Redis unavailable; fall through to database
@@ -119,13 +147,22 @@ export async function GET(req: NextRequest) {
           include: {
             pullRequest: {
               include: {
-                repository: true,
+                repository: {
+                  include: {
+                    installation: true,
+                  },
+                },
               },
             },
           },
         });
 
         if (review) {
+          const repoInstId = review.pullRequest?.repository?.installation?.githubInstallationId;
+          if (!isAdmin && repoInstId && !installationIds.some((id) => BigInt(id) === BigInt(repoInstId))) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          }
+
           const structured = (review.summaryStructured as any) || {};
           const trace: Partial<ReviewLifecycleTrace> = {
             correlationId: `rev-${review.id}`,
@@ -149,6 +186,15 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Trace not found' }, { status: 404 });
+  }
+
+  // Global operational metrics require administrator session
+  try {
+    await requireAdminSession();
+  } catch (error) {
+    const authRes = handleAuthError(error);
+    if (authRes) return authRes;
+    return NextResponse.json({ error: 'Administrator privileges required' }, { status: 403 });
   }
 
   // 1. Fetch BullMQ Queue Counts

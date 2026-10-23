@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, serializeWithBigInt } from '@ai-reviewer/db';
-import { getSessionInstallationIds, UnauthorizedError, ForbiddenError } from '@/lib/auth-helpers';
+import {
+  requireSession,
+  getSessionInstallationIds,
+  UnauthorizedError,
+  ForbiddenError,
+} from '@/lib/auth-helpers';
 import { checkApiRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -9,10 +14,11 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const rateLimitResponse = await checkApiRateLimit(req);
-  if (rateLimitResponse) return rateLimitResponse;
-
   try {
+    await requireSession();
+    const rateLimitResponse = await checkApiRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const { id } = await params;
     const failedReviewId = parseInt(id, 10);
     if (isNaN(failedReviewId)) {
@@ -44,11 +50,11 @@ export async function GET(
     let hasAccess = false;
     const prInstallationId =
       failedReview.pullRequest?.repository?.installation?.githubInstallationId;
-    if (prInstallationId && installationIds.includes(prInstallationId)) {
+    if (prInstallationId && installationIds.some((id) => BigInt(id) === BigInt(prInstallationId))) {
       hasAccess = true;
     } else if (failedReview.jobData && typeof failedReview.jobData === 'object') {
       const jobInstId = (failedReview.jobData as any).installationId;
-      if (jobInstId && installationIds.includes(BigInt(jobInstId))) {
+      if (jobInstId && installationIds.some((id) => BigInt(id) === BigInt(jobInstId))) {
         hasAccess = true;
       }
     }
@@ -74,10 +80,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const rateLimitResponse = await checkApiRateLimit(req);
-  if (rateLimitResponse) return rateLimitResponse;
-
   try {
+    await requireSession();
+    const rateLimitResponse = await checkApiRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const { id } = await params;
     const failedReviewId = parseInt(id, 10);
     if (isNaN(failedReviewId)) {
@@ -109,7 +116,7 @@ export async function PATCH(
     let hasAccess = false;
     const prInstallationId =
       failedReview.pullRequest?.repository?.installation?.githubInstallationId;
-    if (prInstallationId && installationIds.includes(prInstallationId)) {
+    if (prInstallationId && installationIds.some((id) => BigInt(id) === BigInt(prInstallationId))) {
       hasAccess = true;
     }
 

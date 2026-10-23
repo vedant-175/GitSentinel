@@ -8,9 +8,9 @@ import {
   UnauthorizedError,
   ForbiddenError,
 } from '@/lib/auth-helpers';
-import { Permission, assertPermission, AuditAction, RbacForbiddenError } from '@ai-reviewer/shared';
+import { Permission, assertPermission, AuditAction, RbacForbiddenError, ReviewJobDataSchema } from '@ai-reviewer/shared';
 import { recordAuditLog } from '@/lib/audit';
-import { checkApiRateLimit, checkReviewRerunRateLimit } from '@/lib/rate-limit';
+import { checkApiRateLimit, checkReviewRerunRateLimit, checkAIBudget } from '@/lib/rate-limit';
 import { getInstallationOctokit } from '@/lib/github';
 import { enqueueReviewJob } from '@/lib/queue';
 
@@ -69,22 +69,40 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // 1. Rate limiting (10 req/min for expensive review rerun)
-  const rateLimitResponse = await checkReviewRerunRateLimit(req);
-  if (rateLimitResponse) return rateLimitResponse;
-
-  // 2. Authentication
+  // 1. Authentication
   let session: any;
   try {
     session = await requireSession();
-  } catch (authError) {
+  } catch {
     return NextResponse.json(
       { error: 'Unauthorized', message: 'Authentication required' },
       { status: 401 }
     );
   }
 
-  // 3. Validation
+  const userId = session?.user?.id || session?.user?.login || 'user';
+
+  // 2. Rate limiting (10 req/min for expensive review rerun)
+  const rateLimitResponse = await checkReviewRerunRateLimit(req, userId);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  // 3. User Daily Review Budget
+  const budget = await checkAIBudget(userId, 50);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Too Many Requests',
+        message: 'Daily review budget exceeded. Quota resets at midnight UTC.',
+        retryAfter: budget.resetSeconds,
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': budget.resetSeconds.toString() },
+      }
+    );
+  }
+
+  // 4. Validation
   const { id } = await params;
   const prId = parseInt(id, 10);
   if (isNaN(prId)) {
@@ -250,7 +268,7 @@ export async function POST(
     // 9. Enqueue the BullMQ review job
     let jobId: string;
     try {
-      jobId = await enqueueReviewJob({
+      const jobData = ReviewJobDataSchema.parse({
         type: 'review-pr',
         installationId: Number(pr.repository.installation.githubInstallationId),
         repoId: pr.repository.id,
@@ -266,6 +284,7 @@ export async function POST(
         draft: ghPr.draft,
         receivedAt: Date.now(),
       });
+      jobId = await enqueueReviewJob(jobData);
     } catch (queueErr: any) {
       console.error('Failed to enqueue review job:', queueErr.message);
       await prisma.review.update({
