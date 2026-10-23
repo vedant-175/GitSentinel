@@ -6,7 +6,6 @@ import { authOptions } from '@/lib/auth';
 import { prisma, serializeWithBigInt } from '@ai-reviewer/db';
 import { CyberDiffInspector } from './CyberDiffInspector';
 import { getPullRequestById } from '@/lib/data';
-import { syncUserPullRequests } from '@/lib/github-sync';
 import { ForbiddenError, UnauthorizedError } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -68,29 +67,7 @@ export default async function PullRequestDetailPage({
     // Non-fatal if DB is offline or PR not found in DB
   }
 
-  // 2. If not found in DB, check synced live GitHub PRs
-  if (!pullRequest) {
-    const session = await getServerSession(authOptions).catch(() => null);
-    const currentUserLogin =
-      session?.user?.login || (session?.user as any)?.name || 'vedant-175';
-
-    try {
-      const synced = await syncUserPullRequests(currentUserLogin);
-      const match = (synced || []).find(
-        (p: any) =>
-          p.id === prId ||
-          p.githubPrNumber === prId ||
-          Number(p.githubPrNumber) === prId
-      );
-      if (match) {
-        pullRequest = match;
-      }
-    } catch (syncErr) {
-      console.warn('[PR Detail] Live sync fallback failed:', syncErr);
-    }
-  }
-
-  // 3. If still not found, query GitHub directly for repository PR #id
+  // 2. If not found in DB, query GitHub directly for repository PR #id
   if (!pullRequest) {
     try {
       const authHeaders: Record<string, string> = {

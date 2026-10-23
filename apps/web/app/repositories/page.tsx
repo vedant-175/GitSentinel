@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getServerOAuthToken } from '@/lib/auth-helpers';
 import { getRepositories } from '@/lib/data';
-import { syncUserRepositories } from '@/lib/github-sync';
 import { RepositoriesView } from './RepositoriesView';
 
 export const dynamic = 'force-dynamic';
@@ -31,25 +29,7 @@ export default async function RepositoriesPage({
     repositories = [];
   }
 
-  // If a user is logged in and DB has 0 records, synchronize or fetch live GitHub repositories
-  if (currentUserLogin && repositories.length === 0) {
-    try {
-      const serverToken = await getServerOAuthToken().catch(() => undefined);
-      const syncResult = await syncUserRepositories(currentUserLogin, serverToken);
-      if (syncResult.success) {
-        const refreshed = await getRepositories({ limit: 500 }).catch(() => null);
-        if (refreshed?.data && refreshed.data.length > 0) {
-          repositories = refreshed.data;
-        } else if (syncResult.repos && syncResult.repos.length > 0) {
-          repositories = syncResult.repos;
-        } else {
-          repositories = [];
-        }
-      }
-    } catch (syncErr) {
-      console.warn('[RepositoriesPage] Failed to sync user repositories:', syncErr);
-    }
-  }
+
 
   return (
     <RepositoriesView
