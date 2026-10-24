@@ -1,5 +1,6 @@
 import { prisma } from '@ai-reviewer/db';
 import { clearInstallationAccessCache } from './auth-helpers';
+import { getInstallationOctokit } from './github';
 
 export interface SyncResult {
   success: boolean;
@@ -162,12 +163,32 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
     // 3. Fetch public repositories for this user from GitHub API (with token if available, paginated up to 1000)
     const fetchedReposMap = new Map<string, { id: number | string; full_name: string; default_branch?: string }>();
 
-    // If authenticated accessToken is present, query user's authenticated repos (paginated, max 100 per page)
+    // If GitHub App installation is configured for this installation, query installation repositories (supports private repos granted to the GitHub App)
+    if (installation?.githubInstallationId) {
+      try {
+        const octokit = await getInstallationOctokit(Number(installation.githubInstallationId));
+        if (octokit) {
+          const appRepos = await octokit.rest.apps.listReposAccessibleToInstallation({ per_page: 100 });
+          for (const r of appRepos.data.repositories) {
+            if (r?.full_name) {
+              const [owner] = r.full_name.split('/');
+              if (!owner || owner.toLowerCase() === effectiveLogin.toLowerCase()) {
+                fetchedReposMap.set(r.full_name.toLowerCase(), r);
+              }
+            }
+          }
+        }
+      } catch (appErr) {
+        console.warn(`[GitHub Sync] Error querying GitHub App installation repositories:`, appErr);
+      }
+    }
+
+    // If authenticated accessToken is present, query user's authenticated repos (strictly owned repositories)
     if (accessToken) {
       try {
         for (let page = 1; page <= 10; page++) {
           const userReposRes = await fetch(
-            `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator`,
+            `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner`,
             { headers: authHeaders }
           );
           if (userReposRes.ok) {
@@ -175,6 +196,8 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
             if (Array.isArray(json) && json.length > 0) {
               for (const r of json) {
                 if (r?.full_name) {
+                  const [owner] = r.full_name.split('/');
+                  if (owner && owner.toLowerCase() !== effectiveLogin.toLowerCase()) continue;
                   fetchedReposMap.set(r.full_name.toLowerCase(), r);
                 }
               }
@@ -205,6 +228,8 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
             if (Array.isArray(json) && json.length > 0) {
               for (const r of json) {
                 if (r?.full_name) {
+                  const [owner] = r.full_name.split('/');
+                  if (owner && owner.toLowerCase() !== effectiveLogin.toLowerCase()) continue;
                   fetchedReposMap.set(r.full_name.toLowerCase(), r);
                 }
               }
@@ -229,8 +254,11 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
       console.log(`[GitHub Sync] Attempting zero-rate-limit HTML profile scrape for '${effectiveTargetUser}'...`);
       const scraped = await scrapeUserRepositories(effectiveTargetUser);
       if (scraped.length > 0) {
-        rawRepos = scraped;
-        console.log(`[GitHub Sync] Successfully scraped ${scraped.length} repositories from GitHub HTML for '${effectiveTargetUser}'!`);
+        rawRepos = scraped.filter((r) => {
+          const [owner] = (r.full_name || '').split('/');
+          return !owner || owner.toLowerCase() === effectiveLogin.toLowerCase();
+        });
+        console.log(`[GitHub Sync] Successfully scraped ${rawRepos.length} repositories from GitHub HTML for '${effectiveTargetUser}'!`);
       }
     }
 
@@ -251,6 +279,24 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
           },
         },
       });
+
+      // Purge any foreign/collaborator repositories that do not belong to this user
+      const existingDbRepos = await prisma.repository.findMany({
+        where: { installationId: installation.id },
+        select: { id: true, fullName: true },
+      });
+      const foreignRepoIds = existingDbRepos
+        .filter((r) => {
+          const [owner] = r.fullName.split('/');
+          return owner && owner.toLowerCase() !== effectiveLogin.toLowerCase();
+        })
+        .map((r) => r.id);
+
+      if (foreignRepoIds.length > 0) {
+        await prisma.repository.deleteMany({
+          where: { id: { in: foreignRepoIds } },
+        });
+      }
     } catch {
       // ignore
     }
