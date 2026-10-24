@@ -163,13 +163,14 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
     // 3. Fetch public repositories for this user from GitHub API (with token if available, paginated up to 1000)
     const fetchedReposMap = new Map<string, { id: number | string; full_name: string; default_branch?: string }>();
 
-    // If GitHub App installation is configured for this installation, query installation repositories (supports private repos granted to the GitHub App)
+    // If GitHub App installation is configured for this installation, query installation repositories (strictly public repos)
     if (installation?.githubInstallationId) {
       try {
         const octokit = await getInstallationOctokit(Number(installation.githubInstallationId));
         if (octokit) {
           const appRepos = await octokit.rest.apps.listReposAccessibleToInstallation({ per_page: 100 });
           for (const r of appRepos.data.repositories) {
+            if (r?.private) continue; // Strictly public repositories only
             if (r?.full_name) {
               const [owner] = r.full_name.split('/');
               if (!owner || owner.toLowerCase() === effectiveLogin.toLowerCase()) {
@@ -183,18 +184,19 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
       }
     }
 
-    // If authenticated accessToken is present, query user's authenticated repos (strictly owned repositories)
+    // If authenticated accessToken is present, query user's authenticated repos (strictly owned public repositories)
     if (accessToken) {
       try {
         for (let page = 1; page <= 10; page++) {
           const userReposRes = await fetch(
-            `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner`,
+            `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner&visibility=public`,
             { headers: authHeaders }
           );
           if (userReposRes.ok) {
             const json = await userReposRes.json();
             if (Array.isArray(json) && json.length > 0) {
               for (const r of json) {
+                if (r?.private) continue; // Strictly public repositories only
                 if (r?.full_name) {
                   const [owner] = r.full_name.split('/');
                   if (owner && owner.toLowerCase() !== effectiveLogin.toLowerCase()) continue;
@@ -214,12 +216,12 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
       }
     }
 
-    // If not fetched or empty, query by effective username (paginated, max 100 per page)
+    // If not fetched or empty, query by effective username (paginated, max 100 per page, public only)
     if (fetchedReposMap.size === 0) {
       try {
         for (let page = 1; page <= 10; page++) {
           const reposRes = await fetch(
-            `https://api.github.com/users/${encodeURIComponent(effectiveTargetUser)}/repos?per_page=100&page=${page}&sort=updated`,
+            `https://api.github.com/users/${encodeURIComponent(effectiveTargetUser)}/repos?type=public&per_page=100&page=${page}&sort=updated`,
             { headers: authHeaders }
           );
 
@@ -227,6 +229,7 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
             const json = await reposRes.json();
             if (Array.isArray(json) && json.length > 0) {
               for (const r of json) {
+                if (r?.private) continue; // Strictly public repositories only
                 if (r?.full_name) {
                   const [owner] = r.full_name.split('/');
                   if (owner && owner.toLowerCase() !== effectiveLogin.toLowerCase()) continue;
