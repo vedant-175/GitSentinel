@@ -89,6 +89,17 @@ export function SettingsView() {
           }
         }
 
+        if (data?.selectedRepository?.config) {
+          const cfg = data.selectedRepository.config;
+          if (cfg.severity_threshold === 'critical') setReviewSensitivity('lenient');
+          else if (cfg.severity_threshold === 'suggestion') setReviewSensitivity('strict');
+          else if (cfg.severity_threshold === 'warning') setReviewSensitivity('balanced');
+
+          if (typeof cfg.block_on_critical === 'boolean') {
+            setSecurityGate(cfg.block_on_critical);
+          }
+        }
+
         if (data?.aiEngine?.geminiModel) {
           setAiModel(data.aiEngine.geminiModel);
         }
@@ -103,6 +114,27 @@ export function SettingsView() {
       isMounted = false;
     };
   }, []);
+
+  const handleRepoChange = async (newRepoId: number) => {
+    setSelectedRepoId(newRepoId);
+    try {
+      const res = await fetch(`/api/settings?repoId=${newRepoId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.selectedRepository?.config) {
+        const cfg = data.selectedRepository.config;
+        if (cfg.severity_threshold === 'critical') setReviewSensitivity('lenient');
+        else if (cfg.severity_threshold === 'suggestion') setReviewSensitivity('strict');
+        else if (cfg.severity_threshold === 'warning') setReviewSensitivity('balanced');
+
+        if (typeof cfg.block_on_critical === 'boolean') {
+          setSecurityGate(cfg.block_on_critical);
+        }
+      }
+    } catch {
+      // Ignore fetch error
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -121,18 +153,29 @@ export function SettingsView() {
 
       // 2. Persist to API if a repository is selected
       if (selectedRepoId) {
-        await fetch('/api/settings', {
+        const severityMap: Record<string, 'critical' | 'warning' | 'suggestion'> = {
+          lenient: 'critical',
+          balanced: 'warning',
+          strict: 'suggestion',
+        };
+
+        const res = await fetch('/api/settings', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             repositoryId: selectedRepoId,
             repoConfig: {
-              enabled: autoReview,
-              securityLevel: reviewSensitivity,
-              postSummaryComment: summaryComment,
+              severity_threshold: severityMap[reviewSensitivity] || 'warning',
+              block_on_critical: securityGate,
+              include_style_nitpicks: reviewSensitivity === 'strict',
             },
           }),
-        }).catch(() => null);
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn('[Settings] Server save warning:', errData);
+        }
       }
 
       setSaveSuccess(true);
@@ -284,7 +327,7 @@ export function SettingsView() {
             </label>
             <select
               value={selectedRepoId || ''}
-              onChange={(e) => setSelectedRepoId(Number(e.target.value))}
+              onChange={(e) => handleRepoChange(Number(e.target.value))}
               className="w-full sm:w-80 px-3 py-2 text-sm rounded-lg border border-border/60 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
               {repositories.map((r) => (
