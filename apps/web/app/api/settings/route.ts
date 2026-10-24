@@ -13,7 +13,6 @@ import {
   RepoConfigSchema,
   OrgPolicySchema,
   getKeyPool,
-  maskApiKey,
   AuditAction,
 } from '@ai-reviewer/shared';
 
@@ -100,13 +99,10 @@ export async function GET(req: NextRequest) {
       selectedRepo = inst.repositories[0];
     }
 
-    // 3. AI Review Engine Telemetry (Real Backend Data)
+    // 3. AI Review Engine Telemetry (Never expose API keys to client)
     const activeProvider = (process.env.LLM_PROVIDER || 'groq').toLowerCase();
     const groqPool = getKeyPool('groq');
     const geminiPool = getKeyPool('gemini');
-
-    const groqKeys = groqPool.getAllKeys().map((k) => maskApiKey(k));
-    const geminiKeys = geminiPool.getAllKeys().map((k) => maskApiKey(k));
 
     const aiEngine = {
       providerOrder: [
@@ -115,9 +111,6 @@ export async function GET(req: NextRequest) {
           name: 'Groq KeyPool (Primary)',
           provider: 'groq',
           model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-          keysCount: groqPool.size,
-          activeKeys: groqPool.getActiveKeysCount(),
-          maskedKeys: groqKeys,
           status: groqPool.hasKeys() ? 'healthy' : 'unconfigured',
         },
         {
@@ -125,9 +118,6 @@ export async function GET(req: NextRequest) {
           name: 'Gemini Multi-Key Fallback',
           provider: 'gemini',
           model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-          keysCount: geminiPool.size,
-          activeKeys: geminiPool.getActiveKeysCount(),
-          maskedKeys: geminiKeys,
           status: geminiPool.hasKeys() ? 'healthy' : 'unconfigured',
         },
         {
@@ -135,9 +125,6 @@ export async function GET(req: NextRequest) {
           name: 'Deterministic Static Analysis Gate',
           provider: 'deterministic-cyberops',
           model: 'ast-rules-engine-v1',
-          keysCount: 0,
-          activeKeys: 0,
-          maskedKeys: [],
           status: 'healthy',
         },
       ],
