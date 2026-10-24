@@ -86,11 +86,8 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
     };
   }, []);
 
-  // Hide sidebar only on login or inside the dedicated full-screen PR diff inspector (/pull-requests/[id])
-  if (
-    pathname === '/login' ||
-    (pathname.startsWith('/pull-requests/') && pathname !== '/pull-requests')
-  ) {
+  // Hide sidebar only on login
+  if (pathname === '/login') {
     return null;
   }
 
@@ -160,10 +157,10 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
   };
 
   return (
-    <aside className="w-64 shrink-0 bg-white dark:bg-black border-r border-slate-200 dark:border-zinc-800 sticky top-16 h-[calc(100vh-4rem)] flex flex-col p-4 select-none overflow-y-auto z-30 transition-colors">
+    <aside className="w-64 shrink-0 bg-white dark:bg-[#06090e] border-r border-slate-200 dark:border-[#172338] sticky top-16 h-[calc(100vh-4rem)] flex flex-col p-4 select-none overflow-y-auto z-30 transition-colors">
       {/* WORKSPACE Section */}
       <div className="space-y-1">
-        <div className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase px-2 mb-1.5">
+        <div className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase px-2 mb-1.5 font-mono">
           WORKSPACE
         </div>
         {workspaceItems.map((item) => {
@@ -174,22 +171,22 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group cursor-pointer ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-colors group cursor-pointer ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-zinc-900 dark:text-white dark:border-zinc-800/50'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70'
+                  ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-500/40 dark:shadow-[0_0_12px_rgba(59,130,246,0.15)]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70 border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <Icon
                   className={`h-4 w-4 shrink-0 transition-colors ${
-                    isActive ? 'text-blue-600 dark:text-white' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
+                    isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
                   }`}
                 />
                 <span className="truncate">{item.name}</span>
               </div>
               {item.badge !== undefined && (
-                <span className="text-xs font-semibold text-slate-600 bg-slate-100 dark:text-zinc-400 dark:bg-zinc-800/60 ml-2 shrink-0 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-950/80 dark:border dark:border-blue-500/30 ml-2 shrink-0 px-2 py-0.5 rounded-full font-mono">
                   {item.badge}
                 </span>
               )}
@@ -199,11 +196,11 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
       </div>
 
       {/* Middle Divider */}
-      <div className="border-b border-slate-200 dark:border-zinc-800/80 my-3" />
+      <div className="border-b border-slate-200 dark:border-[#172338] my-3" />
 
       {/* OPERATIONS Section */}
       <div className="space-y-1">
-        <div className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase px-2 mb-1.5">
+        <div className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase px-2 mb-1.5 font-mono">
           OPERATIONS
         </div>
         {operationsItems.map((item) => {
@@ -214,16 +211,16 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group cursor-pointer ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-colors group cursor-pointer ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-zinc-900 dark:text-white dark:border-zinc-800/50'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70'
+                  ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-500/40 dark:shadow-[0_0_12px_rgba(59,130,246,0.15)]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70 border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <Icon
                   className={`h-4 w-4 shrink-0 transition-colors ${
-                    isActive ? 'text-blue-600 dark:text-white' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
+                    isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
                   }`}
                 />
                 <span className="truncate">{item.name}</span>
@@ -234,22 +231,22 @@ export function Sidebar({ prCount: initialPrCount, repoCount: initialRepoCount }
       </div>
 
       {/* Bottom Divider */}
-      <div className="border-b border-slate-200 dark:border-zinc-800/80 my-3" />
+      <div className="border-b border-slate-200 dark:border-[#172338] my-3" />
 
       {/* Settings Section */}
       <div className="space-y-1">
         <Link
           href={settingsItem.href}
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group cursor-pointer ${
+          className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-colors group cursor-pointer ${
             settingsItem.active
-              ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-zinc-900 dark:text-white dark:border-zinc-800/50'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70'
+              ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/60 shadow-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-500/40 dark:shadow-[0_0_12px_rgba(59,130,246,0.15)]'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-900/70 border border-transparent'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
             <settingsItem.icon
               className={`h-4 w-4 shrink-0 transition-colors ${
-                settingsItem.active ? 'text-blue-600 dark:text-white' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
+                settingsItem.active ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600 dark:text-zinc-400 dark:group-hover:text-white'
               }`}
             />
             <span className="truncate">{settingsItem.name}</span>

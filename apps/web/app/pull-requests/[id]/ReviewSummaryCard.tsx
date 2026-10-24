@@ -139,7 +139,7 @@ export function ReviewSummaryCard({
                   ? 'bg-rose-500/20 border-rose-500/30 text-rose-400'
                   : riskLevel === 'ELEVATED'
                   ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                  : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                  : 'bg-blue-500/20 border-blue-500/30 text-blue-400'
               }`}
             >
               {riskLevel === 'CRITICAL' ? (
@@ -147,7 +147,7 @@ export function ReviewSummaryCard({
               ) : riskLevel === 'ELEVATED' ? (
                 <AlertTriangle className="h-6 w-6" />
               ) : (
-                <ShieldCheck className="h-6 w-6" />
+                <ShieldCheck className="h-6 w-6 text-blue-400" />
               )}
             </div>
 
@@ -158,11 +158,11 @@ export function ReviewSummaryCard({
                 </h1>
 
                 <span
-                  className={`rounded px-2 py-0.5 text-[10px] font-mono font-bold uppercase ${
+                  className={`rounded px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                     verdict === 'APPROVE'
-                      ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                      ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
                       : verdict === 'REQUEST_CHANGES'
-                      ? 'bg-rose-500/20 border border-rose-500/40 text-rose-300'
+                      ? 'bg-rose-950/80 border border-rose-500/40 text-rose-300'
                       : 'bg-slate-800 border border-slate-700 text-slate-300'
                   }`}
                 >
@@ -170,12 +170,12 @@ export function ReviewSummaryCard({
                 </span>
 
                 <span
-                  className={`rounded px-2 py-0.5 text-[10px] font-mono font-bold uppercase ${
+                  className={`rounded px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                     riskLevel === 'CRITICAL'
                       ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
                       : riskLevel === 'ELEVATED'
                       ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                      : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-blue-950 text-blue-300 border border-blue-500/40'
                   }`}
                 >
                   Risk: {riskLevel}
@@ -202,7 +202,7 @@ export function ReviewSummaryCard({
               <a
                 href={`/api/reviews/${reviewId}/sarif`}
                 download={`gitsentinel-review-${reviewId}.sarif`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-3 py-1.5 text-xs font-mono font-bold text-cyan-300 hover:bg-cyan-900/50 hover:text-white transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-950/40 px-3 py-1.5 text-xs font-mono font-bold text-blue-300 hover:bg-blue-900/50 hover:text-white transition-all shadow-sm"
                 title="Download OASIS SARIF 2.1.0 standard report"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ export function ReviewSummaryCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs font-mono text-cyan-400 hover:text-cyan-300 cursor-pointer p-1.5 rounded-lg border border-[#172338] bg-[#06090e]"
+              className="flex items-center gap-1 text-xs font-mono text-blue-400 hover:text-blue-300 cursor-pointer p-1.5 rounded-lg border border-[#172338] bg-[#06090e]"
               aria-expanded={expanded}
               aria-label={expanded ? 'Collapse review summary' : 'Expand review summary'}
             >
@@ -239,7 +239,7 @@ export function ReviewSummaryCard({
 
           {/* 2. Lines Analyzed */}
           <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-cyan-400 tracking-tight">
+            <div className="text-xl font-bold text-blue-400 tracking-tight">
               {linesAnalyzed || 150}
             </div>
             <div className="text-[11px] text-slate-400 font-sans mt-1">
@@ -266,7 +266,7 @@ export function ReviewSummaryCard({
               <span className="text-slate-600">/</span>
               <span className="text-blue-400" title="Suggestion / Medium">{suggestions.length}M</span>
               <span className="text-slate-600">/</span>
-              <span className="text-teal-400" title="Low">{lows.length}L</span>
+              <span className="text-sky-400" title="Low">{lows.length}L</span>
             </div>
             <div className="text-[11px] text-slate-400 font-sans mt-1">
               Severity Split
@@ -275,7 +275,7 @@ export function ReviewSummaryCard({
 
           {/* 5. Calibrated Confidence */}
           <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-emerald-400 tracking-tight">
+            <div className="text-xl font-bold text-blue-400 tracking-tight">
               {avgConfidence}%
             </div>
             <div className="text-[11px] text-slate-400 font-sans mt-1">
@@ -285,7 +285,7 @@ export function ReviewSummaryCard({
 
           {/* 6. Review Duration */}
           <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-purple-300 tracking-tight">
+            <div className="text-xl font-bold text-indigo-300 tracking-tight">
               {formattedDuration}
             </div>
             <div className="text-[11px] text-slate-400 font-sans mt-1">
@@ -295,7 +295,7 @@ export function ReviewSummaryCard({
 
           {/* 7. Analysis Method */}
           <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-base font-bold text-emerald-400 tracking-tight truncate">
+            <div className="text-base font-bold text-blue-400 tracking-tight truncate">
               Hybrid Scan
             </div>
             <div className="text-[11px] text-slate-400 font-sans mt-1">
@@ -315,11 +315,11 @@ export function ReviewSummaryCard({
             {/* Deterministic Static Findings */}
             <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                <div className="flex items-center gap-2 text-blue-400 font-bold">
                   <Network className="h-4 w-4" />
                   <span>Deterministic Static Analysis</span>
                 </div>
-                <span className="rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2 py-0.5 text-[10px] font-bold">
                   {deterministicIssues.length} Findings
                 </span>
               </div>
@@ -347,11 +347,11 @@ export function ReviewSummaryCard({
             {/* Hybrid Corroborated Findings */}
             <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-purple-400 font-bold">
+                <div className="flex items-center gap-2 text-indigo-400 font-bold">
                   <Scale className="h-4 w-4" />
                   <span>Hybrid Corroborated</span>
                 </div>
-                <span className="rounded bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 text-[10px] font-bold">
                   {hybridIssues.length + dependencyIssues.length} Findings
                 </span>
               </div>
@@ -364,11 +364,11 @@ export function ReviewSummaryCard({
           {/* Token Consumption & Cost Telemetry */}
           <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
             <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-              <div className="flex items-center gap-2 text-purple-300 font-bold font-mono">
-                <Layers className="h-4 w-4 text-purple-400" />
+              <div className="flex items-center gap-2 text-blue-300 font-bold font-mono">
+                <Layers className="h-4 w-4 text-blue-400" />
                 <span>Empirical Token Consumption &amp; Cost Telemetry</span>
               </div>
-              <span className="rounded-md bg-purple-950/60 border border-purple-500/30 text-purple-300 px-2.5 py-0.5 text-[10px] font-mono font-bold">
+              <span className="rounded-md bg-blue-950/60 border border-blue-500/30 text-blue-300 px-2.5 py-0.5 text-[10px] font-mono font-bold">
                 Model: {model || 'gpt-4o'}
               </span>
             </div>
@@ -391,7 +391,7 @@ export function ReviewSummaryCard({
 
               <div>
                 <span className="text-slate-400 block text-[10px]">Estimated API Cost:</span>
-                <div className="text-emerald-400 font-bold mt-1 text-xs">${calculatedCostUsd.toFixed(4)} USD</div>
+                <div className="text-blue-400 font-bold mt-1 text-xs">${calculatedCostUsd.toFixed(4)} USD</div>
               </div>
             </div>
           </div>

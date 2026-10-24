@@ -51,7 +51,7 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
             {!isFailed && !isSuperseded && status !== 'completed' && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
             )}
             <span
               className={`relative inline-flex rounded-full h-2 w-2 ${
@@ -60,8 +60,8 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
                   : isSuperseded
                   ? 'bg-amber-400'
                   : status === 'completed'
-                  ? 'bg-emerald-400'
-                  : 'bg-cyan-400'
+                  ? 'bg-blue-400'
+                  : 'bg-blue-400'
               }`}
             />
           </span>
@@ -85,8 +85,8 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
                 : isSuperseded
                 ? 'bg-amber-950/60 border border-amber-500/40 text-amber-400'
                 : status === 'completed'
-                ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400'
-                : 'bg-cyan-950/60 border border-cyan-500/40 text-cyan-300'
+                ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300'
+                : 'bg-blue-950/60 border border-blue-500/40 text-blue-300'
             }`}
           >
             {isFailed
@@ -117,9 +117,9 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
                 isStepFailed
                   ? 'border-rose-500/40 bg-rose-950/20 text-rose-400'
                   : isPast
-                  ? 'border-[#172338] bg-[#06090e] hover:border-emerald-500/30 text-emerald-400'
+                  ? 'border-[#172338] bg-[#06090e] hover:border-blue-500/30 text-blue-400'
                   : isCurrent
-                  ? 'border-cyan-500/50 bg-cyan-950/25 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.15)] ring-1 ring-cyan-500/30'
+                  ? 'border-blue-500/50 bg-blue-950/25 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] ring-1 ring-blue-500/30'
                   : 'border-[#172338] bg-[#06090e]/60 text-slate-500'
               }`}
             >
@@ -130,9 +130,9 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
                 {isStepFailed ? (
                   <AlertCircle className="h-3.5 w-3.5 text-rose-400" aria-label="Failed" />
                 ) : isPast ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" aria-label="Completed" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" aria-label="Completed" />
                 ) : isCurrent ? (
-                  <Loader2 className="h-3.5 w-3.5 text-cyan-400 animate-spin" aria-label="In Progress" />
+                  <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin" aria-label="In Progress" />
                 ) : (
                   <Icon className="h-3.5 w-3.5 text-slate-600" aria-hidden="true" />
                 )}
