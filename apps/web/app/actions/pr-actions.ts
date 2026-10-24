@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireSession } from '@/lib/auth-helpers';
+import { requireSession, getServerOAuthToken } from '@/lib/auth-helpers';
 import { syncUserPullRequests } from '@/lib/github-sync';
 
 /**
@@ -19,10 +19,12 @@ export async function syncUserPullRequestsAction(targetUsername?: string) {
       username = 'vedant-175'; // default active repository owner
     }
 
-    const prs = await syncUserPullRequests(username);
+    const token = await getServerOAuthToken().catch(() => undefined);
+    const prs = await syncUserPullRequests(username, token);
 
     try {
       revalidatePath('/pull-requests');
+      revalidatePath('/repositories');
       revalidatePath('/');
     } catch {
       // ignored outside Next request context
