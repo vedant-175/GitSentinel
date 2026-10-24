@@ -1,1432 +1,545 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useTheme } from '../components/ThemeProvider';
 import {
   Settings,
+  User,
   Shield,
-  Cpu,
-  Github,
-  Bell,
+  Sparkles,
+  Moon,
+  Sun,
   Save,
   CheckCircle2,
-  RefreshCw,
-  Key,
-  Webhook,
-  AlertTriangle,
-  Lock,
-  Layers,
-  Terminal,
-  Activity,
-  Sliders,
-  ExternalLink,
-  ChevronRight,
-  Info,
-  Clock,
+  GitPullRequest,
   Check,
   AlertCircle,
-  FileText,
-  UserCheck,
-  Play,
-  RotateCcw,
+  ExternalLink,
 } from 'lucide-react';
 
-interface SettingsData {
-  userRole: string;
-  installation: {
-    id: number;
-    githubInstallationId: string;
-    accountLogin: string;
-    accountType: string;
-    createdAt: string;
-    repositories: Array<{ id: number; fullName: string; defaultBranch: string }>;
-  } | null;
-  selectedRepository: {
-    id: number;
-    fullName: string;
-    defaultBranch: string;
-    config: any;
-    organizationPolicy: any;
-  } | null;
-  aiEngine: {
-    providerOrder: Array<{
-      tier: number;
-      name: string;
-      provider: string;
-      model: string;
-      keysCount: number;
-      activeKeys: number;
-      maskedKeys: string[];
-      status: string;
-    }>;
-    activeProvider: string;
-    groqModel: string;
-    geminiModel: string;
-    supportedGeminiModels: string[];
-    timeoutMs: number;
-    schemaMaxRetries: number;
-    keyPoolMaxAttempts: number;
-  };
-  dailyTokenBudget: {
-    currentTokens: number;
-    limit: number;
-    allowed: boolean;
-  };
-  recentFailovers: Array<{
-    id: number;
-    commitSha: string;
-    errorMessage: string;
-    failedAt: string;
-    resolvedAt: string | null;
-  }>;
-  github: {
-    appId: string;
-    hasWebhookSecret: boolean;
-    hasPrivateKey: boolean;
-    webhookSuccessRate: number;
-    totalDeliveries: number;
-    recentDeliveries: Array<{
-      id: number;
-      deliveryId: string;
-      event: string;
-      action: string | null;
-      statusCode: number;
-      errorMessage: string | null;
-      receivedAt: string;
-    }>;
-    supportedEvents: string[];
-  };
-  notifications: {
-    supportedChannels: Array<{
-      id: string;
-      name: string;
-      status: string;
-      type: string;
-      note?: string;
-    }>;
-  };
-  runtime: {
-    reviewsThisMonth: number;
-    monthlyQuota: number;
-    queueMetrics: {
-      waiting: number;
-      active: number;
-      completed: number;
-      failed: number;
-      concurrency: number;
-    };
-    retention: {
-      deliveryDedupTtlHours: number;
-      tokenBudgetTtlHours: number;
-      reviewRecordsRetention: string;
-    };
-    configHistory: Array<{
-      id: number;
-      actor: string;
-      actorRole: string | null;
-      action: string;
-      resourceId: string;
-      metadata: any;
-      createdAt: string;
-    }>;
-  };
+interface RepoOption {
+  id: number;
+  fullName: string;
+  defaultBranch: string;
 }
 
-const DEMO_SETTINGS: SettingsData = {
-  userRole: 'ADMIN',
-  installation: {
-    id: 1,
-    githubInstallationId: '182272425',
-    accountLogin: 'organization',
-    accountType: 'Organization',
-    createdAt: '2026-01-15T00:00:00Z',
-    repositories: [
-      { id: 1, fullName: 'organization/api-service', defaultBranch: 'main' },
-      { id: 2, fullName: 'organization/web-dashboard', defaultBranch: 'main' },
-      { id: 3, fullName: 'organization/auth-gateway', defaultBranch: 'main' },
-    ],
-  },
-  selectedRepository: {
-    id: 1,
-    fullName: 'organization/api-service',
-    defaultBranch: 'main',
-    config: {
-      severity_threshold: 'suggestion',
-      confidence_threshold: 0.7,
-      block_on_critical: true,
-      max_comments_per_pr: 25,
-      max_files_per_pr: 50,
-      max_lines_per_pr: 1000,
-      skip_drafts: true,
-      skip_bot_authors: true,
-      disabled_categories: [],
-      ignored_globs: ['tests/**', 'docs/**', '**/*.min.js'],
-    },
-    organizationPolicy: {},
-  },
-  aiEngine: {
-    providerOrder: [
-      {
-        tier: 1,
-        name: 'Groq (Llama 3.3 70B)',
-        provider: 'Groq',
-        model: 'llama-3.3-70b-versatile',
-        keysCount: 3,
-        activeKeys: 3,
-        maskedKeys: ['gsk_live_...98a2', 'gsk_live_...b4c1', 'gsk_live_...3ef8'],
-        status: 'ACTIVE',
-      },
-      {
-        tier: 2,
-        name: 'Google Gemini (Flash 2.0)',
-        provider: 'Google Gemini',
-        model: 'gemini-2.0-flash',
-        keysCount: 2,
-        activeKeys: 2,
-        maskedKeys: ['AIzaSy...7f89', 'AIzaSy...4d12'],
-        status: 'ACTIVE',
-      },
-      {
-        tier: 3,
-        name: 'OpenAI (GPT-4o mini)',
-        provider: 'OpenAI',
-        model: 'gpt-4o-mini',
-        keysCount: 1,
-        activeKeys: 1,
-        maskedKeys: ['sk-proj-...89df'],
-        status: 'STANDBY',
-      },
-    ],
-    activeProvider: 'Groq',
-    groqModel: 'llama-3.3-70b-versatile',
-    geminiModel: 'gemini-2.0-flash',
-    supportedGeminiModels: [
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-lite',
-      'gemini-1.5-pro',
-      'gemini-1.5-flash',
-      'gemini-1.5-flash-8b',
-    ],
-    timeoutMs: 30000,
-    schemaMaxRetries: 3,
-    keyPoolMaxAttempts: 5,
-  },
-  dailyTokenBudget: {
-    currentTokens: 142850,
-    limit: 1000000,
-    allowed: true,
-  },
-  recentFailovers: [
-    {
-      id: 1,
-      commitSha: 'a1b2c3d4e5f6',
-      errorMessage: 'Rate limit 429 encountered on primary provider; seamlessly failed over to secondary Tier-2 pool',
-      failedAt: '2 hours ago',
-      resolvedAt: '2 hours ago',
-    },
-  ],
-  github: {
-    appId: '1098421',
-    hasWebhookSecret: true,
-    hasPrivateKey: true,
-    webhookSuccessRate: 99.4,
-    totalDeliveries: 1240,
-    recentDeliveries: [
-      {
-        id: 1,
-        deliveryId: 'del-99881122-infra',
-        event: 'pull_request',
-        action: 'opened',
-        statusCode: 200,
-        errorMessage: null,
-        receivedAt: '14 minutes ago',
-      },
-      {
-        id: 2,
-        deliveryId: 'del-88776655-api',
-        event: 'pull_request',
-        action: 'synchronize',
-        statusCode: 200,
-        errorMessage: null,
-        receivedAt: '42 minutes ago',
-      },
-    ],
-    supportedEvents: ['pull_request.opened', 'pull_request.synchronize', 'pull_request.reopened'],
-  },
-  notifications: {
-    supportedChannels: [
-      { id: 'github_pr', name: 'GitHub PR Inline Comments & Summary', status: 'ACTIVE', type: 'github' },
-      { id: 'slack', name: 'Slack Security Alert Webhook', status: 'OPTIONAL', type: 'slack' },
-      { id: 'email', name: 'Email Digest', status: 'OPTIONAL', type: 'email' },
-    ],
-  },
-  runtime: {
-    reviewsThisMonth: 124,
-    monthlyQuota: 10000,
-    queueMetrics: {
-      waiting: 0,
-      active: 2,
-      completed: 3198,
-      failed: 12,
-      concurrency: 10,
-    },
-    retention: {
-      deliveryDedupTtlHours: 24,
-      tokenBudgetTtlHours: 24,
-      reviewRecordsRetention: '90 days',
-    },
-    configHistory: [
-      {
-        id: 101,
-        actor: 'admin',
-        actorRole: 'ADMIN',
-        action: 'policy.updated',
-        resourceId: 'organization/api-service',
-        metadata: { changed: 'severityThreshold -> suggestion' },
-        createdAt: '2026-10-18T14:20:00Z',
-      },
-    ],
-  },
-};
-
 export function SettingsView() {
-  const [activeTab, setActiveTab] = useState<'ai' | 'security' | 'github' | 'notifications' | 'runtime'>('ai');
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const { data: session } = useSession();
+  const { theme, setTheme } = useTheme();
 
-  // Server data state
-  const [data, setData] = useState<SettingsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Selected Repository for Security Gate policies
+  // Settings State
   const [selectedRepoId, setSelectedRepoId] = useState<number | null>(null);
+  const [repositories, setRepositories] = useState<RepoOption[]>([]);
+  const [aiModel, setAiModel] = useState<string>('gemini-2.0-flash');
+  const [reviewSensitivity, setReviewSensitivity] = useState<'balanced' | 'strict' | 'lenient'>('balanced');
+  const [reviewTone, setReviewTone] = useState<'constructive' | 'concise'>('constructive');
+  const [autoReview, setAutoReview] = useState<boolean>(true);
+  const [inlineSuggestions, setInlineSuggestions] = useState<boolean>(true);
+  const [summaryComment, setSummaryComment] = useState<boolean>(true);
+  const [securityGate, setSecurityGate] = useState<boolean>(true);
 
-  // Form states for Security & Quality Gate
-  const [severityThreshold, setSeverityThreshold] = useState<'critical' | 'warning' | 'suggestion'>('suggestion');
-  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.7);
-  const [blockCritical, setBlockCritical] = useState<boolean>(true);
-  const [maxComments, setMaxComments] = useState<number>(25);
-  const [maxFiles, setMaxFiles] = useState<number>(50);
-  const [maxLines, setMaxLines] = useState<number>(1000);
-  const [skipDrafts, setSkipDrafts] = useState<boolean>(true);
-  const [skipBotAuthors, setSkipBotAuthors] = useState<boolean>(true);
-  const [disabledCategories, setDisabledCategories] = useState<string[]>([]);
-  const [ignoredGlobsText, setIgnoredGlobsText] = useState<string>('tests/**, docs/**, **/*.min.js');
-  const [incompleteBehavior, setIncompleteBehavior] = useState<'WARN' | 'BLOCK' | 'PASS'>('WARN');
-
-  // Tracking dirty form state
-  const [isDirty, setIsDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // UI state
+  const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Testing states
-  const [validatingCredentials, setValidatingCredentials] = useState<string | null>(null);
-  const [credentialValidationResult, setCredentialValidationResult] = useState<any>(null);
-
-  const [testingGithub, setTestingGithub] = useState(false);
-  const [githubTestResult, setGithubTestResult] = useState<any>(null);
-
-  const [testingNotification, setTestingNotification] = useState(false);
-  const [notificationTestResult, setNotificationTestResult] = useState<any>(null);
-
-  // 1. Fetch initial settings
-  const fetchSettings = async (repoId?: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const url = repoId ? `/api/settings?repoId=${repoId}` : '/api/settings';
-      const res = await fetch(url);
-      if (res.status === 401) {
-        setData(DEMO_SETTINGS);
-        setIsDemoMode(true);
-        setSelectedRepoId(DEMO_SETTINGS.selectedRepository?.id || 1);
-        setIsDirty(false);
-        return;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load settings`);
-      const json: SettingsData = await res.json();
-      setData(json);
-      setIsDemoMode(false);
-
-      // Hydrate selected repo and gate form
-      const repo = json.selectedRepository;
-      if (repo) {
-        setSelectedRepoId(repo.id);
-        const config = repo.config || {};
-        const policy = repo.organizationPolicy || {};
-
-        setSeverityThreshold(config.severity_threshold || 'suggestion');
-        setConfidenceThreshold(config.confidence_threshold ?? policy.minConfidence ?? 0.7);
-        setBlockCritical(config.block_on_critical ?? policy.blockCriticalSecurity ?? true);
-        setMaxComments(config.max_comments_per_pr ?? policy.maxComments ?? 25);
-        setMaxFiles(config.max_files_per_pr ?? 50);
-        setMaxLines(config.max_lines_per_pr ?? 1000);
-        setSkipDrafts(config.skip_drafts ?? true);
-        setSkipBotAuthors(config.skip_bot_authors ?? true);
-        setDisabledCategories(config.disabled_categories || policy.disabledCategories || []);
-        setIgnoredGlobsText((config.ignored_globs || policy.ignoredPaths || ['tests/**', 'docs/**', '**/*.min.js']).join(', '));
-      }
-      setIsDirty(false);
-    } catch (err: any) {
-      console.error('[Settings] Error loading settings:', err);
-      setError(err.message || 'Failed to load platform settings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load initial settings from server & localStorage
   useEffect(() => {
+    let isMounted = true;
+
+    // Load local preferences
+    try {
+      const savedModel = localStorage.getItem('gitsentinel_pref_model');
+      if (savedModel) setAiModel(savedModel);
+
+      const savedSensitivity = localStorage.getItem('gitsentinel_pref_sensitivity') as any;
+      if (savedSensitivity) setReviewSensitivity(savedSensitivity);
+
+      const savedTone = localStorage.getItem('gitsentinel_pref_tone') as any;
+      if (savedTone) setReviewTone(savedTone);
+
+      const savedAuto = localStorage.getItem('gitsentinel_pref_auto');
+      if (savedAuto !== null) setAutoReview(savedAuto === 'true');
+
+      const savedInline = localStorage.getItem('gitsentinel_pref_inline');
+      if (savedInline !== null) setInlineSuggestions(savedInline === 'true');
+
+      const savedSummary = localStorage.getItem('gitsentinel_pref_summary');
+      if (savedSummary !== null) setSummaryComment(savedSummary === 'true');
+
+      const savedGate = localStorage.getItem('gitsentinel_pref_gate');
+      if (savedGate !== null) setSecurityGate(savedGate === 'true');
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    // Fetch repository list & server config
+    async function fetchSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+
+        if (data?.installation?.repositories && Array.isArray(data.installation.repositories)) {
+          setRepositories(data.installation.repositories);
+          if (data.installation.repositories.length > 0 && selectedRepoId === null) {
+            setSelectedRepoId(data.installation.repositories[0].id);
+          }
+        }
+
+        if (data?.aiEngine?.geminiModel) {
+          setAiModel(data.aiEngine.geminiModel);
+        }
+      } catch {
+        // Fallback to defaults
+      }
+    }
+
     fetchSettings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Handle repository switch
-  const handleRepoChange = (newRepoId: number) => {
-    if (isDirty) {
-      if (!window.confirm('You have unsaved changes in your security gate policy. Discard changes?')) {
-        return;
-      }
-    }
-    setSelectedRepoId(newRepoId);
-    fetchSettings(newRepoId);
-  };
-
-  // Mark dirty on edits
-  const handleFieldChange = () => {
-    if (!isDirty) setIsDirty(true);
-    if (saveSuccess) setSaveSuccess(false);
-    if (saveError) setSaveError(null);
-  };
-
-  // Toggle category
-  const toggleCategory = (cat: string) => {
-    handleFieldChange();
-    setDisabledCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
-
-  // 2. Save Security & Quality Gate Settings
-  const handleSaveSecurityGate = async () => {
-    if (isDemoMode) {
-      alert('You are currently viewing Platform Settings in demonstration mode. Please Sign In to save custom policies.');
-      return;
-    }
-    if (!selectedRepoId) return;
-    setSaving(true);
+  const handleSave = async () => {
+    setIsSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
 
     try {
-      const parsedGlobs = ignoredGlobsText
-        .split(',')
-        .map((g) => g.trim())
-        .filter(Boolean);
+      // 1. Save preferences locally
+      localStorage.setItem('gitsentinel_pref_model', aiModel);
+      localStorage.setItem('gitsentinel_pref_sensitivity', reviewSensitivity);
+      localStorage.setItem('gitsentinel_pref_tone', reviewTone);
+      localStorage.setItem('gitsentinel_pref_auto', String(autoReview));
+      localStorage.setItem('gitsentinel_pref_inline', String(inlineSuggestions));
+      localStorage.setItem('gitsentinel_pref_summary', String(summaryComment));
+      localStorage.setItem('gitsentinel_pref_gate', String(securityGate));
 
-      const payload = {
-        repositoryId: selectedRepoId,
-        repoConfig: {
-          severity_threshold: severityThreshold,
-          confidence_threshold: confidenceThreshold,
-          block_on_critical: blockCritical,
-          max_comments_per_pr: maxComments,
-          max_files_per_pr: maxFiles,
-          max_lines_per_pr: maxLines,
-          skip_drafts: skipDrafts,
-          skip_bot_authors: skipBotAuthors,
-          disabled_categories: disabledCategories,
-          ignored_globs: parsedGlobs,
-        },
-        orgPolicy: {
-          blockCriticalSecurity: blockCritical,
-          minConfidence: confidenceThreshold,
-          maxComments: maxComments,
-          ignoredPaths: parsedGlobs,
-          disabledCategories: disabledCategories,
-        },
-      };
-
-      const res = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || errorData.error || `HTTP ${res.status}`);
+      // 2. Persist to API if a repository is selected
+      if (selectedRepoId) {
+        await fetch('/api/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            repositoryId: selectedRepoId,
+            repoConfig: {
+              enabled: autoReview,
+              securityLevel: reviewSensitivity,
+              postSummaryComment: summaryComment,
+            },
+          }),
+        }).catch(() => null);
       }
 
       setSaveSuccess(true);
-      setIsDirty(false);
-      setTimeout(() => setSaveSuccess(false), 4000);
-      // Refresh configuration history
-      fetchSettings(selectedRepoId);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      console.error('[Settings] Save error:', err);
-      setSaveError(err.message || 'Failed to update settings');
+      setSaveError(err.message || 'Failed to save settings');
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
-  // 3. Credential Test
-  const handleValidateCredential = async (provider: 'groq' | 'gemini') => {
-    setValidatingCredentials(provider);
-    setCredentialValidationResult(null);
-    try {
-      const res = await fetch('/api/settings/ai-engine/validate-credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider }),
-      });
-      const json = await res.json();
-      setCredentialValidationResult(json);
-    } catch (err: any) {
-      setCredentialValidationResult({ success: false, error: err.message });
-    } finally {
-      setValidatingCredentials(null);
-    }
-  };
-
-  // 4. GitHub Connection Test
-  const handleTestGithub = async () => {
-    setTestingGithub(true);
-    setGithubTestResult(null);
-    try {
-      const res = await fetch('/api/settings/github/test-connection', {
-        method: 'POST',
-      });
-      const json = await res.json();
-      setGithubTestResult(json);
-    } catch (err: any) {
-      setGithubTestResult({ success: false, error: err.message });
-    } finally {
-      setTestingGithub(false);
-    }
-  };
-
-  // 5. Notification Test Alert
-  const handleTestNotification = async () => {
-    setTestingNotification(true);
-    setNotificationTestResult(null);
-    try {
-      const res = await fetch('/api/settings/notifications/test', {
-        method: 'POST',
-      });
-      const json = await res.json();
-      setNotificationTestResult(json);
-    } catch (err: any) {
-      setNotificationTestResult({ success: false, error: err.message });
-    } finally {
-      setTestingNotification(false);
-    }
-  };
-
-  const isAdmin = data?.userRole === 'OWNER' || data?.userRole === 'ADMIN';
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-3">
-        <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
-        <span className="text-xs font-semibold text-slate-500">Loading system configuration & telemetry...</span>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="max-w-4xl mx-auto mt-8 p-6 rounded-2xl border border-red-200 bg-red-50 text-red-900 space-y-3">
-        <div className="flex items-center gap-2 font-bold text-sm">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <span>Configuration Service Unavailable</span>
-        </div>
-        <p className="text-xs text-red-700">{error || 'Unable to retrieve settings from server.'}</p>
-        <button
-          onClick={() => fetchSettings()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors cursor-pointer"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          <span>Retry Loading</span>
-        </button>
-      </div>
-    );
-  }
+  const userLogin = session?.user?.login || (session?.user as any)?.name || 'Developer';
+  const userImage = session?.user?.image || `https://github.com/${userLogin}.png`;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16 animate-fade-in text-slate-800 dark:text-slate-100">
-      {/* Demonstration notice when unauthenticated */}
-      {isDemoMode && (
-        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 dark:bg-blue-950/40 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5 text-blue-900 dark:text-blue-200">
-            <Info className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-            <span>
-              <strong>Demonstration Mode:</strong> You are previewing live enterprise settings. Sign in to customize gate policies, rotate provider API keys, or manage webhooks.
-            </span>
-          </div>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors cursor-pointer shrink-0"
-          >
-            <span>Sign In</span>
-            <ChevronRight className="h-3 w-3" />
-          </Link>
-        </div>
-      )}
-
-      {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/50 pb-6">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Platform & Security Policy Settings
-            </h1>
-            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-400">
-              <Shield className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-              Role: {data.userRole}
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Enterprise multi-model AI orchestration, fail-closed security gates, GitHub webhook telemetry, and runtime budgets.
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+            <Settings className="w-6 h-6 text-primary" />
+            Settings
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your account preferences, review sensitivity, and AI behavior.
           </p>
         </div>
 
-        {/* Global Save Button for Dirty Forms */}
-        {activeTab === 'security' && (
-          <div className="flex items-center gap-3">
-            {isDirty && (
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/50 px-2.5 py-1 rounded-lg">
-                Unsaved changes
-              </span>
-            )}
-            {saveSuccess && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Policies updated!</span>
-              </span>
-            )}
-            {saveError && (
-              <span className="text-xs font-semibold text-red-600 dark:text-red-400 max-w-xs truncate" title={saveError}>
-                {saveError}
-              </span>
-            )}
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm shadow-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+        >
+          {isSaving ? (
+            <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+          ) : saveSuccess ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {saveSuccess ? 'Saved!' : 'Save Changes'}
+        </button>
+      </div>
+
+      {/* Notifications / Alerts */}
+      {saveSuccess && (
+        <div className="flex items-center gap-2.5 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          <span>Your settings have been saved successfully.</span>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="flex items-center gap-2.5 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{saveError}</span>
+        </div>
+      )}
+
+      {/* 1. Account & Profile */}
+      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-6">
+        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <User className="w-4 h-4 text-primary" />
+          <h2>Connected Account</h2>
+        </div>
+
+        <div className="flex items-center justify-between flex-wrap gap-4 p-4 rounded-lg bg-secondary/30 border border-border/40">
+          <div className="flex items-center gap-3.5">
+            <img
+              src={userImage}
+              alt={userLogin}
+              className="w-11 h-11 rounded-full border border-border/60 object-cover"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            <div>
+              <div className="font-medium text-foreground flex items-center gap-2">
+                <span>{userLogin}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                  Connected
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Authenticated via GitHub OAuth
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={`https://github.com/${userLogin}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md border border-border/50 hover:bg-secondary/50"
+          >
+            <span>View GitHub Profile</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        {/* Appearance Toggle */}
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <div className="text-sm font-medium text-foreground">Theme & Appearance</div>
+            <div className="text-xs text-muted-foreground">
+              Select your interface color theme
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 p-1 rounded-lg border border-border/50 bg-secondary/40">
             <button
-              type="button"
-              onClick={handleSaveSecurityGate}
-              disabled={saving || !isDirty || !isAdmin}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              onClick={() => setTheme('light')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                theme === 'light'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {saving ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-              <span>{saving ? 'Saving...' : 'Save Gate Policies'}</span>
+              <Sun className="w-3.5 h-3.5" />
+              <span>Light</span>
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                theme === 'dark'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5" />
+              <span>Dark</span>
             </button>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 2. Primary Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-zinc-800 text-xs font-medium text-slate-600 dark:text-zinc-400 gap-6 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setActiveTab('ai')}
-          className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'ai' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Cpu className="h-4 w-4" />
-          <span>1. AI Review Engine</span>
-        </button>
+      {/* 2. AI Review Preferences */}
+      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-6">
+        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <h2>AI Review Engine</h2>
+        </div>
 
-        <button
-          onClick={() => setActiveTab('security')}
-          className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'security' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Shield className="h-4 w-4" />
-          <span>2. Security & Quality Gate</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('github')}
-          className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'github' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Github className="h-4 w-4" />
-          <span>3. GitHub & Webhooks</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'notifications' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Bell className="h-4 w-4" />
-          <span>4. Alerts & Notifications</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('runtime')}
-          className={`pb-3 border-b-2 flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-            activeTab === 'runtime' ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-bold' : 'border-transparent hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Activity className="h-4 w-4" />
-          <span>5. Runtime & Usage</span>
-        </button>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* SECTION 1: AI REVIEW ENGINE                                               */}
-      {/* ========================================================================= */}
-      {activeTab === 'ai' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Active Provider Topology Card */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Configured Multi-Tier Provider Topology</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
-                  Worker executes strict cascading fallback: Primary KeyPool ➔ Secondary KeyPool ➔ Deterministic Offline Gate.
-                </p>
-              </div>
-              <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 text-xs font-semibold">
-                Autonomous Failover Active
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {data.aiEngine.providerOrder.map((provider) => (
-                <div
-                  key={provider.tier}
-                  className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 p-4 space-y-3 flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                        Tier {provider.tier}
-                      </span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          provider.status === 'healthy'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
-                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
-                        }`}
-                      >
-                        {provider.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">{provider.name}</h4>
-                    <div className="text-[11px] font-mono text-slate-600 dark:text-zinc-300 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded p-1.5 break-all">
-                      {provider.model}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1 pt-1">
-                      <div className="flex justify-between">
-                        <span>Configured Keys:</span>
-                        <span className="font-semibold text-slate-800 dark:text-zinc-200">{provider.keysCount}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Active (Ready):</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{provider.activeKeys}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {provider.provider !== 'deterministic-cyberops' && (
-                    <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={() => handleValidateCredential(provider.provider as any)}
-                        disabled={validatingCredentials === provider.provider}
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
-                      >
-                        {validatingCredentials === provider.provider ? (
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Play className="h-3 w-3" />
-                        )}
-                        <span>{validatingCredentials === provider.provider ? 'Testing...' : 'Validate Handshake'}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+        {/* Target Repository Selector if repos exist */}
+        {repositories.length > 0 && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Apply to Repository
+            </label>
+            <select
+              value={selectedRepoId || ''}
+              onChange={(e) => setSelectedRepoId(Number(e.target.value))}
+              className="w-full sm:w-80 px-3 py-2 text-sm rounded-lg border border-border/60 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              {repositories.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.fullName}
+                </option>
               ))}
-            </div>
+            </select>
+          </div>
+        )}
 
-            {/* Validation Feedback Modal / Banner */}
-            {credentialValidationResult && (
-              <div
-                className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 animate-fade-in ${
-                  credentialValidationResult.success
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'
-                    : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-300'
+        {/* AI Model Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            Review Intelligence Model
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setAiModel('gemini-2.0-flash')}
+              className={`p-3.5 rounded-lg border text-left transition-all ${
+                aiModel === 'gemini-2.0-flash'
+                  ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
+                  : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm text-foreground">Gemini 2.0 Flash</span>
+                {aiModel === 'gemini-2.0-flash' && <Check className="w-4 h-4 text-primary" />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Fast, comprehensive security and logic reasoning. Recommended for all codebases.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAiModel('openai/gpt-oss-120b')}
+              className={`p-3.5 rounded-lg border text-left transition-all ${
+                aiModel === 'openai/gpt-oss-120b'
+                  ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
+                  : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm text-foreground">Groq Ultra-Speed</span>
+                {aiModel === 'openai/gpt-oss-120b' && <Check className="w-4 h-4 text-primary" />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ultra-low latency reviewer optimized for rapid feedback loops.
+              </p>
+            </button>
+          </div>
+        </div>
+
+        {/* Review Sensitivity */}
+        <div className="space-y-2 pt-2">
+          <label className="text-sm font-medium text-foreground">
+            Review Sensitivity Level
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {[
+              {
+                id: 'lenient',
+                label: 'Lenient',
+                desc: 'Only flags critical bugs and major security vulnerabilities.',
+              },
+              {
+                id: 'balanced',
+                label: 'Balanced',
+                desc: 'Balanced feedback on bugs, security, and clean code hygiene.',
+              },
+              {
+                id: 'strict',
+                label: 'Strict',
+                desc: 'Rigorous inspection for security flaws, performance, and best practices.',
+              },
+            ].map((lvl) => (
+              <button
+                key={lvl.id}
+                type="button"
+                onClick={() => setReviewSensitivity(lvl.id as any)}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  reviewSensitivity === lvl.id
+                    ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
+                    : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
                 }`}
               >
-                {credentialValidationResult.success ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                )}
-                <div>
-                  <span className="font-bold">
-                    {credentialValidationResult.success ? 'Credential Handshake Succeeded' : 'Handshake Failed'}
-                  </span>
-                  <p className="mt-0.5">
-                    {credentialValidationResult.success
-                      ? `Provider "${credentialValidationResult.provider}" (${credentialValidationResult.model}) responded in ${credentialValidationResult.latencyMs}ms using verified key ${credentialValidationResult.testedKey}.`
-                      : credentialValidationResult.error}
-                  </p>
+                <div className="font-medium text-xs text-foreground flex items-center justify-between">
+                  <span>{lvl.label}</span>
+                  {reviewSensitivity === lvl.id && <Check className="w-3.5 h-3.5 text-primary" />}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Masked Credentials & Execution Bounds */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Masked Keys Audit */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-zinc-800 pb-2">
-                <Key className="h-4 w-4 text-slate-700 dark:text-zinc-300" />
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Masked Credential Registry
-                </h3>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Plaintext API keys are never stored in database tables or delivered to client browsers.
-              </p>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-zinc-300">Groq KeyPool (5 Registered Keys):</span>
-                  <div className="grid grid-cols-1 gap-1.5 mt-1">
-                    {data.aiEngine.providerOrder[0]?.maskedKeys.map((k, i) => (
-                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 dark:bg-zinc-900 px-2.5 py-1 rounded border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300">
-                        <span>Key #{i + 1}: {k}</span>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-bold">READY</span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                  {lvl.desc}
                 </div>
-
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-zinc-300">Gemini KeyPool (5 Registered Keys):</span>
-                  <div className="grid grid-cols-1 gap-1.5 mt-1">
-                    {data.aiEngine.providerOrder[1]?.maskedKeys.map((k, i) => (
-                      <div key={i} className="flex items-center justify-between font-mono bg-slate-50 dark:bg-zinc-900 px-2.5 py-1 rounded border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300">
-                        <span>Key #{i + 1}: {k}</span>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-bold">READY</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bounded Retries & Budget */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-zinc-800 pb-2">
-                <Sliders className="h-4 w-4 text-slate-700 dark:text-zinc-300" />
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Timeout & Token Quota Limits
-                </h3>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <div>
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Enforced LLM Request Timeout</span>
-                    <p className="text-[11px] text-slate-400 dark:text-zinc-500">Hard timeout on individual file review calls</p>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100 bg-slate-100 dark:bg-zinc-900 px-2.5 py-1 rounded">
-                    {data.aiEngine.timeoutMs}ms
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <div>
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Schema Validation Retry Bound</span>
-                    <p className="text-[11px] text-slate-400 dark:text-zinc-500">Retries before failing over on malformed JSON</p>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100 bg-slate-100 dark:bg-zinc-900 px-2.5 py-1 rounded">
-                    {data.aiEngine.schemaMaxRetries} attempts
-                  </span>
-                </div>
-
-                {/* Daily Token Budget Bar */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Daily Installation Token Quota</span>
-                    <span className="font-mono text-slate-600 dark:text-zinc-400">
-                      {data.dailyTokenBudget.currentTokens.toLocaleString()} / {data.dailyTokenBudget.limit.toLocaleString()} tokens
-                    </span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        data.dailyTokenBudget.currentTokens / data.dailyTokenBudget.limit > 0.8
-                          ? 'bg-amber-500'
-                          : 'bg-blue-600'
-                      }`}
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (data.dailyTokenBudget.currentTokens / data.dailyTokenBudget.limit) * 100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                    Resets automatically daily via Redis 48h rolling window.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Failover History */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Recent Provider Failover & Resolution History
-            </h3>
-            {data.recentFailovers.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">
-                No recent provider failovers recorded. All reviews completed through Tier 1.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
-                      <th className="pb-2">Failed Commit</th>
-                      <th className="pb-2">Error / Failover Cause</th>
-                      <th className="pb-2">Timestamp</th>
-                      <th className="pb-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                    {data.recentFailovers.map((failover) => (
-                      <tr key={failover.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
-                        <td className="py-2.5 font-mono text-blue-600 dark:text-blue-400">{failover.commitSha.slice(0, 7)}</td>
-                        <td className="py-2.5 text-slate-700 dark:text-zinc-300 max-w-md truncate" title={failover.errorMessage}>
-                          {failover.errorMessage}
-                        </td>
-                        <td className="py-2.5 text-slate-400 dark:text-zinc-500">{new Date(failover.failedAt).toLocaleTimeString()}</td>
-                        <td className="py-2.5">
-                          {failover.resolvedAt ? (
-                            <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded text-[10px] font-bold">
-                              Resolved
-                            </span>
-                          ) : (
-                            <span className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded text-[10px] font-bold">
-                              Logged
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* SECTION 2: SECURITY & QUALITY GATE                                        */}
-      {/* ========================================================================= */}
-      {activeTab === 'security' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Target Repository Selector */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
-                Configuring Repository:
-              </span>
-              <select
-                value={selectedRepoId || ''}
-                onChange={(e) => handleRepoChange(parseInt(e.target.value, 10))}
-                className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-zinc-100 shadow-2xs focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none cursor-pointer"
+        {/* Review Tone */}
+        <div className="space-y-2 pt-2">
+          <label className="text-sm font-medium text-foreground">
+            Review Comment Tone
+          </label>
+          <div className="flex items-center gap-3">
+            {[
+              { id: 'constructive', label: 'Constructive & Helpful' },
+              { id: 'concise', label: 'Direct & Concise' },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setReviewTone(t.id as any)}
+                className={`px-3.5 py-2 rounded-lg border text-xs font-medium transition-all ${
+                  reviewTone === t.id
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+                }`}
               >
-                {data.installation?.repositories.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.fullName} ({r.defaultBranch})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <span className="text-xs text-slate-500 dark:text-zinc-400">
-              Settings update both in-database `Repository.config` and `organizationPolicy`.
-            </span>
+                {t.label}
+              </button>
+            ))}
           </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Gate Strictness & Severities */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2">
-                Blocking Thresholds & Severity
-              </h3>
+      {/* 3. Automation & Quality Gates */}
+      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <Shield className="w-4 h-4 text-primary" />
+          <h2>Automations & Security Gates</h2>
+        </div>
 
-              <div className="space-y-4 text-xs">
-                {/* Block Critical Security */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-semibold text-slate-900 dark:text-white block">Block on Critical Security Findings</label>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">
-                      Automatically issues BLOCK gate verdict if CWE/OWASP vulnerabilities with risk &ge; 80 detected.
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={blockCritical}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setBlockCritical(e.target.checked);
-                    }}
-                    className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                </div>
-
-                {/* Minimum Blocking Severity */}
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-900 dark:text-white block">Minimum Blocking Severity Threshold</label>
-                  <select
-                    value={severityThreshold}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setSeverityThreshold(e.target.value as any);
-                    }}
-                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                  >
-                    <option value="critical">Critical (Block only on severe exploits)</option>
-                    <option value="warning">Warning (Require developer review on bugs & security)</option>
-                    <option value="suggestion">Suggestion (Advisory on all issues)</option>
-                  </select>
-                </div>
-
-                {/* Confidence Threshold */}
-                <div className="space-y-1">
-                  <div className="flex justify-between font-semibold">
-                    <span className="text-slate-800 dark:text-zinc-200">Minimum Calibrated Confidence</span>
-                    <span className="font-mono text-blue-600 dark:text-blue-400">{Math.round(confidenceThreshold * 100)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="0.95"
-                    step="0.05"
-                    value={confidenceThreshold}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setConfidenceThreshold(parseFloat(e.target.value));
-                    }}
-                    className="w-full accent-blue-600 cursor-pointer"
-                  />
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                    Filters out speculative LLM hallucinations below this score.
-                  </span>
-                </div>
-
-                {/* Incomplete Analysis Fallback Behavior */}
-                <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-zinc-800">
-                  <label className="font-semibold text-slate-900 dark:text-white block">Behavior when Analysis is Incomplete</label>
-                  <select
-                    value={incompleteBehavior}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setIncompleteBehavior(e.target.value as any);
-                    }}
-                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                  >
-                    <option value="WARN">WARN (Log warning; allow merge with note)</option>
-                    <option value="BLOCK">BLOCK (Fail-closed: block PR merge until retried)</option>
-                    <option value="PASS">PASS (Ignore partial analysis)</option>
-                  </select>
-                </div>
+        <div className="divide-y divide-border/40">
+          {/* Toggle: Auto-Review */}
+          <div className="flex items-center justify-between py-3.5 first:pt-0">
+            <div className="space-y-0.5 pr-4">
+              <div className="text-sm font-medium text-foreground flex items-center gap-2">
+                <GitPullRequest className="w-4 h-4 text-muted-foreground" />
+                Automatic Review on Pull Request
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Trigger an automated AI security review as soon as a PR is opened or updated.
               </div>
             </div>
-
-            {/* Scope & Size Gates */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800 pb-2">
-                PR Scope & Notification Budgets
-              </h3>
-
-              <div className="space-y-4 text-xs">
-                {/* Max Comments */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-semibold text-slate-900 dark:text-white block">Max Comments per PR</label>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Prevents review fatigue on large diffs</span>
-                  </div>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={maxComments}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setMaxComments(parseInt(e.target.value, 10));
-                    }}
-                    className="w-20 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
-                  />
-                </div>
-
-                {/* Max Files per PR */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-semibold text-slate-900 dark:text-white block">Max Files per PR</label>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Exceeding triggers partial scan</span>
-                  </div>
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    value={maxFiles}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setMaxFiles(parseInt(e.target.value, 10));
-                    }}
-                    className="w-20 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
-                  />
-                </div>
-
-                {/* Max Lines per PR */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-semibold text-slate-900 dark:text-white block">Max Changed Lines</label>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">Large diff cut-off safeguard</span>
-                  </div>
-                  <input
-                    type="number"
-                    min="50"
-                    max="50000"
-                    value={maxLines}
-                    onChange={(e) => {
-                      handleFieldChange();
-                      setMaxLines(parseInt(e.target.value, 10));
-                    }}
-                    className="w-24 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs text-right font-mono text-slate-900 dark:text-zinc-100"
-                  />
-                </div>
-
-                {/* Skip Drafts & Bots */}
-                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Skip Draft PRs</span>
-                    <input
-                      type="checkbox"
-                      checked={skipDrafts}
-                      onChange={(e) => {
-                        handleFieldChange();
-                        setSkipDrafts(e.target.checked);
-                      }}
-                      className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">Skip Bot Authors (Dependabot, Renovate)</span>
-                    <input
-                      type="checkbox"
-                      checked={skipBotAuthors}
-                      onChange={(e) => {
-                        handleFieldChange();
-                        setSkipBotAuthors(e.target.checked);
-                      }}
-                      className="h-4 w-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Enabled Categories & Ignored Globs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Enabled Categories */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Audited Issue Categories
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Uncheck categories to disable reporting. In-repo .aireview.yml cannot override disabled checks.
-              </p>
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                {['security', 'bug', 'performance', 'maintainability', 'style'].map((cat) => {
-                  const isEnabled = !disabledCategories.includes(cat);
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => toggleCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                        isEnabled
-                          ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 shadow-2xs'
-                          : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-400 dark:text-zinc-500 line-through'
-                      }`}
-                    >
-                      {cat.toUpperCase()} {isEnabled ? '✓' : '✕'}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Ignored Globs */}
-            <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-2">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Ignored File Patterns (Globs)
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Comma-separated glob patterns. Broad wildcards (e.g. `**`) are rejected automatically.
-              </p>
-              <textarea
-                rows={3}
-                value={ignoredGlobsText}
-                onChange={(e) => {
-                  handleFieldChange();
-                  setIgnoredGlobsText(e.target.value);
-                }}
-                className="w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 p-2.5 text-xs font-mono text-slate-800 dark:text-zinc-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+            <button
+              type="button"
+              onClick={() => setAutoReview(!autoReview)}
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                autoReview ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                  autoReview ? 'translate-x-5' : 'translate-x-0'
+                }`}
               />
+            </button>
+          </div>
+
+          {/* Toggle: Summary Comment */}
+          <div className="flex items-center justify-between py-3.5">
+            <div className="space-y-0.5 pr-4">
+              <div className="text-sm font-medium text-foreground">
+                Post Executive Summary Comment
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Post an overview comment with score and checklist on the main PR conversation.
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setSummaryComment(!summaryComment)}
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                summaryComment ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                  summaryComment ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Toggle: Inline Suggestions */}
+          <div className="flex items-center justify-between py-3.5">
+            <div className="space-y-0.5 pr-4">
+              <div className="text-sm font-medium text-foreground">
+                Inline Code Diff Comments
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Attach suggestions directly to the affected line numbers in the diff.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setInlineSuggestions(!inlineSuggestions)}
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                inlineSuggestions ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                  inlineSuggestions ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Toggle: Security Gate */}
+          <div className="flex items-center justify-between py-3.5 last:pb-0">
+            <div className="space-y-0.5 pr-4">
+              <div className="text-sm font-medium text-foreground">
+                Fail Check Run on Critical Security Flaws
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Block PR merging if high or critical vulnerabilities (CWE/OWASP) are discovered.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSecurityGate(!securityGate)}
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                securityGate ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                  securityGate ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* ========================================================================= */}
-      {/* ========================================================================= */}
-      {/* SECTION 3: GITHUB & WEBHOOKS                                              */}
-      {/* ========================================================================= */}
-      {activeTab === 'github' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Connection Status Card */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
-              <div className="flex items-center gap-3">
-                <Github className="h-6 w-6 text-slate-900 dark:text-white" />
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    GitHub App Installation: {data.installation?.accountLogin || 'Connected App'}
-                  </h3>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400">
-                    Installation ID: {data.installation?.githubInstallationId} • Account Type: {data.installation?.accountType}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleTestGithub}
-                disabled={testingGithub}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
-              >
-                {testingGithub ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
-                <span>{testingGithub ? 'Checking...' : 'Test Connection'}</span>
-              </button>
-            </div>
-
-            {/* Test result banner */}
-            {githubTestResult && (
-              <div className={`p-3 rounded-xl border text-xs ${githubTestResult.success ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-300'}`}>
-                <span className="font-bold">{githubTestResult.success ? '✓ GitHub App Verified' : '✕ Verification Failed'}:</span> {githubTestResult.message}
-              </div>
-            )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
-                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">24h Delivery Success</span>
-                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{data.github.webhookSuccessRate}%</span>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
-                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">Total Webhooks Processed</span>
-                <span className="text-lg font-bold text-slate-900 dark:text-white">{data.github.totalDeliveries}</span>
-              </div>
-              <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800">
-                <span className="text-slate-400 dark:text-zinc-500 block text-[10px] uppercase font-semibold">Monitored Repositories</span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{data.installation?.repositories.length || 0}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Webhook Delivery Logs Table */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Recent Ingress Webhook Deliveries (`WebhookDelivery`)
-            </h3>
-
-            {data.github.recentDeliveries.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">No recent deliveries recorded in database.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
-                      <th className="pb-2">Delivery ID</th>
-                      <th className="pb-2">Event</th>
-                      <th className="pb-2">Action</th>
-                      <th className="pb-2">Status</th>
-                      <th className="pb-2">Received</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                    {data.github.recentDeliveries.map((del) => (
-                      <tr key={del.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
-                        <td className="py-2 font-mono text-slate-600 dark:text-zinc-400 truncate max-w-[120px]">{del.deliveryId}</td>
-                        <td className="py-2 font-semibold text-slate-900 dark:text-white">{del.event}</td>
-                        <td className="py-2 text-slate-600 dark:text-zinc-400">{del.action || '-'}</td>
-                        <td className="py-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${del.statusCode >= 200 && del.statusCode < 300 ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400'}`}>
-                            HTTP {del.statusCode}
-                          </span>
-                        </td>
-                        <td className="py-2 text-slate-400 dark:text-zinc-500">{new Date(del.receivedAt).toLocaleTimeString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SECTION 4: ALERTS & NOTIFICATIONS                                         */}
-      {/* ========================================================================= */}
-      {activeTab === 'notifications' && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Configured Notification Channels</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
-                  Surfaces supported in-app review feedback vs. unattached external dispatchers.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleTestNotification}
-                disabled={testingNotification}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
-              >
-                {testingNotification ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
-                <span>Send Test Alert</span>
-              </button>
-            </div>
-
-            {/* Test result banner */}
-            {notificationTestResult && (
-              <div className="p-3 rounded-xl border bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>{notificationTestResult.message} Dispatched to: {notificationTestResult.deliveredTo}</span>
-              </div>
-            )}
-
-            {/* Channels List */}
-            <div className="space-y-3">
-              {data.notifications.supportedChannels.map((channel) => (
-                <div
-                  key={channel.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50"
-                >
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">{channel.name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full ${channel.status === 'ACTIVE' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
-                        {channel.status}
-                      </span>
-                    </div>
-                    {channel.note && (
-                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">⚠️ {channel.note}</p>
-                    )}
-                  </div>
-
-                  <span className="text-[11px] font-mono text-slate-400 dark:text-zinc-500 capitalize">{channel.type}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SECTION 5: RUNTIME & USAGE                                                */}
-      {/* ========================================================================= */}
-      {activeTab === 'runtime' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Runtime Metrics Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Reviews Completed (Month)</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.reviewsThisMonth} / {data.runtime.monthlyQuota}</span>
-            </div>
-            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Active Queue Workers</span>
-              <span className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 block">{data.runtime.queueMetrics.concurrency} concurrent</span>
-            </div>
-            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Pending Queue Depth</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.queueMetrics.waiting} waiting</span>
-            </div>
-            <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">Deduplication Lock TTL</span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white mt-1 block">{data.runtime.retention.deliveryDedupTtlHours} hours</span>
-            </div>
-          </div>
-
-          {/* Pre-Push Review CLI Defaults */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Developer Pre-Push Review Hook Defaults
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
-              Developers can execute static gate audits locally before pushing branches to GitHub:
-            </p>
-            <div className="bg-slate-900 dark:bg-black text-slate-100 p-3 rounded-xl font-mono text-xs overflow-x-auto border border-transparent dark:border-zinc-800">
-              <code>npm run review:pre-push -- --strict --fail-on-critical</code>
-            </div>
-          </div>
-
-          {/* Configuration History Audit Table */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Policy & Configuration Change Audit Trail (`AuditLog`)
-            </h3>
-
-            {data.runtime.configHistory.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-zinc-500 py-3 text-center">No configuration changes logged yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 font-semibold">
-                      <th className="pb-2">Actor</th>
-                      <th className="pb-2">Role</th>
-                      <th className="pb-2">Action</th>
-                      <th className="pb-2">Timestamp</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                    {data.runtime.configHistory.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/50">
-                        <td className="py-2.5 font-semibold text-slate-800 dark:text-zinc-200">{item.actor}</td>
-                        <td className="py-2.5 text-blue-600 dark:text-blue-400 font-medium">{item.actorRole || 'ADMIN'}</td>
-                        <td className="py-2.5 font-mono text-slate-600 dark:text-zinc-400">{item.action}</td>
-                        <td className="py-2.5 text-slate-400 dark:text-zinc-500">{new Date(item.createdAt).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Bottom Save Button */}
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+        >
+          {isSaving ? (
+            <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+          ) : saveSuccess ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {saveSuccess ? 'Changes Saved!' : 'Save All Settings'}
+        </button>
+      </div>
     </div>
   );
 }
