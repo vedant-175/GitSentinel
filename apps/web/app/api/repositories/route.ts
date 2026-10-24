@@ -38,7 +38,17 @@ export async function GET(req: NextRequest) {
       orderBy: { id: 'desc' },
     });
 
-    const paginated = paginateResults(repositories, limit);
+    const filteredRepositories = repositories.filter((repo) => {
+      if (repo.installation?.accountLogin) {
+        const [repoOwner] = (repo.fullName || '').toLowerCase().split('/');
+        if (repoOwner && repoOwner !== repo.installation.accountLogin.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    const paginated = paginateResults(filteredRepositories, limit);
     return NextResponse.json(serializeWithBigInt(paginated));
   } catch (error) {
     if (error instanceof UnauthorizedError) {

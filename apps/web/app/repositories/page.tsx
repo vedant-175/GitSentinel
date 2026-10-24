@@ -23,7 +23,15 @@ export default async function RepositoriesPage({
   let repositories: any[] = [];
   try {
     const res = await getRepositories({ limit: 500 });
-    repositories = res?.data || [];
+    repositories = (res?.data || []).filter((repo: any) => {
+      if (currentUserLogin) {
+        const [repoOwner] = (repo.fullName || '').toLowerCase().split('/');
+        if (repoOwner && repoOwner !== currentUserLogin.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
   } catch (err) {
     console.error('Failed to load repositories from database:', err);
     repositories = [];
