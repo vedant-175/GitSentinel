@@ -25,7 +25,16 @@ export default async function PullRequestsPage() {
   let dbPullRequests: any[] = [];
   try {
     const result = await getPullRequests({ limit: 50 });
-    dbPullRequests = result?.data || [];
+    dbPullRequests = (result?.data || []).filter((pr: any) => {
+      if (currentUserLogin) {
+        const repoFullName = pr.repository?.fullName || '';
+        const [repoOwner] = repoFullName.toLowerCase().split('/');
+        if (repoOwner && repoOwner !== currentUserLogin.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
   } catch (e) {
     console.error('Failed to fetch pull requests:', e);
   }

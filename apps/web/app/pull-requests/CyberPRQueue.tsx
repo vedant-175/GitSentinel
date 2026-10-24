@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -109,7 +109,20 @@ export function CyberPRQueue({
   };
 
   // Map real database or live pull requests (no hardcoded demo data)
-  const prsToDisplay: PRCardData[] = (prs || []).map((pr: any) => {
+  const filteredPrs = useMemo(() => {
+    return (prs || []).filter((pr: any) => {
+      if (currentUserLogin) {
+        const fullName = pr.repository?.fullName || '';
+        const [owner] = fullName.toLowerCase().split('/');
+        if (owner && owner !== currentUserLogin.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [prs, currentUserLogin]);
+
+  const prsToDisplay: PRCardData[] = filteredPrs.map((pr: any) => {
     const latestReview = pr.reviews?.[0];
     const verdict = latestReview?.verdict;
     const isEvaluating = latestReview?.status === 'pending' || latestReview?.status === 'posting';

@@ -91,13 +91,25 @@ export function RepositoriesView({
   // Map database repositories or fallback
   const mappedRepositories: RepoItem[] = useMemo(() => {
     if (syncedRepos && syncedRepos.length > 0) {
-      return syncedRepos;
+      return currentUserLogin
+        ? syncedRepos.filter((r) => {
+            const [owner] = (r.fullName || '').toLowerCase().split('/');
+            return !owner || owner === currentUserLogin.toLowerCase();
+          })
+        : syncedRepos;
     }
     if (!initialRepositories || initialRepositories.length === 0) {
       return [];
     }
 
-    return initialRepositories.map((repo: any) => {
+    const filteredInitial = currentUserLogin
+      ? initialRepositories.filter((repo: any) => {
+          const [owner] = (repo.fullName || '').toLowerCase().split('/');
+          return !owner || owner === currentUserLogin.toLowerCase();
+        })
+      : initialRepositories;
+
+    return filteredInitial.map((repo: any) => {
       let high = 0;
       let medium = 0;
       let low = 0;
@@ -145,7 +157,7 @@ export function RepositoriesView({
         lastUpdated,
       };
     });
-  }, [initialRepositories, syncedRepos]);
+  }, [initialRepositories, syncedRepos, currentUserLogin]);
 
   // Aggregate Metrics for 4 Cards
   const totalReposCount = mappedRepositories.length;

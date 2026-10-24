@@ -61,6 +61,14 @@ export async function getRepositories(options: PaginationOptions = {}) {
     if (seenRepoKeys.has(key)) {
       return false;
     }
+    // Strict Tenancy & Ownership Invariant:
+    // A repository MUST belong to its installation's accountLogin (owner/repo prefix matches installation)
+    if (repo.installation?.accountLogin) {
+      const [repoOwner] = key.split('/');
+      if (repoOwner && repoOwner !== repo.installation.accountLogin.toLowerCase()) {
+        return false;
+      }
+    }
     seenRepoKeys.add(key);
     return true;
   });
@@ -102,7 +110,11 @@ export async function getPullRequests(
     skip: cursor ? 1 : 0,
     cursor: cursor ? { id: cursor } : undefined,
     include: {
-      repository: true,
+      repository: {
+        include: {
+          installation: true,
+        },
+      },
       reviews: {
         orderBy: { startedAt: 'desc' },
         take: 1,
@@ -125,7 +137,17 @@ export async function getPullRequests(
       : [{ openedAt: 'desc' }, { githubPrNumber: 'desc' }, { id: 'desc' }],
   });
 
-  return paginateResults(pullRequests, limit);
+  const filteredPullRequests = pullRequests.filter((pr) => {
+    if (pr.repository?.installation?.accountLogin) {
+      const [repoOwner] = (pr.repository.fullName || '').toLowerCase().split('/');
+      if (repoOwner && repoOwner !== pr.repository.installation.accountLogin.toLowerCase()) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  return paginateResults(filteredPullRequests, limit);
 }
 
 /**

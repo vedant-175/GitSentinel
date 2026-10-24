@@ -321,6 +321,11 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
       for (const r of rawRepos) {
         if (!r.full_name) continue;
 
+        const [repoOwner] = r.full_name.split('/');
+        if (repoOwner && repoOwner.toLowerCase() !== effectiveLogin.toLowerCase()) {
+          continue;
+        }
+
         const targetRepoId = BigInt(r.id || hashString(r.full_name));
 
         // Find existing repository by either githubRepoId or fullName under this installation
@@ -370,6 +375,27 @@ export async function syncUserRepositories(rawUsername: string, accessToken?: st
         await syncUserPullRequests(effectiveLogin, accessToken);
       } catch (prSearchErr) {
         console.warn(`[GitHub Sync] Error in search PR sync for ${effectiveLogin}:`, prSearchErr);
+      }
+
+      // Final sweep to guarantee zero foreign repositories remain under this installation
+      try {
+        const remainingForeign = await prisma.repository.findMany({
+          where: { installationId: installation.id },
+          select: { id: true, fullName: true },
+        });
+        const foreignIds = remainingForeign
+          .filter((r) => {
+            const [owner] = r.fullName.split('/');
+            return owner && owner.toLowerCase() !== effectiveLogin.toLowerCase();
+          })
+          .map((r) => r.id);
+        if (foreignIds.length > 0) {
+          await prisma.repository.deleteMany({
+            where: { id: { in: foreignIds } },
+          });
+        }
+      } catch {
+        // ignore
       }
     } catch (dbRepoErr) {
       console.warn(`[GitHub Sync] Could not write repos to DB (offline), using live GitHub count:`, dbRepoErr);
@@ -453,6 +479,10 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
     merged_at?: string | null;
   }) => {
     if (!p.number || !p.repoFullName) return;
+    const [owner] = p.repoFullName.split('/');
+    if (owner && owner.toLowerCase() !== username.toLowerCase()) {
+      return; // STRICT ROOT FIX: Never collect PRs from repositories not owned by this user
+    }
     const key = `${p.repoFullName.toLowerCase()}#${p.number}`;
     if (!collectedPRsMap.has(key)) {
       collectedPRsMap.set(key, {
@@ -555,7 +585,7 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
   // 2. Fetch PRs created by this user or in user repos via Search API
   try {
     const searchQueries = [
-      `type:pr author:${username}`,
+      `type:pr author:${username} user:${username}`,
       `type:pr user:${username}`,
     ];
 
@@ -663,6 +693,27 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
       });
     }
 
+    // Purge any foreign/collaborator repositories that do not belong to this user under this installation
+    try {
+      const foreignDbRepos = await prisma.repository.findMany({
+        where: { installationId: installation.id },
+        select: { id: true, fullName: true },
+      });
+      const foreignIds = foreignDbRepos
+        .filter((r) => {
+          const [owner] = r.fullName.split('/');
+          return owner && owner.toLowerCase() !== username.toLowerCase();
+        })
+        .map((r) => r.id);
+      if (foreignIds.length > 0) {
+        await prisma.repository.deleteMany({
+          where: { id: { in: foreignIds } },
+        });
+      }
+    } catch {
+      // ignore
+    }
+
     const existingDbRepos = await prisma.repository.findMany({
       where: { installationId: installation.id },
     });
@@ -672,6 +723,10 @@ export async function syncUserPullRequests(rawUsername: string, accessToken?: st
 
     const savedPrs: any[] = [];
     for (const item of rawPrList) {
+      const [repoOwner] = item.repoFullName.split('/');
+      if (repoOwner && repoOwner.toLowerCase() !== username.toLowerCase()) {
+        continue; // STRICT ROOT FIX: Never create or attach foreign repositories to this user's installation!
+      }
       let repo = repoMap.get(item.repoFullName.toLowerCase());
       if (!repo) {
         repo = await prisma.repository.create({
