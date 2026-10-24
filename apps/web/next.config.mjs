@@ -68,6 +68,7 @@ const nextConfig = {
       allowedOrigins: [
         'localhost:3000',
         '127.0.0.1:3000',
+        'gitsentinel-red.vercel.app',
         'git-sentinel.vercel.app',
         process.env.VERCEL_PROJECT_PRODUCTION_URL,
         process.env.VERCEL_URL,
