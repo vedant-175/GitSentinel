@@ -66,7 +66,7 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
             />
           </span>
           <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-            Real Review Progress
+            REAL REVIEW PROGRESS
           </h2>
         </div>
 
@@ -79,14 +79,14 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
           <span
             role="status"
             aria-live="polite"
-            className={`rounded-md px-2 py-0.5 text-[10px] font-mono font-bold uppercase ${
+            className={`rounded-md px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
               isFailed
-                ? 'bg-rose-500/20 border border-rose-500/30 text-rose-400'
+                ? 'bg-rose-950/60 border border-rose-500/40 text-rose-300'
                 : isSuperseded
-                ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400'
+                ? 'bg-amber-950/60 border border-amber-500/40 text-amber-400'
                 : status === 'completed'
-                ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
-                : 'bg-cyan-500/20 border border-cyan-500/30 text-cyan-400'
+                ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400'
+                : 'bg-cyan-950/60 border border-cyan-500/40 text-cyan-300'
             }`}
           >
             {isFailed
@@ -113,18 +113,18 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
             <li
               key={stage.key}
               aria-current={isCurrent ? 'step' : undefined}
-              className={`rounded-xl border p-2 flex flex-col justify-between transition-all ${
+              className={`rounded-xl border p-2.5 flex flex-col justify-between transition-all ${
                 isStepFailed
                   ? 'border-rose-500/40 bg-rose-950/20 text-rose-400'
                   : isPast
-                  ? 'border-emerald-500/30 bg-emerald-950/15 text-emerald-400'
+                  ? 'border-[#172338] bg-[#06090e] hover:border-emerald-500/30 text-emerald-400'
                   : isCurrent
                   ? 'border-cyan-500/50 bg-cyan-950/25 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.15)] ring-1 ring-cyan-500/30'
                   : 'border-[#172338] bg-[#06090e]/60 text-slate-500'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-mono font-bold text-slate-400">
+                <span className="text-[10px] font-mono font-bold text-slate-400">
                   0{idx + 1}
                 </span>
                 {isStepFailed ? (

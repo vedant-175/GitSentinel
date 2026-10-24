@@ -19,6 +19,8 @@ import {
   Download,
   Info,
   Scale,
+  Brain,
+  Network,
 } from 'lucide-react';
 import { StructuredSummary } from '@ai-reviewer/shared';
 
@@ -224,66 +226,80 @@ export function ReviewSummaryCard({
         {/* ========================================================================= */}
         {/* THE 7 REQUIRED REVIEW SUMMARY KPI TILES */}
         {/* ========================================================================= */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 font-mono text-xs">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 font-mono text-xs">
           {/* 1. Files Changed */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">1. Files Changed</span>
-            <div className="text-base font-bold text-white mt-1">
-              {filesAnalyzed || 1} <span className="text-[10px] font-normal text-slate-500">files</span>
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-xl font-bold text-white tracking-tight">
+              {filesAnalyzed || 1}
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Files Changed
             </div>
           </div>
 
           {/* 2. Lines Analyzed */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">2. Lines Analyzed</span>
-            <div className="text-base font-bold text-cyan-300 mt-1">
-              {linesAnalyzed || 150} <span className="text-[10px] font-normal text-slate-500">LOC</span>
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-xl font-bold text-cyan-400 tracking-tight">
+              {linesAnalyzed || 150}
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Lines Analyzed <span className="text-slate-500">(LOC)</span>
             </div>
           </div>
 
           {/* 3. Findings Total */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">3. Total Findings</span>
-            <div className="text-base font-bold text-white mt-1">
-              {issues.length} <span className="text-[10px] font-normal text-slate-500">issues</span>
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-xl font-bold text-white tracking-tight">
+              {issues.length}
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Total Findings <span className="text-slate-500">(issues)</span>
             </div>
           </div>
 
           {/* 4. Critical / High / Med / Low Breakdown */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between sm:col-span-2 lg:col-span-1">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">4. Severity Split</span>
-            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-bold">
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="flex items-center gap-1 text-base font-bold tracking-tight">
               <span className="text-rose-400" title="Critical">{criticals.length}C</span>
               <span className="text-slate-600">/</span>
               <span className="text-amber-400" title="Warning / High">{warnings.length}H</span>
               <span className="text-slate-600">/</span>
-              <span className="text-slate-300" title="Suggestion / Medium">{suggestions.length}M</span>
+              <span className="text-blue-400" title="Suggestion / Medium">{suggestions.length}M</span>
               <span className="text-slate-600">/</span>
-              <span className="text-blue-400" title="Low">{lows.length}L</span>
+              <span className="text-teal-400" title="Low">{lows.length}L</span>
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Severity Split
             </div>
           </div>
 
           {/* 5. Calibrated Confidence */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">5. Confidence</span>
-            <div className="text-base font-bold text-emerald-400 mt-1">
-              {avgConfidence}% <span className="text-[9px] font-normal text-slate-500">calibrated</span>
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-xl font-bold text-emerald-400 tracking-tight">
+              {avgConfidence}%
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Confidence <span className="text-slate-500">(calibrated)</span>
             </div>
           </div>
 
           {/* 6. Review Duration */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">6. Duration</span>
-            <div className="text-base font-bold text-purple-300 mt-1">
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-xl font-bold text-purple-300 tracking-tight">
               {formattedDuration}
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Analysis Duration
             </div>
           </div>
 
           {/* 7. Analysis Method */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-2.5 flex flex-col justify-between sm:col-span-3 lg:col-span-1">
-            <span className="text-[10px] uppercase text-slate-400 font-bold">7. Method</span>
-            <div className="text-xs font-bold text-emerald-300 mt-1 truncate" title={analysisMethod}>
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+            <div className="text-base font-bold text-emerald-400 tracking-tight truncate">
               Hybrid Scan
+            </div>
+            <div className="text-[11px] text-slate-400 font-sans mt-1">
+              Method Used
             </div>
           </div>
         </div>
@@ -297,13 +313,13 @@ export function ReviewSummaryCard({
           {/* Provenance: Deterministic vs LLM vs Hybrid findings */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Deterministic Static Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-2">
+            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                  <Terminal className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                  <Network className="h-4 w-4" />
                   <span>Deterministic Static Analysis</span>
                 </div>
-                <span className="rounded bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
                   {deterministicIssues.length} Findings
                 </span>
               </div>
@@ -313,13 +329,13 @@ export function ReviewSummaryCard({
             </div>
 
             {/* Semantic LLM Reasoning Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-2">
+            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-cyan-400 font-bold">
-                  <Sparkles className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sky-400 font-bold">
+                  <Brain className="h-4 w-4" />
                   <span>Semantic AI Reasoning</span>
                 </div>
-                <span className="rounded bg-cyan-500/20 text-cyan-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 px-2 py-0.5 text-[10px] font-bold">
                   {aiIssues.length} Findings
                 </span>
               </div>
@@ -329,13 +345,13 @@ export function ReviewSummaryCard({
             </div>
 
             {/* Hybrid Corroborated Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-2">
+            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-purple-400 font-bold">
+                <div className="flex items-center gap-2 text-purple-400 font-bold">
                   <Scale className="h-4 w-4" />
                   <span>Hybrid Corroborated</span>
                 </div>
-                <span className="rounded bg-purple-500/20 text-purple-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 text-[10px] font-bold">
                   {hybridIssues.length + dependencyIssues.length} Findings
                 </span>
               </div>
@@ -346,36 +362,36 @@ export function ReviewSummaryCard({
           </div>
 
           {/* Token Consumption & Cost Telemetry */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-2">
+          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
             <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-              <div className="flex items-center gap-2 text-purple-300 font-bold">
-                <DollarSign className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-purple-300 font-bold font-mono">
+                <Layers className="h-4 w-4 text-purple-400" />
                 <span>Empirical Token Consumption &amp; Cost Telemetry</span>
               </div>
-              <span className="rounded bg-purple-500/20 text-purple-300 px-2 py-0.5 text-[10px] font-bold">
-                Model: {model}
+              <span className="rounded-md bg-purple-950/60 border border-purple-500/30 text-purple-300 px-2.5 py-0.5 text-[10px] font-mono font-bold">
+                Model: {model || 'gpt-4o'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-[11px]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 text-[11px] font-mono">
               <div>
-                <span className="text-slate-500">Prompt Tokens:</span>
-                <div className="text-slate-200 font-bold mt-0.5">{promptTokens.toLocaleString()} tok</div>
+                <span className="text-slate-400 block text-[10px]">Prompt Tokens:</span>
+                <div className="text-slate-200 font-bold mt-1 text-xs">{promptTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-500">Completion Tokens:</span>
-                <div className="text-slate-200 font-bold mt-0.5">{completionTokens.toLocaleString()} tok</div>
+                <span className="text-slate-400 block text-[10px]">Completion Tokens:</span>
+                <div className="text-slate-200 font-bold mt-1 text-xs">{completionTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-500">Total Tokens:</span>
-                <div className="text-white font-bold mt-0.5">{totalTokens.toLocaleString()} tok</div>
+                <span className="text-slate-400 block text-[10px]">Total Tokens:</span>
+                <div className="text-white font-bold mt-1 text-xs">{totalTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-500">Estimated API Cost:</span>
-                <div className="text-emerald-400 font-bold mt-0.5">${calculatedCostUsd.toFixed(4)} USD</div>
+                <span className="text-slate-400 block text-[10px]">Estimated API Cost:</span>
+                <div className="text-emerald-400 font-bold mt-1 text-xs">${calculatedCostUsd.toFixed(4)} USD</div>
               </div>
             </div>
           </div>

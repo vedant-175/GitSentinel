@@ -1,5 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getServerOAuthToken } from '@/lib/auth-helpers';
+import { syncUserPullRequests } from '@/lib/github-sync';
 import { getPullRequests } from '@/lib/data';
 import { CyberPRQueue } from './CyberPRQueue';
 
@@ -9,6 +11,16 @@ export default async function PullRequestsPage() {
   const session = await getServerSession(authOptions).catch(() => null);
   const currentUserLogin =
     session?.user?.login || (session?.user as any)?.name || 'vedant-175';
+
+  // Automatically sync latest PRs from GitHub on page load
+  if (currentUserLogin) {
+    try {
+      const token = await getServerOAuthToken().catch(() => undefined);
+      await syncUserPullRequests(currentUserLogin, token);
+    } catch (syncErr) {
+      console.warn('Auto PR sync on page load failed:', syncErr);
+    }
+  }
 
   let dbPullRequests: any[] = [];
   try {

@@ -75,6 +75,7 @@ export function buildProviders() {
   const clientId = process.env.NEXTAUTH_GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const clientSecret = process.env.NEXTAUTH_GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
 
+  const oauthScope = process.env.GITHUB_OAUTH_SCOPE || 'read:user';
   const github = GithubProvider({
     clientId: clientId || '',
     clientSecret: clientSecret || '',
@@ -82,7 +83,7 @@ export function buildProviders() {
     authorization: {
       url: 'https://github.com/login/oauth/authorize',
       params: {
-        scope: 'read:user', // Narrow OAuth scope to the minimum required
+        scope: oauthScope, // Narrow OAuth scope or user-configured repo scope
       },
     },
   });
@@ -91,7 +92,7 @@ export function buildProviders() {
   (github as any).authorization = {
     url: 'https://github.com/login/oauth/authorize',
     params: {
-      scope: 'read:user',
+      scope: oauthScope,
     },
   };
 

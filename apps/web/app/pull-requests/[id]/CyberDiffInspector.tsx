@@ -253,26 +253,31 @@ export function CyberDiffInspector({
       {/* 1. TOP NAVIGATION & SYSTEM STATUS */}
       {/* ========================================================================= */}
       <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-        <Link
-          href="/pull-requests"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#172338] bg-[#0b1019] text-xs font-mono text-slate-300 hover:text-white hover:border-cyan-500/40 transition-colors"
-          aria-label="Back to Pull Requests"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>PR Queue</span>
-        </Link>
+        {/* Breadcrumbs matching Image 1: ← Pull Requests / #<id> */}
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Link
+            href="/pull-requests"
+            className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+            aria-label="Back to Pull Requests"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Pull Requests</span>
+          </Link>
+          <span className="text-slate-600">/</span>
+          <span className="text-white font-semibold">#{prNumber}</span>
+        </div>
 
         {/* Tab Navigation */}
         <div className="flex items-center p-1 rounded-xl bg-[#06090e] border border-[#172338] font-mono text-xs">
           <button
             onClick={() => setActiveTab('findings')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'findings'
-                ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                : 'text-slate-400 hover:text-white border border-transparent'
             }`}
           >
-            <Shield className="h-3.5 w-3.5" />
+            <Shield className="h-3.5 w-3.5 text-emerald-400" />
             <span>Code Findings ({issues.length})</span>
           </button>
 
@@ -280,8 +285,8 @@ export function CyberDiffInspector({
             onClick={() => setActiveTab('explorer')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'explorer'
-                ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                : 'text-slate-400 hover:text-white border border-transparent'
             }`}
           >
             <FileCode className="h-3.5 w-3.5" />
@@ -290,10 +295,10 @@ export function CyberDiffInspector({
 
           <button
             onClick={() => setActiveTab('audit')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'audit'
-                ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                : 'text-slate-400 hover:text-white border border-transparent'
             }`}
           >
             <History className="h-3.5 w-3.5" />
@@ -302,10 +307,10 @@ export function CyberDiffInspector({
 
           <button
             onClick={() => setActiveTab('eval')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'eval'
-                ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                : 'text-slate-400 hover:text-white border border-transparent'
             }`}
           >
             <BarChart3 className="h-3.5 w-3.5" />
@@ -313,13 +318,13 @@ export function CyberDiffInspector({
           </button>
         </div>
 
-        {/* Trigger Review Button */}
+        {/* Trigger Review Button: Solid Emerald Matching Image 1 */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleRerun}
             disabled={rerunning || isRunning}
-            className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-950/40 px-3 py-1.5 text-xs font-mono font-bold text-cyan-300 hover:bg-cyan-900/50 hover:text-white transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-mono font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             aria-label="Rerun Code Review"
           >
             {rerunning || isRunning ? (
@@ -351,96 +356,69 @@ export function CyberDiffInspector({
       {/* ========================================================================= */}
       {/* 2. GITHUB REPOSITORY INTEGRATION & PULL REQUEST HERO CARD */}
       {/* ========================================================================= */}
-      <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-[#172338]">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-slate-400">
-              <a
-                href={githubRepoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 font-bold text-slate-200 hover:text-cyan-400 transition-colors"
-              >
-                <Github className="h-4 w-4" />
-                <span>{repoName}</span>
-                <ExternalLink className="h-2.5 w-2.5" />
-              </a>
+      <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-2">
+        {/* Top Row: Repo Link on Left, GitHub App + Repo ID on Right */}
+        <div className="flex items-center justify-between">
+          <a
+            href={githubRepoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 font-bold text-slate-200 hover:text-cyan-400 transition-colors text-xs font-mono"
+          >
+            <Github className="h-4 w-4" />
+            <span>{repoName}</span>
+            <ExternalLink className="h-3 w-3 text-slate-500" />
+          </a>
 
-              <span className="text-slate-600">&bull;</span>
-              <a
-                href={githubPrUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 font-bold text-cyan-400 hover:underline"
-              >
-                <span>PR #{prNumber}</span>
-                <ExternalLink className="h-2.5 w-2.5" />
-              </a>
-
-              <span className="text-slate-600">&bull;</span>
-              <span className="text-slate-300">by @{author}</span>
-
-              <span className="text-slate-600">&bull;</span>
-              <span className="text-slate-400">
-                <code className="text-slate-300">{baseBranch}</code> &larr; <code className="text-cyan-300">{headBranch}</code>
-              </span>
-            </div>
-
-            <h1 className="text-lg sm:text-xl font-black text-white mt-1 leading-snug">
-              {title}
-            </h1>
-          </div>
-
-          {/* Integration Status Badges */}
-          <div className="flex flex-wrap md:flex-col items-start md:items-end gap-1.5 text-[10px] font-mono shrink-0">
+          <div className="flex items-center gap-4 text-xs font-mono">
             <div className="flex items-center gap-1.5">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block" />
               <span className="text-emerald-400 font-bold">GitHub App Integrated</span>
-              {installationId && (
-                <span className="text-slate-500">({installationId})</span>
-              )}
+              {installationId && <span className="text-slate-500">({installationId})</span>}
             </div>
-
-            <div className="flex items-center gap-2 text-slate-400">
-              <span>Repo ID: <code className="text-slate-300">{githubRepoId}</code></span>
-              <span>&bull;</span>
-              <span>Branch: <code className="text-slate-300">{defaultBranch}</code></span>
+            <div className="text-slate-400 text-[11px] hidden sm:flex items-center gap-1.5">
+              <span>Repo ID: <span className="text-slate-300">{githubRepoId}</span></span>
+              <span className="text-slate-600">&bull;</span>
+              <span>Branch: <span className="text-slate-300">{defaultBranch}</span></span>
             </div>
           </div>
         </div>
 
-        {/* Commit SHA & Review Check Conclusion Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono pt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500 text-[11px]">Commit Under Inspection:</span>
-            <div className="flex items-center gap-1 bg-[#06090e] border border-[#172338] px-2 py-0.5 rounded-lg text-slate-200">
-              <GitCommit className="h-3 w-3 text-cyan-400" />
-              <span>{sha}</span>
-              <button
-                onClick={copySha}
-                className="text-slate-400 hover:text-white ml-1 p-0.5"
-                title="Copy Full Commit SHA"
-              >
-                {copiedSha ? <Check className="h-2.5 w-2.5 text-emerald-400" /> : <Copy className="h-2.5 w-2.5" />}
-              </button>
-            </div>
+        {/* Title */}
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+          {title}
+        </h1>
+
+        {/* Sub-row: PR badge, author, branches, and Security Gate on right */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <a
+              href={githubPrUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 font-bold hover:underline"
+            >
+              <span>PR #{prNumber}</span>
+            </a>
+            <span className="text-slate-400">by @{author}</span>
+            <span className="text-slate-600">&bull;</span>
+            <span className="text-cyan-400 font-medium">{baseBranch}</span>
+            <span className="text-slate-500">&larr;</span>
+            <span className="text-cyan-400 font-medium">{headBranch}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-slate-500">Security Gate:</span>
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <span className="text-slate-400">Security Gate:</span>
             <span
-              className={`rounded px-2 py-0.5 font-bold uppercase ${
+              className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase ${
                 isApproved
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/40'
                   : isBlocked
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  ? 'bg-rose-950/80 text-rose-400 border border-rose-500/40'
+                  : 'bg-amber-950/80 text-amber-400 border border-amber-500/40'
               }`}
             >
-              {isApproved ? 'PASS (Ready to Merge)' : isBlocked ? 'FAIL (Merge Blocked)' : 'COMMENT ONLY'}
+              {isApproved ? 'PASS (READY TO MERGE)' : isBlocked ? 'FAIL (MERGE BLOCKED)' : 'COMMENT ONLY'}
             </span>
           </div>
         </div>
@@ -609,40 +587,40 @@ export function CyberDiffInspector({
                       <div className="flex flex-wrap items-center gap-2">
                         {/* Severity Badge */}
                         <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase font-mono ${
+                          className={`rounded px-2.5 py-0.5 text-[10px] font-bold uppercase font-mono ${
                             isCritical
-                              ? 'bg-rose-500 text-white'
+                              ? 'bg-rose-950/60 text-rose-300 border border-rose-500/40'
                               : isWarning
-                              ? 'bg-amber-500/30 text-amber-300 border border-amber-500/40'
-                              : 'bg-slate-700 text-slate-300'
+                              ? 'bg-amber-950/60 text-amber-300 border border-amber-500/40'
+                              : 'bg-slate-800 text-slate-300 border border-slate-700'
                           }`}
                         >
                           {iss.severity}
                         </span>
 
                         {/* Category */}
-                        <span className="rounded bg-cyan-500/15 border border-cyan-500/20 px-2 py-0.5 text-[10px] font-mono text-cyan-300 uppercase">
+                        <span className="rounded bg-sky-950/60 border border-sky-500/40 px-2.5 py-0.5 text-[10px] font-mono font-bold text-sky-300 uppercase">
                           {iss.category}
                         </span>
 
                         {/* Provenance Source */}
-                        <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-mono text-slate-300">
+                        <span className="rounded bg-slate-800/80 border border-slate-700 px-2.5 py-0.5 text-[10px] font-mono text-slate-300">
                           Provenance: {provenanceLabel}
                         </span>
 
                         {/* Calibrated Confidence */}
-                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded font-bold">
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2.5 py-0.5 rounded font-bold">
                           Calibrated Confidence: {calConfidence}%
                         </span>
 
                         {/* Risk Score */}
                         {iss.riskScore !== undefined && iss.riskScore !== null && (
-                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                          <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded font-bold ${
                             iss.riskScore >= 80
-                              ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
+                              ? 'bg-rose-950/60 text-rose-300 border border-rose-500/40'
                               : iss.riskScore >= 50
-                              ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                              : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                              ? 'bg-amber-950/60 text-amber-300 border border-amber-500/40'
+                              : 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/40'
                           }`}>
                             Risk Score: {Math.round(iss.riskScore)}/100
                           </span>
@@ -650,7 +628,7 @@ export function CyberDiffInspector({
 
                         {/* CWE Badge with MITRE link */}
                         {iss.cwe && (
-                          <span className="inline-flex items-center gap-1 rounded bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-mono text-indigo-300">
+                          <span className="inline-flex items-center gap-1 rounded bg-purple-950/60 border border-purple-500/30 px-2.5 py-0.5 text-[10px] font-mono text-purple-300">
                             {cweUrl ? (
                               <a
                                 href={cweUrl}
@@ -669,7 +647,7 @@ export function CyberDiffInspector({
 
                         {/* OWASP Badge */}
                         {iss.owasp && (
-                          <span className="rounded bg-purple-500/20 border border-purple-500/30 px-2 py-0.5 text-[10px] font-mono text-purple-300">
+                          <span className="rounded bg-purple-950/60 border border-purple-500/30 px-2.5 py-0.5 text-[10px] font-mono text-purple-300">
                             {iss.owasp}
                           </span>
                         )}
@@ -677,12 +655,12 @@ export function CyberDiffInspector({
 
                       {/* Status Indicator */}
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[10px] font-mono font-bold uppercase ${
+                        className={`rounded-md px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                           currentStatus === 'fixed'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
                             : currentStatus === 'dismissed'
-                            ? 'bg-slate-800 text-slate-400'
-                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                            : 'bg-rose-950/80 text-rose-300 border border-rose-500/40'
                         }`}
                       >
                         {currentStatus}
