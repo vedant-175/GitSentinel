@@ -508,6 +508,7 @@ export function CodeExplorerClient({
       text: fileContent.slice(0, 1000),
       repo: selectedRepo,
     };
+    window.dispatchEvent(new CustomEvent('gitsentinel:ask-ai', { detail }));
     window.dispatchEvent(new CustomEvent('cyberops:ask-ai', { detail }));
     window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
   };

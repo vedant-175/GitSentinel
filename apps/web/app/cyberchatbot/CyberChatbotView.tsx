@@ -86,7 +86,7 @@ export function CyberChatbotView({ currentUserLogin = '' }: CyberChatbotViewProp
     {
       id: 'welcome',
       role: 'assistant',
-      content: `### Welcome to GitSentinel CyberOps AI 🛡️\n\nI am connected directly to your workspace${
+      content: `### Welcome to GitSentinel AI 🛡️\n\nI am connected directly to your workspace${
         currentUserLogin ? ` for **@${currentUserLogin}**` : ''
       } with live AST analysis and zero-trust security gate telemetry.\n\nYou can ask me to:\n- **Audit code changes** for vulnerabilities (SQL Injection, Path Traversal, Secrets leak, Insecure Deserialization)\n- **Generate production-ready security patches** with syntax highlighted diffs\n- **Simulate attack vectors** and threat models\n- **Explain why a PR merge gate is blocked** and what changes will unblock it\n\nSelect a preset prompt below or ask any question about your codebase:`,
       timestamp: 'Ready',
@@ -314,7 +314,7 @@ export function CyberChatbotView({ currentUserLogin = '' }: CyberChatbotViewProp
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800">
                 <span className="text-slate-500 dark:text-zinc-400">Zero-Key Offline Fallback</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Deterministic CyberOps</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Deterministic GitSentinel AI</span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800">
                 <span className="text-slate-500 dark:text-zinc-400">Key Pool Auto-Rotation</span>

@@ -59,7 +59,7 @@ export default function RootLayout({
             {/* Global Interactive PR & Repo Security Copilot */}
             <CyberChatbot />
 
-            {/* Contextual Floating 'Ask CyberOps AI' on text selection */}
+            {/* Contextual Floating 'Ask GitSentinel AI' on text selection */}
             <GlobalSelectionAskAi />
           </div>
         </Providers>

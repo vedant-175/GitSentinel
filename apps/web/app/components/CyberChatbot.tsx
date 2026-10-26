@@ -164,8 +164,10 @@ How can I assist you with this codebase or security review today?`,
       }, 50);
     };
 
+    window.addEventListener('gitsentinel:ask-ai', handleAskAiEvent);
     window.addEventListener('cyberops:ask-ai', handleAskAiEvent);
     return () => {
+      window.removeEventListener('gitsentinel:ask-ai', handleAskAiEvent);
       window.removeEventListener('cyberops:ask-ai', handleAskAiEvent);
     };
   }, []);
