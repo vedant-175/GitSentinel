@@ -222,25 +222,24 @@ export function RepoSourceExplorer({
             <span>Reload</span>
           </button>
 
-          {/* Ask CyberOps AI on Selected Text */}
+          {/* Ask GitSentinel AI on Selected Text */}
           {selectedSnippet && (
             <button
               onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent('cyberops:ask-ai', {
-                    detail: {
-                      text: selectedSnippet,
-                      filePath: activeFilePath,
-                      repoFullName,
-                    },
-                  })
-                );
+                const detail = {
+                  text: selectedSnippet,
+                  filePath: activeFilePath,
+                  repoFullName,
+                };
+                window.dispatchEvent(new CustomEvent('gitsentinel:ask-ai', { detail }));
+                window.dispatchEvent(new CustomEvent('cyberops:ask-ai', { detail }));
+                window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
               }}
               className="flex items-center gap-1.5 rounded-xl bg-cyan-400 px-3 py-1.5 text-xs font-mono font-bold text-black shadow-[0_0_20px_rgba(0,240,255,0.6)] hover:bg-cyan-300 transition-all cursor-pointer animate-pulse"
-              title="Direct to CyberOps AI with highlighted code"
+              title="Direct to GitSentinel AI with highlighted code"
             >
               <Bot className="h-3.5 w-3.5 text-black" />
-              <span>Ask CyberOps AI ({selectedSnippet.length} chars)</span>
+              <span>Ask GitSentinel AI ({selectedSnippet.length} chars)</span>
             </button>
           )}
 

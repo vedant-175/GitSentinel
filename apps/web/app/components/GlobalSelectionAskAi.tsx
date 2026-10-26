@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { Bot, Sparkles } from 'lucide-react';
 
 interface SelectionPos {
@@ -12,8 +13,12 @@ interface SelectionPos {
 }
 
 export function GlobalSelectionAskAi() {
+  const pathname = usePathname();
   const [pos, setPos] = useState<SelectionPos | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Never render on unauthenticated auth pages like /login or /register
+  const isAuthPage = pathname === '/login' || pathname === '/register';
 
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -102,7 +107,7 @@ export function GlobalSelectionAskAi() {
     };
   }, []);
 
-  if (!pos || !pos.text) return null;
+  if (isAuthPage || !pos || !pos.text) return null;
 
   const handleAsk = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -112,16 +117,15 @@ export function GlobalSelectionAskAi() {
     const filePath = pos.filePath;
     const repoFullName = pos.repoFullName;
 
-    // Direct to CyberOps AI
-    window.dispatchEvent(
-      new CustomEvent('cyberops:ask-ai', {
-        detail: {
-          text: selectedText,
-          filePath,
-          repoFullName,
-        },
-      })
-    );
+    // Direct to GitSentinel AI
+    const eventDetail = {
+      text: selectedText,
+      filePath,
+      repoFullName,
+    };
+    window.dispatchEvent(new CustomEvent('gitsentinel:ask-ai', { detail: eventDetail }));
+    window.dispatchEvent(new CustomEvent('cyberops:ask-ai', { detail: eventDetail }));
+    window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
 
     // Clear selection and close floating pill
     setPos(null);
@@ -149,7 +153,7 @@ export function GlobalSelectionAskAi() {
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-400 hover:bg-cyan-300 text-black font-mono text-xs font-bold shadow-[0_0_25px_rgba(0,240,255,0.75)] border border-cyan-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
       >
         <Bot className="h-3.5 w-3.5 text-black" />
-        <span>Ask CyberOps AI</span>
+        <span>Ask GitSentinel AI</span>
         <Sparkles className="h-3 w-3 text-black animate-pulse" />
       </button>
     </div>

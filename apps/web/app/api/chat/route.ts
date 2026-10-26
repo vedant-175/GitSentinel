@@ -373,7 +373,7 @@ REPOSITORY CONTEXT:
         `### Analysis Notes\n\n` +
         (latestReview?.summary || 'Code inspected against OWASP Top 10 and MITRE CWE benchmarks.');
     } else {
-      answer = `🤖 **GitSentinel CyberOps Analysis**:\n\n` +
+      answer = `🤖 **GitSentinel AI Analysis**:\n\n` +
         `Regarding your question: "${userMessage}"\n\n` +
         (prRecord
           ? `For PR **#${prRecord.number} (${prRecord.title})**, we have **${issues.length} security finding(s)** recorded. The primary concern is ${issues[0]?.message || 'code quality and boundary verification'}.\n\nYou can ask me to:\n1. *"Show how to fix the vulnerability"*\n2. *"Explain the attack scenario"*\n3. *"Why is the PR blocked?"*`
