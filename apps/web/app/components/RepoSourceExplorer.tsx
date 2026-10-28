@@ -235,11 +235,26 @@ export function RepoSourceExplorer({
                 window.dispatchEvent(new CustomEvent('cyberops:ask-ai', { detail }));
                 window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
               }}
-              className="flex items-center gap-1.5 rounded-xl bg-cyan-400 px-3 py-1.5 text-xs font-mono font-bold text-black shadow-[0_0_20px_rgba(0,240,255,0.6)] hover:bg-cyan-300 transition-all cursor-pointer animate-pulse"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-zinc-100 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer"
               title="Direct to GitSentinel AI with highlighted code"
             >
-              <Bot className="h-3.5 w-3.5 text-black" />
+              <div className="flex items-center justify-center text-slate-700 dark:text-zinc-300">
+                <svg
+                  className="h-3.5 w-3.5 stroke-[2]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                  <circle cx="8" cy="12" r="0.8" fill="currentColor" />
+                  <circle cx="12" cy="12" r="0.8" fill="currentColor" />
+                  <circle cx="16" cy="12" r="0.8" fill="currentColor" />
+                </svg>
+              </div>
               <span>Ask GitSentinel AI ({selectedSnippet.length} chars)</span>
+              <Sparkles className="h-3 w-3 text-slate-400 dark:text-zinc-400" />
             </button>
           )}
 
