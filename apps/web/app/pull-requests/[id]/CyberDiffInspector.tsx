@@ -298,7 +298,7 @@ export function CyberDiffInspector({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'audit'
                 ? 'bg-white dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-200 dark:border-blue-500/40 shadow-xs dark:shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
             }`}
           >
             <History className="h-3.5 w-3.5" />
@@ -309,8 +309,8 @@ export function CyberDiffInspector({
             onClick={() => setActiveTab('eval')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'eval'
-                ? 'bg-blue-950/40 text-blue-300 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                ? 'bg-white dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-200 dark:border-blue-500/40 shadow-xs dark:shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
             }`}
           >
             <BarChart3 className="h-3.5 w-3.5" />
@@ -346,7 +346,7 @@ export function CyberDiffInspector({
           </div>
           <button
             onClick={() => setRerunError(null)}
-            className="text-slate-400 hover:text-white font-bold ml-2"
+            className="text-rose-400 hover:text-rose-700 dark:hover:text-white font-bold ml-2 cursor-pointer"
           >
             &times;
           </button>
@@ -786,15 +786,15 @@ export function CyberDiffInspector({
                       />
 
                       {/* Developer Action Bar (Mark Fixed, Dismiss, Reopen) */}
-                      <div className="pt-2 border-t border-[#172338] flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                      <div className="pt-2 border-t border-slate-200 dark:border-[#172338] flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-400 uppercase">Triage Action:</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Triage Action:</span>
                           {currentStatus !== 'fixed' && (
                             <button
                               type="button"
                               onClick={() => handleStatusChange(iss.id, 'fixed')}
                               disabled={isUpdating}
-                              className="flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-2.5 py-1 text-emerald-300 hover:bg-emerald-900/40 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                              className="flex items-center gap-1 rounded-lg border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 hover:text-emerald-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
                             >
                               <Check className="h-3 w-3" />
                               <span>Mark Fixed</span>
@@ -806,7 +806,7 @@ export function CyberDiffInspector({
                               type="button"
                               onClick={() => handleStatusChange(iss.id, 'dismissed')}
                               disabled={isUpdating}
-                              className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                              className="flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
                             >
                               <XCircle className="h-3 w-3" />
                               <span>Dismiss</span>

@@ -662,21 +662,21 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                       {isExpanded && (
                         <div className="p-3 border-t border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] space-y-3 font-mono text-xs">
                           {/* Metadata Header */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pb-2 border-b border-[#172338]/60">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pb-2 border-b border-slate-200 dark:border-[#172338]/60">
                             <div>
                               <span className="text-slate-500">Correlation ID:</span>
-                              <div className="flex items-center gap-1 text-slate-200 font-bold mt-0.5">
+                              <div className="flex items-center gap-1 text-slate-900 dark:text-slate-200 font-bold mt-0.5">
                                 <span className="truncate">{trace.correlationId}</span>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     copyToClipboard(trace.correlationId, `corr-${traceKey}`);
                                   }}
-                                  className="text-slate-400 hover:text-white"
+                                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                                   title="Copy Correlation ID"
                                 >
                                   {copiedId === `corr-${traceKey}` ? (
-                                    <Check className="h-3 w-3 text-emerald-400" />
+                                    <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                                   ) : (
                                     <Copy className="h-3 w-3" />
                                   )}
@@ -686,21 +686,21 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
 
                             <div>
                               <span className="text-slate-500">Review ID / Job ID:</span>
-                              <div className="text-slate-200 font-bold mt-0.5">
+                              <div className="text-slate-900 dark:text-slate-200 font-bold mt-0.5">
                                 Rev #{trace.reviewId || 'N/A'} / Job {trace.jobId}
                               </div>
                             </div>
 
                             <div>
                               <span className="text-slate-500">Commit SHA:</span>
-                              <div className="text-slate-200 font-bold mt-0.5 font-mono">
+                              <div className="text-slate-900 dark:text-slate-200 font-bold mt-0.5 font-mono">
                                 {trace.commitSha}
                               </div>
                             </div>
 
                             <div>
                               <span className="text-slate-500">Completed At:</span>
-                              <div className="text-slate-200 mt-0.5" suppressHydrationWarning>
+                              <div className="text-slate-800 dark:text-slate-200 mt-0.5" suppressHydrationWarning>
                                 {trace.completedAt ? formatTime(trace.completedAt) : 'In Progress'}
                               </div>
                             </div>
@@ -712,7 +712,7 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                               Stage Execution Telemetry:
                             </div>
 
-                            <div className="divide-y divide-[#172338]/60 rounded-xl border border-[#172338] bg-[#06090e] overflow-hidden">
+                            <div className="divide-y divide-slate-200 dark:divide-[#172338]/60 rounded-xl border border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e] overflow-hidden">
                               {REVIEW_LIFECYCLE_STAGES.map((stg) => {
                                 const stageData = trace.stages?.[stg];
                                 const isStageSuccess = stageData?.status === 'success';
@@ -722,19 +722,19 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                                 return (
                                   <div
                                     key={stg}
-                                    className="p-2 flex items-center justify-between text-[11px] hover:bg-slate-900/30 transition-colors"
+                                    className="p-2 flex items-center justify-between text-[11px] hover:bg-slate-100 dark:hover:bg-slate-900/30 transition-colors"
                                   >
                                     <div className="flex items-center gap-2">
                                       <span
                                         className={`h-2 w-2 rounded-full ${
                                           isStageSuccess
-                                            ? 'bg-emerald-400'
+                                            ? 'bg-emerald-500 dark:bg-emerald-400'
                                             : isStageFailed
-                                            ? 'bg-rose-400'
-                                            : 'bg-slate-600'
+                                            ? 'bg-rose-500 dark:bg-rose-400'
+                                            : 'bg-slate-400 dark:bg-slate-600'
                                         }`}
                                       />
-                                      <span className="text-slate-300 font-bold">{STAGE_LABELS[stg].name}</span>
+                                      <span className="text-slate-800 dark:text-slate-300 font-bold">{STAGE_LABELS[stg].name}</span>
                                       {stageData?.errorCategory && stageData.errorCategory !== 'none' && (
                                         <span className="rounded bg-rose-500/20 text-rose-300 px-1.5 py-0.2 text-[9px] font-bold">
                                           {stageData.errorCategory}

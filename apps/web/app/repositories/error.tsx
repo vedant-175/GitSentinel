@@ -13,13 +13,13 @@ export default function RepositoriesError({
 }) {
   return (
     <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
-      <div className="glass-panel max-w-md w-full p-8 rounded-2xl border border-rose-500/20 bg-rose-950/10 space-y-4">
-        <div className="p-3 mx-auto w-fit rounded-2xl bg-rose-500/20 text-rose-400">
+      <div className="max-w-md w-full p-8 rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-rose-50/50 dark:bg-rose-950/10 shadow-xs space-y-4">
+        <div className="p-3 mx-auto w-fit rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
           <AlertCircle className="w-8 h-8" />
         </div>
 
-        <h2 className="text-lg font-bold text-white">Failed to Load Repositories</h2>
-        <p className="text-xs text-rose-300/80 font-mono bg-black/40 p-3 rounded-xl border border-white/5 break-words">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Failed to Load Repositories</h2>
+        <p className="text-xs text-rose-700 dark:text-rose-300/80 font-mono bg-white dark:bg-black/40 p-3 rounded-xl border border-rose-200 dark:border-white/5 break-words">
           {error.message || 'Unable to fetch connected repositories.'}
         </p>
 
@@ -27,13 +27,13 @@ export default function RepositoriesError({
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-all cursor-pointer shadow-xs"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Retry
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-all shadow-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
           </Link>

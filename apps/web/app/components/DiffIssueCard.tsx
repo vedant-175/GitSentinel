@@ -36,10 +36,10 @@ export function DiffIssueCard({
   const isWarning = severity.toLowerCase() === 'warning';
 
   const badgeColor = isCritical
-    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+    ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20'
     : isWarning
-    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-    : 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
+    : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20';
 
   const Icon = isCritical ? AlertCircle : isWarning ? AlertTriangle : Info;
 
@@ -123,15 +123,16 @@ export function DiffIssueCard({
 
       {/* Suggested Fix */}
       {suggestedFix && (
-        <div className="mt-3 overflow-hidden rounded-lg border border-emerald-500/20 bg-emerald-950/20">
-          <div className="flex items-center justify-between bg-emerald-900/20 px-3 py-1.5 border-b border-emerald-500/20">
-            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+        <div className="mt-3 overflow-hidden rounded-lg border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/70 dark:bg-emerald-950/20 shadow-xs">
+          <div className="flex items-center justify-between bg-emerald-100/60 dark:bg-emerald-900/20 px-3 py-1.5 border-b border-emerald-200 dark:border-emerald-500/20">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-400">
               <Code2 className="h-3.5 w-3.5" />
               Suggested Replacement
             </span>
             <button
+              type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1 text-[11px] text-emerald-300 hover:text-white transition-colors"
+              className="flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-white cursor-pointer transition-colors"
             >
               {copied ? (
                 <>
@@ -144,7 +145,7 @@ export function DiffIssueCard({
               )}
             </button>
           </div>
-          <pre className="p-3 font-mono text-xs text-emerald-200/90 overflow-x-auto whitespace-pre">
+          <pre className="p-3 font-mono text-xs text-emerald-900 dark:text-emerald-200/90 bg-white/70 dark:bg-transparent overflow-x-auto whitespace-pre">
             {suggestedFix}
           </pre>
         </div>

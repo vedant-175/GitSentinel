@@ -193,19 +193,19 @@ export function CodeDiffViewer({
         <div className="p-3 space-y-3 font-mono text-xs">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Before (Current Code) */}
-            <div className="rounded-lg border border-rose-500/30 bg-rose-950/20 p-3 overflow-hidden">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-rose-500/20 text-[10px] font-bold uppercase tracking-wider text-rose-400">
+            <div className="rounded-lg border border-rose-200 dark:border-rose-500/30 bg-rose-50/70 dark:bg-rose-950/20 p-3 overflow-hidden shadow-xs">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-rose-200 dark:border-rose-500/20 text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
                 <span>Current Offending Code</span>
                 <span>Line {lineNumber}</span>
               </div>
-              <pre className="overflow-x-auto whitespace-pre text-rose-200 text-[11px] p-2 bg-[#06090e]/70 rounded">
+              <pre className="overflow-x-auto whitespace-pre text-rose-800 dark:text-rose-200 text-[11px] p-2 bg-white/90 dark:bg-[#06090e]/70 rounded border border-rose-200/50 dark:border-transparent">
                 <code>{effectiveCurrentCode || `// Line ${lineNumber}`}</code>
               </pre>
             </div>
 
             {/* After (Suggested Patch) */}
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3 overflow-hidden">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/70 dark:bg-emerald-950/20 p-3 overflow-hidden shadow-xs">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-200 dark:border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
                 <span className="flex items-center gap-1">
                   <Sparkles className="h-3 w-3" />
                   Suggested Patch
@@ -213,14 +213,14 @@ export function CodeDiffViewer({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="flex items-center gap-1 rounded bg-emerald-500/20 px-2 py-0.5 text-emerald-300 hover:bg-emerald-500/30 cursor-pointer transition-colors"
+                  className="flex items-center gap-1 rounded bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:hover:bg-emerald-500/30 px-2 py-0.5 text-emerald-800 dark:text-emerald-300 cursor-pointer transition-colors"
                   aria-label="Copy suggested patch"
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   <span>{copied ? 'Copied!' : 'Copy'}</span>
                 </button>
               </div>
-              <pre className="overflow-x-auto whitespace-pre text-emerald-300 text-[11px] p-2 bg-[#06090e]/70 rounded">
+              <pre className="overflow-x-auto whitespace-pre text-emerald-900 dark:text-emerald-300 text-[11px] p-2 bg-white/90 dark:bg-[#06090e]/70 rounded border border-emerald-200/50 dark:border-transparent">
                 <code>{suggestedFix}</code>
               </pre>
             </div>
