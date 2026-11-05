@@ -10,6 +10,7 @@ interface PRItem {
   title: string | null;
   author: string | null;
   state: string | null;
+  headSha?: string | null;
   repository: {
     fullName: string;
   };
@@ -37,6 +38,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
   );
 
   const filteredPRs = initialPullRequests.filter((pr) => {
+    if (pr.title?.includes('Autonomous Security') || pr.headSha?.startsWith('head-')) return false;
     // Search query match (title, author, or PR number)
     const matchesSearch =
       !searchQuery ||
@@ -80,7 +82,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
             value={searchQuery}
             onChange={(e) => handleFilterChange(setSearchQuery, e.target.value)}
             placeholder="Filter by title, author (@username), repo, or PR #..."
-            className="w-full rounded-xl border border-white/10 bg-slate-900/60 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/60 pl-10 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 
@@ -89,7 +91,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
           <select
             value={selectedVerdict}
             onChange={(e) => handleFilterChange(setSelectedVerdict, e.target.value)}
-            className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+            className="rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/60 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
           >
             <option value="ALL">All Verdicts</option>
             <option value="APPROVE">Approved</option>
@@ -102,7 +104,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
             <select
               value={selectedRepo}
               onChange={(e) => handleFilterChange(setSelectedRepo, e.target.value)}
-              className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none max-w-[200px] truncate"
+              className="rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/60 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 focus:outline-none max-w-[200px] truncate"
             >
               <option value="ALL">All Repositories</option>
               {repoNames.map((name) => (
@@ -148,27 +150,27 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
           return (
             <div
               key={pr.id}
-              className="glass-panel rounded-2xl p-5 hover:border-indigo-500/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+              className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 p-5 hover:border-blue-500/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group shadow-xs"
             >
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-md bg-white/5 px-2 py-0.5 font-mono text-xs font-semibold text-slate-300 border border-white/5">
+                  <span className="rounded-md bg-slate-100 dark:bg-white/5 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/5">
                     {pr.repository.fullName}
                   </span>
-                  <span className="font-mono text-xs text-indigo-400">#{pr.githubPrNumber}</span>
-                  <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-400">
+                  <span className="font-mono text-xs text-blue-600 dark:text-indigo-400">#{pr.githubPrNumber}</span>
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400">
                     {pr.state}
                   </span>
                 </div>
 
                 <Link
                   href={`/pull-requests/${pr.id}`}
-                  className="text-base font-semibold text-white group-hover:text-indigo-300 transition-colors block"
+                  className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-indigo-300 transition-colors block"
                 >
                   {pr.title || `PR #${pr.githubPrNumber}`}
                 </Link>
 
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                   Opened by @{pr.author || 'unknown'} • {pr.reviews.length} review run(s)
                 </p>
               </div>
@@ -178,7 +180,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
                 {latestReview ? (
                   <div className="flex items-center gap-3">
                     {criticalCount > 0 && (
-                      <span className="flex items-center gap-1 text-xs text-rose-400 bg-rose-500/10 px-2 py-1 rounded-md border border-rose-500/20 font-mono">
+                      <span className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded-md border border-rose-200 dark:border-rose-500/20 font-mono">
                         <ShieldAlert className="h-3.5 w-3.5" />
                         {criticalCount} critical
                       </span>
@@ -187,24 +189,24 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                         isApproved
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
                           : isChangesRequested
-                          ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
+                          : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
                       }`}
                     >
                       {verdict.replace('_', ' ')}
                     </span>
                   </div>
                 ) : (
-                  <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
                     <Clock className="h-3 w-3 animate-spin" /> In Queue
                   </span>
                 )}
 
                 <Link
                   href={`/pull-requests/${pr.id}`}
-                  className="flex items-center gap-1.5 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-indigo-400 hover:bg-white/10 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 dark:border-transparent bg-blue-50 dark:bg-white/5 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-indigo-400 hover:bg-blue-100 dark:hover:bg-white/10 hover:text-blue-900 dark:hover:text-white transition-colors shadow-xs"
                 >
                   Inspect
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -227,8 +229,8 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4 border-t border-white/5 text-xs font-mono">
-          <span className="text-slate-400">
+        <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/5 text-xs font-mono">
+          <span className="text-slate-500 dark:text-slate-400">
             Page {currentPage} of {totalPages}
           </span>
           <div className="flex items-center gap-2">
@@ -236,7 +238,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer shadow-xs"
             >
               <ChevronLeft className="w-3.5 h-3.5" /> Previous
             </button>
@@ -244,7 +246,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 bg-slate-900/60 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer shadow-xs"
             >
               Next <ChevronRight className="w-3.5 h-3.5" />
             </button>

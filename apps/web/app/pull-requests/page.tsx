@@ -24,8 +24,9 @@ export default async function PullRequestsPage() {
 
   let dbPullRequests: any[] = [];
   try {
-    const result = await getPullRequests({ limit: 50 });
+    const result = await getPullRequests({ limit: 50, includeSynthetic: false });
     dbPullRequests = (result?.data || []).filter((pr: any) => {
+      if (pr.title?.includes('Autonomous Security') || pr.headSha?.startsWith('head-')) return false;
       if (currentUserLogin) {
         const repoFullName = pr.repository?.fullName || '';
         const [repoOwner] = repoFullName.toLowerCase().split('/');

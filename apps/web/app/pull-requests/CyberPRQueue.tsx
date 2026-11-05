@@ -111,6 +111,7 @@ export function CyberPRQueue({
   // Map real database or live pull requests (no hardcoded demo data)
   const filteredPrs = useMemo(() => {
     return (prs || []).filter((pr: any) => {
+      if (pr.title?.includes('Autonomous Security') || pr.headSha?.startsWith('head-')) return false;
       if (currentUserLogin) {
         const fullName = pr.repository?.fullName || '';
         const [owner] = fullName.toLowerCase().split('/');
