@@ -257,27 +257,27 @@ export function CyberDiffInspector({
         <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
           <Link
             href="/pull-requests"
-            className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             aria-label="Back to Pull Requests"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Pull Requests</span>
           </Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-white font-semibold">#{prNumber}</span>
+          <span className="text-slate-400 dark:text-slate-600">/</span>
+          <span className="text-slate-900 dark:text-white font-semibold">#{prNumber}</span>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center p-1 rounded-xl bg-[#06090e] border border-[#172338] font-mono text-xs">
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] font-mono text-xs">
           <button
             onClick={() => setActiveTab('findings')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'findings'
-                ? 'bg-blue-950/40 text-blue-300 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                ? 'bg-white dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-200 dark:border-blue-500/40 shadow-xs dark:shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
             }`}
           >
-            <Shield className="h-3.5 w-3.5 text-blue-400" />
+            <Shield className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span>Code Findings ({issues.length})</span>
           </button>
 
@@ -285,8 +285,8 @@ export function CyberDiffInspector({
             onClick={() => setActiveTab('explorer')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'explorer'
-                ? 'bg-blue-950/40 text-blue-300 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                : 'text-slate-400 hover:text-white border border-transparent'
+                ? 'bg-white dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-200 dark:border-blue-500/40 shadow-xs dark:shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent'
             }`}
           >
             <FileCode className="h-3.5 w-3.5" />
@@ -297,7 +297,7 @@ export function CyberDiffInspector({
             onClick={() => setActiveTab('audit')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               activeTab === 'audit'
-                ? 'bg-blue-950/40 text-blue-300 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                ? 'bg-white dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-200 dark:border-blue-500/40 shadow-xs dark:shadow-[0_0_12px_rgba(59,130,246,0.2)]'
                 : 'text-slate-400 hover:text-white border border-transparent'
             }`}
           >
@@ -356,36 +356,36 @@ export function CyberDiffInspector({
       {/* ========================================================================= */}
       {/* 2. GITHUB REPOSITORY INTEGRATION & PULL REQUEST HERO CARD */}
       {/* ========================================================================= */}
-      <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-2">
+      <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-2">
         {/* Top Row: Repo Link on Left, GitHub App + Repo ID on Right */}
         <div className="flex items-center justify-between">
           <a
             href={githubRepoUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 font-bold text-slate-200 hover:text-blue-400 transition-colors text-xs font-mono"
+            className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-xs font-mono"
           >
             <Github className="h-4 w-4" />
             <span>{repoName}</span>
-            <ExternalLink className="h-3 w-3 text-slate-500" />
+            <ExternalLink className="h-3 w-3 text-slate-400 dark:text-slate-500" />
           </a>
 
           <div className="flex items-center gap-4 text-xs font-mono">
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />
-              <span className="text-blue-400 font-bold">GitHub App Integrated</span>
+              <span className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 inline-block" />
+              <span className="text-blue-600 dark:text-blue-400 font-bold">GitHub App Integrated</span>
               {installationId && <span className="text-slate-500">({installationId})</span>}
             </div>
-            <div className="text-slate-400 text-[11px] hidden sm:flex items-center gap-1.5">
-              <span>Repo ID: <span className="text-slate-300">{githubRepoId}</span></span>
-              <span className="text-slate-600">&bull;</span>
-              <span>Branch: <span className="text-slate-300">{defaultBranch}</span></span>
+            <div className="text-slate-500 dark:text-slate-400 text-[11px] hidden sm:flex items-center gap-1.5">
+              <span>Repo ID: <span className="text-slate-700 dark:text-slate-300">{githubRepoId}</span></span>
+              <span className="text-slate-300 dark:text-slate-600">&bull;</span>
+              <span>Branch: <span className="text-slate-700 dark:text-slate-300">{defaultBranch}</span></span>
             </div>
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
           {title}
         </h1>
 
@@ -461,13 +461,13 @@ export function CyberDiffInspector({
       {activeTab === 'findings' && (
         <div className="space-y-4">
           {/* Multi-Dimensional Filters Bar */}
-          <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-3 shadow-md space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono pb-2 border-b border-[#172338]">
-              <div className="flex items-center gap-1.5 text-slate-300 font-bold">
-                <Filter className="h-3.5 w-3.5 text-blue-400" />
+          <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-3 shadow-xs dark:shadow-md space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono pb-2 border-b border-slate-200 dark:border-[#172338]">
+              <div className="flex items-center gap-1.5 text-slate-800 dark:text-slate-300 font-bold">
+                <Filter className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 <span>Multi-Dimensional Finding Filters</span>
               </div>
-              <span className="text-[11px] text-blue-400 font-mono font-semibold">
+              <span className="text-[11px] text-blue-600 dark:text-blue-400 font-mono font-semibold">
                 Showing {filteredIssues.length} of {issues.length} Findings
               </span>
             </div>
@@ -475,11 +475,11 @@ export function CyberDiffInspector({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 font-mono text-xs">
               {/* Severity Filter */}
               <div>
-                <label className="text-[10px] text-slate-400 uppercase block mb-1">Severity</label>
+                <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block mb-1">Severity</label>
                 <select
                   value={severityFilter}
                   onChange={(e) => setSeverityFilter(e.target.value)}
-                  className="w-full rounded-xl border border-[#172338] bg-[#06090e] px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-blue-500/50"
+                  className="w-full rounded-xl border border-slate-300 dark:border-[#172338] bg-white dark:bg-[#06090e] px-2.5 py-1.5 text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 shadow-xs"
                   aria-label="Filter by Severity"
                 >
                   <option value="all">All Severities</option>
@@ -492,11 +492,11 @@ export function CyberDiffInspector({
 
               {/* Source Provenance Filter */}
               <div>
-                <label className="text-[10px] text-slate-400 uppercase block mb-1">Analysis Provenance</label>
+                <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block mb-1">Analysis Provenance</label>
                 <select
                   value={sourceFilter}
                   onChange={(e) => setSourceFilter(e.target.value)}
-                  className="w-full rounded-xl border border-[#172338] bg-[#06090e] px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-blue-500/50"
+                  className="w-full rounded-xl border border-slate-300 dark:border-[#172338] bg-white dark:bg-[#06090e] px-2.5 py-1.5 text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 shadow-xs"
                   aria-label="Filter by Source"
                 >
                   <option value="all">All Provenance Sources</option>
@@ -509,11 +509,11 @@ export function CyberDiffInspector({
 
               {/* Status Filter */}
               <div>
-                <label className="text-[10px] text-slate-400 uppercase block mb-1">Triage Status</label>
+                <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block mb-1">Triage Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full rounded-xl border border-[#172338] bg-[#06090e] px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-blue-500/50"
+                  className="w-full rounded-xl border border-slate-300 dark:border-[#172338] bg-white dark:bg-[#06090e] px-2.5 py-1.5 text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 shadow-xs"
                   aria-label="Filter by Status"
                 >
                   <option value="all">All Statuses</option>
@@ -525,17 +525,17 @@ export function CyberDiffInspector({
 
               {/* File Search */}
               <div>
-                <label className="text-[10px] text-slate-400 uppercase block mb-1">File Path Search</label>
+                <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block mb-1">File Path Search</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={fileSearch}
                     onChange={(e) => setFileSearch(e.target.value)}
                     placeholder="e.g. src/auth.ts"
-                    className="w-full rounded-xl border border-[#172338] bg-[#06090e] px-2.5 py-1.5 pl-7 text-slate-200 focus:outline-none focus:border-blue-500/50 text-xs"
+                    className="w-full rounded-xl border border-slate-300 dark:border-[#172338] bg-white dark:bg-[#06090e] px-2.5 py-1.5 pl-7 text-slate-900 dark:text-slate-200 focus:outline-none focus:border-blue-500 text-xs shadow-xs"
                     aria-label="Search by File Path"
                   />
-                  <Search className="h-3 w-3 text-slate-500 absolute left-2.5 top-2.5" />
+                  <Search className="h-3 w-3 text-slate-400 dark:text-slate-500 absolute left-2.5 top-2.5" />
                 </div>
               </div>
             </div>
@@ -574,16 +574,16 @@ export function CyberDiffInspector({
                 return (
                   <article
                     key={iss.id || idx}
-                    className={`rounded-2xl border bg-[#0b1019] overflow-hidden shadow-lg transition-all ${
+                    className={`rounded-2xl border bg-white dark:bg-[#0b1019] overflow-hidden shadow-xs dark:shadow-lg transition-all ${
                       isCritical
                         ? 'border-rose-500/40'
                         : isWarning
                         ? 'border-amber-500/40'
-                        : 'border-[#172338]'
+                        : 'border-slate-200 dark:border-[#172338]'
                     }`}
                   >
                     {/* Header Bar */}
-                    <div className="bg-[#06090e] px-4 py-3 border-b border-[#172338] flex flex-wrap items-center justify-between gap-2">
+                    <div className="bg-slate-50 dark:bg-[#06090e] px-4 py-3 border-b border-slate-200 dark:border-[#172338] flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-2">
                         {/* Severity Badge */}
                         <span
@@ -672,12 +672,12 @@ export function CyberDiffInspector({
                       {/* Message and GitHub File Link */}
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <h2 className="text-sm sm:text-base font-bold text-white font-sans">
+                          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-sans">
                             {iss.message}
                           </h2>
-                          <div className="text-xs font-mono text-slate-400 mt-1">
-                            File: <code className="text-blue-400">{iss.filePath}</code>
-                            {iss.lineNumber && <span> &bull; Line: <code className="text-blue-400">L{iss.lineNumber}</code></span>}
+                          <div className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">
+                            File: <code className="text-blue-600 dark:text-blue-400">{iss.filePath}</code>
+                            {iss.lineNumber && <span> &bull; Line: <code className="text-blue-600 dark:text-blue-400">L{iss.lineNumber}</code></span>}
                           </div>
                         </div>
 
@@ -685,7 +685,7 @@ export function CyberDiffInspector({
                           href={githubFileUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-mono text-blue-400 hover:text-blue-300 bg-[#06090e] border border-[#172338] hover:border-blue-500/40 px-3 py-1.5 rounded-xl transition-colors"
+                          className="inline-flex items-center gap-1.5 text-xs font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-white dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] hover:border-blue-400 px-3 py-1.5 rounded-xl transition-colors shadow-xs"
                         >
                           <span>Open in GitHub</span>
                           <ExternalLink className="h-3 w-3" />
@@ -695,8 +695,8 @@ export function CyberDiffInspector({
                       {/* ========================================================================= */}
                       {/* CAUSAL ANALYSIS: EXPLAINING "WHY" THE FINDING WAS GENERATED */}
                       {/* ========================================================================= */}
-                      <div className="rounded-xl border border-blue-500/30 bg-[#06090e] p-4 space-y-3 font-mono text-xs">
-                        <div className="flex items-center gap-2 text-blue-400 font-bold uppercase text-[11px] pb-2 border-b border-[#172338]">
+                      <div className="rounded-xl border border-blue-200 dark:border-blue-500/30 bg-slate-50 dark:bg-[#06090e] p-4 space-y-3 font-mono text-xs shadow-xs">
+                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-bold uppercase text-[11px] pb-2 border-b border-slate-200 dark:border-[#172338]">
                           <HelpCircle className="h-4 w-4" />
                           <span>Causal Analysis &amp; Technical Root Cause (Why Flagged)</span>
                         </div>
@@ -704,10 +704,10 @@ export function CyberDiffInspector({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                           {/* 1. Rule & Principle Violated */}
                           <div className="space-y-1">
-                            <span className="text-[10px] uppercase text-slate-400 font-bold">
+                            <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold">
                               1. Rule &amp; Security Standard Violated:
                             </span>
-                            <p className="text-slate-200 font-sans leading-relaxed">
+                            <p className="text-slate-800 dark:text-slate-200 font-sans leading-relaxed">
                               {iss.cwe ? `${iss.cwe}` : 'OWASP Top 10 Application Security Standard'}
                               {iss.owasp ? ` (${iss.owasp})` : ''} — Defect pattern matches unauthorized state modification or injection sink.
                             </p>
@@ -818,7 +818,7 @@ export function CyberDiffInspector({
                               type="button"
                               onClick={() => handleStatusChange(iss.id, 'open')}
                               disabled={isUpdating}
-                              className="flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-950/30 px-2.5 py-1 text-cyan-300 hover:bg-cyan-900/40 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                              className="flex items-center gap-1 rounded-lg border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
                             >
                               <RotateCcw className="h-3 w-3" />
                               <span>Reopen</span>
@@ -835,12 +835,12 @@ export function CyberDiffInspector({
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-8 text-center space-y-2">
-                <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-400" />
-                <h3 className="text-sm font-bold text-white font-mono">
+              <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-8 text-center space-y-2 shadow-xs">
+                <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-mono">
                   {issues.length === 0 ? 'Zero Findings Detected' : 'No Findings Match Active Filters'}
                 </h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
                   {issues.length === 0
                     ? 'All deterministic AST scanners, regex rules, and semantic AI models verified this pull request clean.'
                     : 'Adjust the severity, provenance source, or triage status filters above.'}
@@ -865,34 +865,34 @@ export function CyberDiffInspector({
       {/* TAB 2: AUDIT HISTORY TRAIL */}
       {/* ========================================================================= */}
       {activeTab === 'audit' && (
-        <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-3 font-mono text-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-            <div className="flex items-center gap-2 text-white font-bold">
-              <History className="h-4 w-4 text-cyan-400" />
+        <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-3 font-mono text-xs">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#172338]">
+            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
+              <History className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span>Immutable Audit History Trail</span>
             </div>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
               PR #{prNumber} &bull; Review #{currentReview?.id || 'N/A'}
             </span>
           </div>
 
           {/* Cryptographic Version Snapshot */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-[#06090e] border border-[#172338] p-3 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] bg-slate-50 dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] p-3 rounded-xl">
             <div>
               <span className="text-slate-500">Prompt Hash / Version:</span>
-              <div className="text-slate-200 font-bold mt-0.5 truncate">
+              <div className="text-slate-800 dark:text-slate-200 font-bold mt-0.5 truncate">
                 {currentReview?.promptVersion || 'v2.4.0-hardened'}
               </div>
             </div>
             <div>
               <span className="text-slate-500">Static Analyzer Suite:</span>
-              <div className="text-slate-200 font-bold mt-0.5 truncate">
+              <div className="text-slate-800 dark:text-slate-200 font-bold mt-0.5 truncate">
                 {currentReview?.staticAnalysisVersion || 'eslint-8.57+bandit-1.7+ruff-0.4'}
               </div>
             </div>
             <div>
               <span className="text-slate-500">Policy Hash:</span>
-              <div className="text-emerald-400 font-bold mt-0.5 truncate">
+              <div className="text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 truncate">
                 {currentReview?.configVersion || 'sha256:7f83b1657ff1...'}
               </div>
             </div>
@@ -900,18 +900,18 @@ export function CyberDiffInspector({
 
           {/* Audit Events Table */}
           {auditLogs.length > 0 ? (
-            <div className="divide-y divide-[#172338] rounded-xl border border-[#172338] bg-[#06090e] overflow-hidden">
+            <div className="divide-y divide-slate-100 dark:divide-[#172338] rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] overflow-hidden shadow-xs">
               {auditLogs.map((log: any) => (
-                <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-900/40">
+                <div key={log.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50 dark:hover:bg-slate-900/40">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="rounded bg-cyan-500/10 text-cyan-300 px-1.5 py-0.5 text-[10px] font-bold">
+                      <span className="rounded bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 text-[10px] font-bold">
                         {log.action}
                       </span>
-                      <span className="text-slate-200 font-bold">{log.actor}</span>
+                      <span className="text-slate-800 dark:text-slate-200 font-bold">{log.actor}</span>
                       <span className="text-slate-500 text-[10px]">({log.actorRole || 'SYSTEM'})</span>
                     </div>
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
                       Resource: {log.resourceType}:{log.resourceId}
                     </div>
                   </div>
@@ -934,43 +934,43 @@ export function CyberDiffInspector({
       {/* TAB 3: EMPIRICAL EVALUATION BENCHMARKS */}
       {/* ========================================================================= */}
       {activeTab === 'eval' && (
-        <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-4 font-mono text-xs">
-          <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-            <div className="flex items-center gap-2 text-white font-bold">
-              <BarChart3 className="h-4 w-4 text-cyan-400" />
+        <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-4 font-mono text-xs">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#172338]">
+            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
+              <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span>Empirical Ground-Truth Evaluation Benchmarks</span>
             </div>
-            <span className="text-[11px] text-emerald-400 font-bold">
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
               105 Diff Ground Truth Benchmark
             </span>
           </div>
 
-          <p className="text-xs text-slate-300 font-sans leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
             Rigorous offline evaluation against a curated dataset of 105 real code pull requests containing verified vulnerabilities, logical bugs, and clean controls (including 25 held-out test diffs with strict isolation guarantees).
           </p>
 
           {/* Comparison Table */}
           {evalBenchmark?.comparisonTable && (
-            <div className="overflow-x-auto rounded-xl border border-[#172338] bg-[#06090e]">
-              <table className="w-full text-left text-xs divide-y divide-[#172338]">
-                <thead className="bg-[#0b1019] text-slate-400 text-[10px] uppercase">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] shadow-xs">
+              <table className="w-full text-left text-xs divide-y divide-slate-100 dark:divide-[#172338]">
+                <thead className="bg-slate-50 dark:bg-[#0b1019] text-slate-600 dark:text-slate-400 text-[10px] uppercase">
                   <tr>
                     <th className="p-3">Evaluation Metric</th>
                     <th className="p-3">Static-Only Scanners</th>
                     <th className="p-3">LLM-Only Model</th>
-                    <th className="p-3 text-cyan-400 font-bold">Hybrid (Our Architecture)</th>
+                    <th className="p-3 text-blue-600 dark:text-blue-400 font-bold">Hybrid (Our Architecture)</th>
                     <th className="p-3">Top Performer</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#172338]/60 text-slate-200">
+                <tbody className="divide-y divide-slate-100 dark:divide-[#172338]/60 text-slate-800 dark:text-slate-200">
                   {evalBenchmark.comparisonTable.map((row: any, i: number) => (
-                    <tr key={i} className="hover:bg-slate-900/30">
-                      <td className="p-3 font-bold text-white">{row.metric}</td>
-                      <td className="p-3 text-slate-400">{row.staticOnly}</td>
-                      <td className="p-3 text-slate-300">{row.llmOnly}</td>
-                      <td className="p-3 text-cyan-300 font-bold">{row.hybrid}</td>
+                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
+                      <td className="p-3 font-bold text-slate-900 dark:text-white">{row.metric}</td>
+                      <td className="p-3 text-slate-500 dark:text-slate-400">{row.staticOnly}</td>
+                      <td className="p-3 text-slate-700 dark:text-slate-300">{row.llmOnly}</td>
+                      <td className="p-3 text-blue-600 dark:text-blue-400 font-bold">{row.hybrid}</td>
                       <td className="p-3">
-                        <span className="rounded bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                        <span className="rounded bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold border border-emerald-200 dark:border-transparent">
                           {row.bestSystem}
                         </span>
                       </td>
@@ -983,26 +983,26 @@ export function CyberDiffInspector({
 
           {/* Evaluation Guarantees Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-1">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 space-y-1 shadow-xs">
               <span className="text-[10px] uppercase text-slate-500 font-bold">False Positive Reduction</span>
-              <div className="text-lg font-bold text-emerald-400">84% Reduction</div>
-              <p className="text-[11px] text-slate-400 font-sans">
+              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">84% Reduction</div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans">
                 Achieved via two-pass confidence calibration and AST corroboration.
               </p>
             </div>
 
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-1">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 space-y-1 shadow-xs">
               <span className="text-[10px] uppercase text-slate-500 font-bold">Security Precision</span>
-              <div className="text-lg font-bold text-cyan-400">100.0%</div>
-              <p className="text-[11px] text-slate-400 font-sans">
+              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">100.0%</div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans">
                 Zero hallucinated CVE/CWE vulnerabilities on the clean control test set.
               </p>
             </div>
 
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-1">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 space-y-1 shadow-xs">
               <span className="text-[10px] uppercase text-slate-500 font-bold">Held-Out Test Set</span>
-              <div className="text-lg font-bold text-purple-400">25 Isolated Diffs</div>
-              <p className="text-[11px] text-slate-400 font-sans">
+              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">25 Isolated Diffs</div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans">
                 Held-out evaluation diffs strictly quarantined from prompt tuning.
               </p>
             </div>

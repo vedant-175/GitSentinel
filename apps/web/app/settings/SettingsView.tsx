@@ -193,13 +193,13 @@ export function SettingsView() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/50 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-zinc-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Settings className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 flex items-center gap-2.5">
+            <Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Settings
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
             Manage your account preferences, review sensitivity, and AI behavior.
           </p>
         </div>
@@ -207,10 +207,10 @@ export function SettingsView() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm shadow-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
           {isSaving ? (
-            <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : saveSuccess ? (
             <Check className="w-4 h-4" />
           ) : (
@@ -222,44 +222,44 @@ export function SettingsView() {
 
       {/* Notifications / Alerts */}
       {saveSuccess && (
-        <div className="flex items-center gap-2.5 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
           <span>Your settings have been saved successfully.</span>
         </div>
       )}
 
       {saveError && (
-        <div className="flex items-center gap-2.5 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="flex items-center gap-2.5 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
           <span>{saveError}</span>
         </div>
       )}
 
       {/* 1. Account & Profile */}
-      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-6">
-        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
-          <User className="w-4 h-4 text-primary" />
+      <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-xs space-y-6">
+        <div className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+          <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <h2>Connected Account</h2>
         </div>
 
-        <div className="flex items-center justify-between flex-wrap gap-4 p-4 rounded-lg bg-secondary/30 border border-border/40">
+        <div className="flex items-center justify-between flex-wrap gap-4 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800">
           <div className="flex items-center gap-3.5">
             <img
               src={userImage}
               alt={userLogin}
-              className="w-11 h-11 rounded-full border border-border/60 object-cover"
+              className="w-11 h-11 rounded-full border border-slate-200 dark:border-zinc-700 object-cover"
               onError={(e) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
             <div>
-              <div className="font-medium text-foreground flex items-center gap-2">
+              <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>{userLogin}</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/80 font-medium">
                   Connected
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                 Authenticated via GitHub OAuth
               </p>
             </div>
@@ -269,7 +269,7 @@ export function SettingsView() {
             href={`https://github.com/${userLogin}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md border border-border/50 hover:bg-secondary/50"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800"
           >
             <span>View GitHub Profile</span>
             <ExternalLink className="w-3 h-3" />
@@ -279,33 +279,35 @@ export function SettingsView() {
         {/* Appearance Toggle */}
         <div className="flex items-center justify-between pt-2">
           <div>
-            <div className="text-sm font-medium text-foreground">Theme & Appearance</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm font-semibold text-slate-900 dark:text-white">Theme & Appearance</div>
+            <div className="text-xs text-slate-500 dark:text-zinc-400">
               Select your interface color theme
             </div>
           </div>
 
-          <div className="flex items-center gap-1 p-1 rounded-lg border border-border/50 bg-secondary/40">
+          <div className="flex items-center gap-1 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-900">
             <button
+              type="button"
               onClick={() => setTheme('light')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 theme === 'light'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
-              <Sun className="w-3.5 h-3.5" />
+              <Sun className="w-3.5 h-3.5 text-amber-500" />
               <span>Light</span>
             </button>
             <button
+              type="button"
               onClick={() => setTheme('dark')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 theme === 'dark'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-zinc-800 text-white shadow-xs border border-zinc-700'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
-              <Moon className="w-3.5 h-3.5" />
+              <Moon className="w-3.5 h-3.5 text-blue-400" />
               <span>Dark</span>
             </button>
           </div>
@@ -313,52 +315,54 @@ export function SettingsView() {
       </div>
 
       {/* 2. AI Review Preferences */}
-      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-6">
-        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
-          <Sparkles className="w-4 h-4 text-primary" />
+      <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-xs space-y-6">
+        <div className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+          <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <h2>AI Review Engine</h2>
         </div>
 
         {/* Target Repository Selector if repos exist */}
         {repositories.length > 0 && (
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
               Apply to Repository
             </label>
-            <select
-              value={selectedRepoId || ''}
-              onChange={(e) => handleRepoChange(Number(e.target.value))}
-              className="w-full sm:w-80 px-3 py-2 text-sm rounded-lg border border-border/60 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              {repositories.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.fullName}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedRepoId || ''}
+                onChange={(e) => handleRepoChange(Number(e.target.value))}
+                className="w-full sm:w-80 px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
+              >
+                {repositories.map((r) => (
+                  <option key={r.id} value={r.id} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100">
+                    {r.fullName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
         {/* AI Model Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
+          <label className="text-sm font-semibold text-slate-900 dark:text-white">
             Review Intelligence Model
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setAiModel('gemini-2.0-flash')}
-              className={`p-3.5 rounded-lg border text-left transition-all ${
+              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 aiModel === 'gemini-2.0-flash'
-                  ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
-                  : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+                  ? 'border-blue-600 bg-blue-50/70 text-slate-900 dark:border-blue-500 dark:bg-blue-950/30 dark:text-white ring-1 ring-blue-500'
+                  : 'border-slate-200 bg-slate-50/40 hover:bg-slate-100/70 text-slate-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 dark:text-zinc-400'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm text-foreground">Gemini 2.0 Flash</span>
-                {aiModel === 'gemini-2.0-flash' && <Check className="w-4 h-4 text-primary" />}
+                <span className="font-semibold text-sm text-slate-900 dark:text-white">Gemini 2.0 Flash</span>
+                {aiModel === 'gemini-2.0-flash' && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 Fast, comprehensive security and logic reasoning. Recommended for all codebases.
               </p>
             </button>
@@ -366,17 +370,17 @@ export function SettingsView() {
             <button
               type="button"
               onClick={() => setAiModel('openai/gpt-oss-120b')}
-              className={`p-3.5 rounded-lg border text-left transition-all ${
+              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 aiModel === 'openai/gpt-oss-120b'
-                  ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
-                  : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+                  ? 'border-blue-600 bg-blue-50/70 text-slate-900 dark:border-blue-500 dark:bg-blue-950/30 dark:text-white ring-1 ring-blue-500'
+                  : 'border-slate-200 bg-slate-50/40 hover:bg-slate-100/70 text-slate-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 dark:text-zinc-400'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm text-foreground">Groq Ultra-Speed</span>
-                {aiModel === 'openai/gpt-oss-120b' && <Check className="w-4 h-4 text-primary" />}
+                <span className="font-semibold text-sm text-slate-900 dark:text-white">Groq Ultra-Speed</span>
+                {aiModel === 'openai/gpt-oss-120b' && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 Ultra-low latency reviewer optimized for rapid feedback loops.
               </p>
             </button>
@@ -385,7 +389,7 @@ export function SettingsView() {
 
         {/* Review Sensitivity */}
         <div className="space-y-2 pt-2">
-          <label className="text-sm font-medium text-foreground">
+          <label className="text-sm font-semibold text-slate-900 dark:text-white">
             Review Sensitivity Level
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -410,17 +414,17 @@ export function SettingsView() {
                 key={lvl.id}
                 type="button"
                 onClick={() => setReviewSensitivity(lvl.id as any)}
-                className={`p-3 rounded-lg border text-left transition-all ${
+                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   reviewSensitivity === lvl.id
-                    ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
-                    : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+                    ? 'border-blue-600 bg-blue-50/70 text-slate-900 dark:border-blue-500 dark:bg-blue-950/30 dark:text-white ring-1 ring-blue-500'
+                    : 'border-slate-200 bg-slate-50/40 hover:bg-slate-100/70 text-slate-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 dark:text-zinc-400'
                 }`}
               >
-                <div className="font-medium text-xs text-foreground flex items-center justify-between">
+                <div className="font-semibold text-xs text-slate-900 dark:text-white flex items-center justify-between">
                   <span>{lvl.label}</span>
-                  {reviewSensitivity === lvl.id && <Check className="w-3.5 h-3.5 text-primary" />}
+                  {reviewSensitivity === lvl.id && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 leading-snug">
                   {lvl.desc}
                 </div>
               </button>
@@ -430,7 +434,7 @@ export function SettingsView() {
 
         {/* Review Tone */}
         <div className="space-y-2 pt-2">
-          <label className="text-sm font-medium text-foreground">
+          <label className="text-sm font-semibold text-slate-900 dark:text-white">
             Review Comment Tone
           </label>
           <div className="flex items-center gap-3">
@@ -442,10 +446,10 @@ export function SettingsView() {
                 key={t.id}
                 type="button"
                 onClick={() => setReviewTone(t.id as any)}
-                className={`px-3.5 py-2 rounded-lg border text-xs font-medium transition-all ${
+                className={`px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                   reviewTone === t.id
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border/50 bg-secondary/20 hover:bg-secondary/40 text-muted-foreground'
+                    ? 'border-blue-600 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-300 ring-1 ring-blue-500'
+                    : 'border-slate-200 bg-slate-50/40 hover:bg-slate-100 text-slate-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 dark:text-zinc-400'
                 }`}
               >
                 {t.label}
@@ -456,29 +460,29 @@ export function SettingsView() {
       </div>
 
       {/* 3. Automation & Quality Gates */}
-      <div className="rounded-xl border border-border/60 bg-card/60 p-6 shadow-sm space-y-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
-          <Shield className="w-4 h-4 text-primary" />
+      <div className="rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-xs space-y-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-white">
+          <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <h2>Automations & Security Gates</h2>
         </div>
 
-        <div className="divide-y divide-border/40">
+        <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
           {/* Toggle: Auto-Review */}
           <div className="flex items-center justify-between py-3.5 first:pt-0">
             <div className="space-y-0.5 pr-4">
-              <div className="text-sm font-medium text-foreground flex items-center gap-2">
-                <GitPullRequest className="w-4 h-4 text-muted-foreground" />
+              <div className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <GitPullRequest className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
                 Automatic Review on Pull Request
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-slate-500 dark:text-zinc-400">
                 Trigger an automated AI security review as soon as a PR is opened or updated.
               </div>
             </div>
             <button
               type="button"
               onClick={() => setAutoReview(!autoReview)}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                autoReview ? 'bg-primary' : 'bg-muted'
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                autoReview ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-200 dark:bg-zinc-700'
               }`}
             >
               <div
@@ -492,18 +496,18 @@ export function SettingsView() {
           {/* Toggle: Summary Comment */}
           <div className="flex items-center justify-between py-3.5">
             <div className="space-y-0.5 pr-4">
-              <div className="text-sm font-medium text-foreground">
+              <div className="text-sm font-semibold text-slate-900 dark:text-white">
                 Post Executive Summary Comment
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-slate-500 dark:text-zinc-400">
                 Post an overview comment with score and checklist on the main PR conversation.
               </div>
             </div>
             <button
               type="button"
               onClick={() => setSummaryComment(!summaryComment)}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                summaryComment ? 'bg-primary' : 'bg-muted'
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                summaryComment ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-200 dark:bg-zinc-700'
               }`}
             >
               <div
@@ -517,18 +521,18 @@ export function SettingsView() {
           {/* Toggle: Inline Suggestions */}
           <div className="flex items-center justify-between py-3.5">
             <div className="space-y-0.5 pr-4">
-              <div className="text-sm font-medium text-foreground">
+              <div className="text-sm font-semibold text-slate-900 dark:text-white">
                 Inline Code Diff Comments
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-slate-500 dark:text-zinc-400">
                 Attach suggestions directly to the affected line numbers in the diff.
               </div>
             </div>
             <button
               type="button"
               onClick={() => setInlineSuggestions(!inlineSuggestions)}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                inlineSuggestions ? 'bg-primary' : 'bg-muted'
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                inlineSuggestions ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-200 dark:bg-zinc-700'
               }`}
             >
               <div
@@ -542,18 +546,18 @@ export function SettingsView() {
           {/* Toggle: Security Gate */}
           <div className="flex items-center justify-between py-3.5 last:pb-0">
             <div className="space-y-0.5 pr-4">
-              <div className="text-sm font-medium text-foreground">
+              <div className="text-sm font-semibold text-slate-900 dark:text-white">
                 Fail Check Run on Critical Security Flaws
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-slate-500 dark:text-zinc-400">
                 Block PR merging if high or critical vulnerabilities (CWE/OWASP) are discovered.
               </div>
             </div>
             <button
               type="button"
               onClick={() => setSecurityGate(!securityGate)}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                securityGate ? 'bg-primary' : 'bg-muted'
+              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                securityGate ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-200 dark:bg-zinc-700'
               }`}
             >
               <div
@@ -571,10 +575,10 @@ export function SettingsView() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-xs hover:opacity-95 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
           {isSaving ? (
-            <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : saveSuccess ? (
             <Check className="w-4 h-4" />
           ) : (

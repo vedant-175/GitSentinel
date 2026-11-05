@@ -150,11 +150,25 @@ export function GlobalSelectionAskAi() {
           e.preventDefault();
         }}
         onClick={handleAsk}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-400 hover:bg-cyan-300 text-black font-mono text-xs font-bold shadow-[0_0_25px_rgba(0,240,255,0.75)] border border-cyan-200 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-800 dark:text-zinc-100 text-xs font-semibold shadow-[0_10px_25px_-5px_rgba(15,23,42,0.1),0_8px_10px_-6px_rgba(15,23,42,0.06)] dark:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.6)] hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-900 active:scale-[0.98] transition-all cursor-pointer"
       >
-        <Bot className="h-3.5 w-3.5 text-black" />
+        <div className="flex items-center justify-center text-slate-700 dark:text-zinc-200">
+          <svg
+            className="h-3.5 w-3.5 stroke-[2]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+            <circle cx="8" cy="12" r="0.8" fill="currentColor" />
+            <circle cx="12" cy="12" r="0.8" fill="currentColor" />
+            <circle cx="16" cy="12" r="0.8" fill="currentColor" />
+          </svg>
+        </div>
         <span>Ask GitSentinel AI</span>
-        <Sparkles className="h-3 w-3 text-black animate-pulse" />
+        <Sparkles className="h-3 w-3 text-slate-400 dark:text-zinc-400" />
       </button>
     </div>
   );
