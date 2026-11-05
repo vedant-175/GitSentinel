@@ -11,6 +11,9 @@ import {
   normalizeRole,
 } from '@ai-reviewer/shared';
 
+export { Role };
+export type { RoleType, PermissionType };
+
 export class UnauthorizedError extends Error {
   constructor(message = 'Unauthorized') {
     super(message);
@@ -52,6 +55,7 @@ let sessionOverride: (() => Promise<any>) | null = null;
 let sessionInstallationIdsOverride: (() => Promise<bigint[]>) | null = null;
 let roleOverride: ((userLogin: string, installationId: number | bigint) => Promise<RoleType> | RoleType) | null = null;
 let serverOAuthTokenOverride: (() => Promise<string | undefined> | string | undefined) | null = null;
+let pullRequestAccessOverride: ((prId: number, installationIds: bigint[]) => Promise<any> | any) | null = null;
 
 export function setSessionOverride(fn: (() => Promise<any>) | null) {
   sessionOverride = fn;
@@ -67,6 +71,10 @@ export function setRoleOverride(fn: ((userLogin: string, installationId: number 
 
 export function setServerOAuthTokenOverride(fn: (() => Promise<string | undefined> | string | undefined) | null) {
   serverOAuthTokenOverride = fn;
+}
+
+export function setPullRequestAccessOverride(fn: ((prId: number, installationIds: bigint[]) => Promise<any> | any) | null) {
+  pullRequestAccessOverride = fn;
 }
 
 /**
@@ -384,6 +392,9 @@ export async function requireInstallationAccess(repoId: number) {
  * Throws ForbiddenError if access is not permitted.
  */
 export async function assertPullRequestAccess(prId: number, installationIds: bigint[]) {
+  if (pullRequestAccessOverride) {
+    return pullRequestAccessOverride(prId, installationIds);
+  }
   if (installationIds.length === 0) {
     throw new ForbiddenError(`No accessible installations in current session.`);
   }

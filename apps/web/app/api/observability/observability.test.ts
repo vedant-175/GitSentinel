@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { GET } from './route';
 import { REVIEW_LIFECYCLE_STAGES } from '@ai-reviewer/shared';
-import { setSessionOverride } from '@/lib/auth-helpers';
+import { setSessionOverride, setRoleOverride, Role } from '@/lib/auth-helpers';
 
 describe('Operational Health API (/api/observability)', () => {
   beforeEach(() => {
@@ -11,10 +11,12 @@ describe('Operational Health API (/api/observability)', () => {
       user: { id: 'usr-admin', login: 'admin', role: 'admin' },
       expires: new Date(Date.now() + 3600000).toISOString(),
     }));
+    setRoleOverride(async () => Role.ADMIN);
   });
 
   afterEach(() => {
     setSessionOverride(null);
+    setRoleOverride(null);
   });
 
   it('returns complete operational telemetry payload with 11 lifecycle stages', async () => {

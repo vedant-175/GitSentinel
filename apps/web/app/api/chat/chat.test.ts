@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { POST as chatHandler } from './route';
-import { setSessionOverride, setSessionInstallationIdsOverride } from '@/lib/auth-helpers';
+import { setSessionOverride, setSessionInstallationIdsOverride, setPullRequestAccessOverride } from '@/lib/auth-helpers';
 
 describe('Chat API & Markdown Response Formatting Test Suite', () => {
   beforeEach(() => {
@@ -11,11 +11,13 @@ describe('Chat API & Markdown Response Formatting Test Suite', () => {
       expires: new Date(Date.now() + 3600000).toISOString(),
     }));
     setSessionInstallationIdsOverride(async () => [BigInt(1001)]);
+    setPullRequestAccessOverride(async (id) => ({ id, repositoryId: 101 }));
   });
 
   afterEach(() => {
     setSessionOverride(null);
     setSessionInstallationIdsOverride(null);
+    setPullRequestAccessOverride(null);
   });
 
   it('rejects empty or whitespace-only messages with 400', async () => {
@@ -27,7 +29,8 @@ describe('Chat API & Markdown Response Formatting Test Suite', () => {
     const res = await chatHandler(req);
     assert.equal(res.status, 400);
     const data = await res.json();
-    assert.ok(data.error?.includes('empty'));
+    const errorMsg = data.message || data.error || '';
+    assert.ok(errorMsg.toLowerCase().includes('empty'));
   });
 
   it('rejects invalid JSON payloads with 400', async () => {
