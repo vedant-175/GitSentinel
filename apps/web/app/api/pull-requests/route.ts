@@ -52,6 +52,13 @@ export async function GET(req: NextRequest) {
     if (stateParam) {
       whereClause.state = stateParam;
     }
+    const includeSynthetic = searchParams.get('include_synthetic') === 'true';
+    if (!includeSynthetic) {
+      whereClause.NOT = [
+        { title: { startsWith: 'Autonomous Security' } },
+        { headSha: { startsWith: 'head-' } },
+      ];
+    }
 
     // 3. Stable deterministic ordering with cursor pagination
     const pullRequests = await prisma.pullRequest.findMany({

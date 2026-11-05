@@ -62,6 +62,17 @@ export function RepoDetailView({
     return (b.id || 0) - (a.id || 0);
   });
 
+  const realPrs = pullRequests.filter(
+    (pr: any) =>
+      !pr.title?.includes('Autonomous Security') &&
+      !pr.headSha?.startsWith('head-')
+  );
+  const repoScans = pullRequests.filter(
+    (pr: any) =>
+      pr.title?.includes('Autonomous Security') ||
+      pr.headSha?.startsWith('head-')
+  );
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fade-in text-slate-900 dark:text-zinc-100 font-sans">
       {/* 1. Breadcrumbs */}
@@ -141,9 +152,9 @@ export function RepoDetailView({
         >
           <GitPullRequest className="h-4 w-4" />
           <span>Pull Requests</span>
-          {pullRequests.length > 0 && (
+          {realPrs.length > 0 && (
             <span className="rounded-full bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.2 text-[10px] font-bold text-slate-600 dark:text-zinc-400">
-              {pullRequests.length}
+              {realPrs.length}
             </span>
           )}
         </button>
@@ -480,82 +491,150 @@ export function RepoDetailView({
 
       {/* 5. Tab 2: Pull Requests */}
       {activeTab === 'prs' && (
-        <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-xs transition-colors space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <GitPullRequest className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                Tracked Pull Requests ({pullRequests.length})
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                Review gates, verdicts, and automated comment reports for this repository.
-              </p>
-            </div>
-            <a
-              href={`https://github.com/${repo.fullName}/pulls`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"
-            >
-              Open on GitHub <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-
-          <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-            {pullRequests.map((pr: any) => {
-              const latestReview = pr.reviews?.[0];
-              const verdict = latestReview?.verdict || 'COMMENT';
-              return (
-                <div
-                  key={pr.id}
-                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-zinc-900/40 px-3 rounded-xl transition-colors"
-                >
-                  <div>
-                    <Link
-                      href={`/pull-requests/${pr.id}`}
-                      className="font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
-                      {pr.title || `Pull Request #${pr.githubPrNumber}`}
-                    </Link>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono mt-1">
-                      #{pr.githubPrNumber} opened by @{pr.author || 'unknown'} • State: <span className="font-semibold">{pr.state}</span>
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {latestReview ? (
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                          verdict === 'APPROVE'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900/50'
-                            : verdict === 'REQUEST_CHANGES'
-                            ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200/80 dark:border-rose-900/50'
-                            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-900/50'
-                        }`}
-                      >
-                        {verdict.replace('_', ' ')}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400 dark:text-zinc-500 font-mono">No reviews</span>
-                    )}
-
-                    <Link
-                      href={`/pull-requests/${pr.id}`}
-                      className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
-                    >
-                      View Review
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-
-            {pullRequests.length === 0 && (
-              <div className="text-center py-12 text-slate-500 dark:text-zinc-400 text-xs">
-                No pull requests tracked for this repository yet. Run analysis or open a PR on GitHub to trigger surveillance.
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-xs transition-colors space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <GitPullRequest className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  Tracked Pull Requests ({realPrs.length})
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                  Review gates, verdicts, and automated comment reports for real GitHub pull requests.
+                </p>
               </div>
-            )}
+              <a
+                href={`https://github.com/${repo.fullName}/pulls`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-medium"
+              >
+                Open on GitHub <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+              {realPrs.map((pr: any) => {
+                const latestReview = pr.reviews?.[0];
+                const verdict = latestReview?.verdict || 'COMMENT';
+                return (
+                  <div
+                    key={pr.id}
+                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-zinc-900/40 px-3 rounded-xl transition-colors"
+                  >
+                    <div>
+                      <Link
+                        href={`/pull-requests/${pr.id}`}
+                        className="font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      >
+                        {pr.title || `Pull Request #${pr.githubPrNumber}`}
+                      </Link>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono mt-1">
+                        #{pr.githubPrNumber} opened by @{pr.author || 'unknown'} • State: <span className="font-semibold">{pr.state}</span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {latestReview ? (
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                            verdict === 'APPROVE'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900/50'
+                              : verdict === 'REQUEST_CHANGES'
+                              ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200/80 dark:border-rose-900/50'
+                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-900/50'
+                          }`}
+                        >
+                          {verdict.replace('_', ' ')}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400 dark:text-zinc-500 font-mono">No reviews</span>
+                      )}
+
+                      <Link
+                        href={`/pull-requests/${pr.id}`}
+                        className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
+                      >
+                        View Review
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {realPrs.length === 0 && (
+                <div className="text-center py-10 text-slate-500 dark:text-zinc-400 text-xs">
+                  No GitHub pull requests opened on this repository yet. Open a PR on GitHub to trigger automated reviews.
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* On-Demand Repository Code Audits */}
+          {repoScans.length > 0 && (
+            <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/20 dark:bg-blue-950/20 p-6 shadow-xs transition-colors space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-blue-200/60 dark:border-blue-900/50">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    On-Demand Repository Code Audits ({repoScans.length})
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Direct repository code audits triggered via &ldquo;Analyse Repository&rdquo; (independent of GitHub PRs).
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-blue-100 dark:divide-blue-900/40">
+                {repoScans.map((scan: any) => {
+                  const latestReview = scan.reviews?.[0];
+                  const verdict = latestReview?.verdict || 'COMMENT';
+                  const issuesCount = latestReview?.issues?.length ?? 0;
+                  return (
+                    <div
+                      key={scan.id}
+                      className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-blue-100/40 dark:hover:bg-blue-900/30 px-3 rounded-xl transition-colors"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {scan.title || 'Autonomous Security & Code Analysis'}
+                          </span>
+                          <span className="rounded-md bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300 px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider">
+                            Full Repo Audit
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono mt-1">
+                          Branch: <span className="font-semibold">{repo.defaultBranch || 'main'}</span> • {issuesCount} security finding(s)
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                            verdict === 'APPROVE'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900/50'
+                              : verdict === 'REQUEST_CHANGES'
+                              ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200/80 dark:border-rose-900/50'
+                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-900/50'
+                          }`}
+                        >
+                          {verdict.replace('_', ' ')}
+                        </span>
+
+                        <Link
+                          href={`/pull-requests/${scan.id}`}
+                          className="rounded-xl border border-blue-300 dark:border-blue-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
+                        >
+                          Inspect Audit Findings
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -10,6 +10,7 @@ interface PRItem {
   title: string | null;
   author: string | null;
   state: string | null;
+  headSha?: string | null;
   repository: {
     fullName: string;
   };
@@ -37,6 +38,7 @@ export function PullRequestFilters({ initialPullRequests }: Props) {
   );
 
   const filteredPRs = initialPullRequests.filter((pr) => {
+    if (pr.title?.includes('Autonomous Security') || pr.headSha?.startsWith('head-')) return false;
     // Search query match (title, author, or PR number)
     const matchesSearch =
       !searchQuery ||

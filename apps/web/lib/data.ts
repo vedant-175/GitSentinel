@@ -81,7 +81,7 @@ export async function getRepositories(options: PaginationOptions = {}) {
  * Orders deterministically by id DESC, projecting only latest review summary.
  */
 export async function getPullRequests(
-  options: PaginationOptions & { repoId?: number; state?: string } = {}
+  options: PaginationOptions & { repoId?: number; state?: string; includeSynthetic?: boolean } = {}
 ) {
   const installationIds = await getSessionInstallationIds();
   const limit = Math.min(100, Math.max(1, options.limit || 25));
@@ -102,6 +102,12 @@ export async function getPullRequests(
   }
   if (options.state) {
     whereClause.state = options.state;
+  }
+  if (!options.includeSynthetic) {
+    whereClause.NOT = [
+      { title: { startsWith: 'Autonomous Security' } },
+      { headSha: { startsWith: 'head-' } },
+    ];
   }
 
   const pullRequests = await prisma.pullRequest.findMany({
@@ -138,6 +144,14 @@ export async function getPullRequests(
   });
 
   const filteredPullRequests = pullRequests.filter((pr) => {
+    if (!options.includeSynthetic) {
+      if (
+        pr.title?.includes('Autonomous Security') ||
+        pr.headSha?.startsWith('head-')
+      ) {
+        return false;
+      }
+    }
     if (pr.repository?.installation?.accountLogin) {
       const [repoOwner] = (pr.repository.fullName || '').toLowerCase().split('/');
       if (repoOwner && repoOwner !== pr.repository.installation.accountLogin.toLowerCase()) {
