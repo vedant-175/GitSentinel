@@ -45,34 +45,32 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
     <div
       role="region"
       aria-label="Real-time Review Execution Progress"
-      className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-lg"
+      className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-lg transition-all"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
             {!isFailed && !isSuperseded && status !== 'completed' && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
             )}
             <span
               className={`relative inline-flex rounded-full h-2 w-2 ${
                 isFailed
                   ? 'bg-rose-500'
                   : isSuperseded
-                  ? 'bg-amber-400'
-                  : status === 'completed'
-                  ? 'bg-blue-400'
-                  : 'bg-blue-400'
+                  ? 'bg-amber-500'
+                  : 'bg-blue-600 dark:bg-blue-400'
               }`}
             />
           </span>
-          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
             REAL REVIEW PROGRESS
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
           {isPartial && (
-            <span className="rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-400">
+            <span className="rounded bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400">
               PARTIAL REVIEW
             </span>
           )}
@@ -81,12 +79,10 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
             aria-live="polite"
             className={`rounded-md px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
               isFailed
-                ? 'bg-rose-950/60 border border-rose-500/40 text-rose-300'
+                ? 'bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300'
                 : isSuperseded
-                ? 'bg-amber-950/60 border border-amber-500/40 text-amber-400'
-                : status === 'completed'
-                ? 'bg-blue-950/60 border border-blue-500/40 text-blue-300'
-                : 'bg-blue-950/60 border border-blue-500/40 text-blue-300'
+                ? 'bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-500/40 text-amber-700 dark:text-amber-400'
+                : 'bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300'
             }`}
           >
             {isFailed
@@ -113,28 +109,28 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
             <li
               key={stage.key}
               aria-current={isCurrent ? 'step' : undefined}
-              className={`rounded-xl border p-2.5 flex flex-col justify-between transition-all ${
+              className={`rounded-xl border p-2.5 flex flex-col justify-between transition-all shadow-xs ${
                 isStepFailed
-                  ? 'border-rose-500/40 bg-rose-950/20 text-rose-400'
+                  ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
                   : isPast
-                  ? 'border-[#172338] bg-[#06090e] hover:border-blue-500/30 text-blue-400'
+                  ? 'border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e] hover:border-blue-300 dark:hover:border-blue-500/30 text-blue-600 dark:text-blue-400'
                   : isCurrent
-                  ? 'border-blue-500/50 bg-blue-950/25 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)] ring-1 ring-blue-500/30'
-                  : 'border-[#172338] bg-[#06090e]/60 text-slate-500'
+                  ? 'border-blue-300 dark:border-blue-500/50 bg-blue-50 dark:bg-blue-950/25 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500/30'
+                  : 'border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e]/60 text-slate-500'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-slate-400">
+                <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
                   0{idx + 1}
                 </span>
                 {isStepFailed ? (
-                  <AlertCircle className="h-3.5 w-3.5 text-rose-400" aria-label="Failed" />
+                  <AlertCircle className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" aria-label="Failed" />
                 ) : isPast ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" aria-label="Completed" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" aria-label="Completed" />
                 ) : isCurrent ? (
-                  <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin" aria-label="In Progress" />
+                  <Loader2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 animate-spin" aria-label="In Progress" />
                 ) : (
-                  <Icon className="h-3.5 w-3.5 text-slate-600" aria-hidden="true" />
+                  <Icon className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600" aria-hidden="true" />
                 )}
               </div>
 
@@ -142,17 +138,17 @@ export function StageStepper({ currentStage, status, isPartial }: StageStepperPr
                 <div
                   className={`text-[11px] font-mono font-bold leading-tight ${
                     isStepFailed
-                      ? 'text-rose-300'
+                      ? 'text-rose-600 dark:text-rose-300'
                       : isPast
-                      ? 'text-white'
+                      ? 'text-slate-900 dark:text-white'
                       : isCurrent
-                      ? 'text-cyan-300'
-                      : 'text-slate-400'
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {stage.label}
                 </div>
-                <div className="text-[9px] text-slate-400 font-sans mt-0.5 truncate hidden sm:block">
+                <div className="text-[9px] text-slate-500 dark:text-slate-400 font-sans mt-0.5 truncate hidden sm:block">
                   {stage.desc}
                 </div>
               </div>

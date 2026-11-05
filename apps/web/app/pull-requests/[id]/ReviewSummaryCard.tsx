@@ -126,20 +126,20 @@ export function ReviewSummaryCard({
   const analysisMethod = 'Hybrid (AST Parsers + Static Linters + LLM Reasoning)';
 
   return (
-    <div className="rounded-2xl border border-[#172338] bg-[#0b1019] shadow-lg overflow-hidden">
+    <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] shadow-xs dark:shadow-lg overflow-hidden">
       {/* ========================================================================= */}
       {/* 1. EXECUTIVE REVIEW SUMMARY KPI HEADER (Exact 7 user metrics) */}
       {/* ========================================================================= */}
-      <div className="p-4 bg-gradient-to-r from-[#0b1019] via-[#0e1624] to-[#0b1019] border-b border-[#172338]">
+      <div className="p-4 bg-slate-50 dark:bg-gradient-to-r dark:from-[#0b1019] dark:via-[#0e1624] dark:to-[#0b1019] border-b border-slate-200 dark:border-[#172338]">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div
               className={`p-2.5 rounded-xl border shrink-0 ${
                 riskLevel === 'CRITICAL'
-                  ? 'bg-rose-500/20 border-rose-500/30 text-rose-400'
+                  ? 'bg-rose-500/20 border-rose-500/30 text-rose-500 dark:text-rose-400'
                   : riskLevel === 'ELEVATED'
-                  ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                  : 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                  ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                  : 'bg-blue-500/20 border-blue-500/30 text-blue-600 dark:text-blue-400'
               }`}
             >
               {riskLevel === 'CRITICAL' ? (
@@ -147,23 +147,23 @@ export function ReviewSummaryCard({
               ) : riskLevel === 'ELEVATED' ? (
                 <AlertTriangle className="h-6 w-6" />
               ) : (
-                <ShieldCheck className="h-6 w-6 text-blue-400" />
+                <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               )}
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-base font-bold text-white font-mono uppercase tracking-wide">
+                <h1 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase tracking-wide">
                   Review Summary &amp; Quality Gate
                 </h1>
 
                 <span
                   className={`rounded px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                     verdict === 'APPROVE'
-                      ? 'bg-blue-950/80 border border-blue-500/40 text-blue-300'
+                      ? 'bg-emerald-50 dark:bg-blue-950/80 border border-emerald-200 dark:border-blue-500/40 text-emerald-700 dark:text-blue-300'
                       : verdict === 'REQUEST_CHANGES'
-                      ? 'bg-rose-950/80 border border-rose-500/40 text-rose-300'
-                      : 'bg-slate-800 border border-slate-700 text-slate-300'
+                      ? 'bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300'
+                      : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   Verdict: {verdict}
@@ -172,23 +172,23 @@ export function ReviewSummaryCard({
                 <span
                   className={`rounded px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
                     riskLevel === 'CRITICAL'
-                      ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
+                      ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/40'
                       : riskLevel === 'ELEVATED'
-                      ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                      : 'bg-blue-950 text-blue-300 border border-blue-500/40'
+                      ? 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40'
+                      : 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/40'
                   }`}
                 >
                   Risk: {riskLevel}
                 </span>
 
                 {isPartial && (
-                  <span className="rounded bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-amber-400">
+                  <span className="rounded bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/40 px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-amber-700 dark:text-amber-400">
                     Partial Scan
                   </span>
                 )}
               </div>
 
-              <p className="text-xs text-slate-400 font-sans mt-1">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-sans mt-1">
                 {gateVerdict === 'FAILED'
                   ? `Branch protection gate locked: ${gateReasons?.[0] || 'Security findings violate merge policy.'}`
                   : `Analyzed ${filesAnalyzed || issues.length || 1} modified file(s) across ${linesAnalyzed || 150} line(s) with dual static + LLM scrutiny.`}
@@ -202,7 +202,7 @@ export function ReviewSummaryCard({
               <a
                 href={`/api/reviews/${reviewId}/sarif`}
                 download={`gitsentinel-review-${reviewId}.sarif`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-950/40 px-3 py-1.5 text-xs font-mono font-bold text-blue-300 hover:bg-blue-900/50 hover:text-white transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 text-xs font-mono font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all shadow-xs"
                 title="Download OASIS SARIF 2.1.0 standard report"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ export function ReviewSummaryCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs font-mono text-blue-400 hover:text-blue-300 cursor-pointer p-1.5 rounded-lg border border-[#172338] bg-[#06090e]"
+              className="flex items-center gap-1 text-xs font-mono text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer p-1.5 rounded-lg border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] shadow-xs"
               aria-expanded={expanded}
               aria-label={expanded ? 'Collapse review summary' : 'Expand review summary'}
             >
@@ -228,77 +228,77 @@ export function ReviewSummaryCard({
         {/* ========================================================================= */}
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 font-mono text-xs">
           {/* 1. Files Changed */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-white tracking-tight">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
               {filesAnalyzed || 1}
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
               Files Changed
             </div>
           </div>
 
           {/* 2. Lines Analyzed */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-blue-400 tracking-tight">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
               {linesAnalyzed || 150}
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
-              Lines Analyzed <span className="text-slate-500">(LOC)</span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
+              Lines Analyzed <span className="text-slate-400 dark:text-slate-500">(LOC)</span>
             </div>
           </div>
 
           {/* 3. Findings Total */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-white tracking-tight">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
               {issues.length}
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
-              Total Findings <span className="text-slate-500">(issues)</span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
+              Total Findings <span className="text-slate-400 dark:text-slate-500">(issues)</span>
             </div>
           </div>
 
           {/* 4. Critical / High / Med / Low Breakdown */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
             <div className="flex items-center gap-1 text-base font-bold tracking-tight">
-              <span className="text-rose-400" title="Critical">{criticals.length}C</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-amber-400" title="Warning / High">{warnings.length}H</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-blue-400" title="Suggestion / Medium">{suggestions.length}M</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-sky-400" title="Low">{lows.length}L</span>
+              <span className="text-rose-600 dark:text-rose-400" title="Critical">{criticals.length}C</span>
+              <span className="text-slate-400 dark:text-slate-600">/</span>
+              <span className="text-amber-600 dark:text-amber-400" title="Warning / High">{warnings.length}H</span>
+              <span className="text-slate-400 dark:text-slate-600">/</span>
+              <span className="text-blue-600 dark:text-blue-400" title="Suggestion / Medium">{suggestions.length}M</span>
+              <span className="text-slate-400 dark:text-slate-600">/</span>
+              <span className="text-sky-600 dark:text-sky-400" title="Low">{lows.length}L</span>
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
               Severity Split
             </div>
           </div>
 
           {/* 5. Calibrated Confidence */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-blue-400 tracking-tight">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
               {avgConfidence}%
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
-              Confidence <span className="text-slate-500">(calibrated)</span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
+              Confidence <span className="text-slate-400 dark:text-slate-500">(calibrated)</span>
             </div>
           </div>
 
           {/* 6. Review Duration */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-xl font-bold text-indigo-300 tracking-tight">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-xl font-bold text-indigo-600 dark:text-indigo-300 tracking-tight">
               {formattedDuration}
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
               Analysis Duration
             </div>
           </div>
 
           {/* 7. Analysis Method */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 flex flex-col justify-between">
-            <div className="text-base font-bold text-blue-400 tracking-tight truncate">
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3 flex flex-col justify-between shadow-xs">
+            <div className="text-base font-bold text-blue-600 dark:text-blue-400 tracking-tight truncate">
               Hybrid Scan
             </div>
-            <div className="text-[11px] text-slate-400 font-sans mt-1">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-sans mt-1">
               Method Used
             </div>
           </div>
@@ -309,98 +309,98 @@ export function ReviewSummaryCard({
       {/* EXPANDED METRICS DRAWER */}
       {/* ========================================================================= */}
       {expanded && (
-        <div className="p-4 space-y-4 text-xs font-mono border-t border-[#172338]/60 bg-[#06090e]/40">
+        <div className="p-4 space-y-4 text-xs font-mono border-t border-slate-200 dark:border-[#172338]/60 bg-slate-50/50 dark:bg-[#06090e]/40">
           {/* Provenance: Deterministic vs LLM vs Hybrid findings */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Deterministic Static Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3.5 space-y-2 shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-blue-400 font-bold">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold">
                   <Network className="h-4 w-4" />
                   <span>Deterministic Static Analysis</span>
                 </div>
-                <span className="rounded bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold">
                   {deterministicIssues.length} Findings
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed">
                 ESLint, Bandit, Ruff AST parsers, and Regex secret detection. Zero hallucination risk with exact syntax pattern matching.
               </p>
             </div>
 
             {/* Semantic LLM Reasoning Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3.5 space-y-2 shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sky-400 font-bold">
+                <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
                   <Brain className="h-4 w-4" />
                   <span>Semantic AI Reasoning</span>
                 </div>
-                <span className="rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 px-2 py-0.5 text-[10px] font-bold">
                   {aiIssues.length} Findings
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed">
                 AST symbol context retrieval with multi-turn prompt reasoning. Detects logical vulnerabilities, concurrency bugs, and edge cases.
               </p>
             </div>
 
             {/* Hybrid Corroborated Findings */}
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3.5 space-y-2 shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-indigo-400 font-bold">
+                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold">
                   <Scale className="h-4 w-4" />
                   <span>Hybrid Corroborated</span>
                 </div>
-                <span className="rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 text-[10px] font-bold">
                   {hybridIssues.length + dependencyIssues.length} Findings
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed">
                 Static analyzer candidate corroboration through LLM verification and CVE dependency scanning, reducing false positives by 84%.
               </p>
             </div>
           </div>
 
           {/* Token Consumption & Cost Telemetry */}
-          <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3.5 space-y-2">
-            <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-              <div className="flex items-center gap-2 text-blue-300 font-bold font-mono">
-                <Layers className="h-4 w-4 text-blue-400" />
+          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#06090e] p-3.5 space-y-2 shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#172338]">
+              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold font-mono">
+                <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span>Empirical Token Consumption &amp; Cost Telemetry</span>
               </div>
-              <span className="rounded-md bg-blue-950/60 border border-blue-500/30 text-blue-300 px-2.5 py-0.5 text-[10px] font-mono font-bold">
+              <span className="rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 text-[10px] font-mono font-bold">
                 Model: {model || 'gpt-4o'}
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 text-[11px] font-mono">
               <div>
-                <span className="text-slate-400 block text-[10px]">Prompt Tokens:</span>
-                <div className="text-slate-200 font-bold mt-1 text-xs">{promptTokens.toLocaleString()} tok</div>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Prompt Tokens:</span>
+                <div className="text-slate-900 dark:text-slate-200 font-bold mt-1 text-xs">{promptTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px]">Completion Tokens:</span>
-                <div className="text-slate-200 font-bold mt-1 text-xs">{completionTokens.toLocaleString()} tok</div>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Completion Tokens:</span>
+                <div className="text-slate-900 dark:text-slate-200 font-bold mt-1 text-xs">{completionTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px]">Total Tokens:</span>
-                <div className="text-white font-bold mt-1 text-xs">{totalTokens.toLocaleString()} tok</div>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Total Tokens:</span>
+                <div className="text-slate-900 dark:text-white font-bold mt-1 text-xs">{totalTokens.toLocaleString()} tok</div>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px]">Estimated API Cost:</span>
-                <div className="text-blue-400 font-bold mt-1 text-xs">${calculatedCostUsd.toFixed(4)} USD</div>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Estimated API Cost:</span>
+                <div className="text-blue-600 dark:text-blue-400 font-bold mt-1 text-xs">${calculatedCostUsd.toFixed(4)} USD</div>
               </div>
             </div>
           </div>
 
           {/* Per-Stage Latency Breakdown (if stageTimings available) */}
           {stageTimings && Object.keys(stageTimings).length > 0 && (
-            <div className="rounded-xl border border-[#172338] bg-[#06090e] p-3 space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
-                <div className="flex items-center gap-2 text-cyan-300 font-bold">
+            <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e] p-3 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#172338]">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold">
                   <Clock className="h-4 w-4" />
                   <span>Lifecycle Stage Latency Breakdown (Total: {formattedDuration})</span>
                 </div>
@@ -409,10 +409,10 @@ export function ReviewSummaryCard({
 
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 text-[10px]">
                 {Object.entries(stageTimings).map(([stg, data]: [string, any]) => (
-                  <div key={stg} className="rounded bg-[#0b1019] p-2 border border-[#172338]/60">
+                  <div key={stg} className="rounded bg-white dark:bg-[#0b1019] p-2 border border-slate-200 dark:border-[#172338]/60 shadow-xs">
                     <span className="text-slate-500 uppercase truncate block">{stg.replace('_', ' ')}</span>
-                    <span className="text-cyan-400 font-bold block mt-0.5">{data?.durationMs ?? 0}ms</span>
-                    <span className={`text-[9px] uppercase font-semibold ${data?.status === 'success' ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    <span className="text-blue-600 dark:text-blue-400 font-bold block mt-0.5">{data?.durationMs ?? 0}ms</span>
+                    <span className={`text-[9px] uppercase font-semibold ${data?.status === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}`}>
                       {data?.status || 'done'}
                     </span>
                   </div>

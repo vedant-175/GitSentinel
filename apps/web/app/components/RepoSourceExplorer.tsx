@@ -193,19 +193,19 @@ export function RepoSourceExplorer({
   const breadcrumbParts = currentDirectory ? currentDirectory.split('/') : [];
 
   return (
-    <div className="rounded-2xl border border-[#172338] bg-[#0b1019] shadow-2xl overflow-hidden animate-fade-in font-sans">
+    <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] shadow-xs dark:shadow-2xl overflow-hidden animate-fade-in font-sans">
       {/* Top Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#172338] bg-[#06090e] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e] px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Code className="h-4 w-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+            <div className="text-xs font-bold text-slate-900 dark:text-white font-mono flex items-center gap-1.5">
               <span>{repoFullName}</span>
-              <span className="text-[10px] text-slate-500">&bull; Source Code Explorer</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">&bull; Source Code Explorer</span>
             </div>
-            <div className="text-[10px] font-mono text-slate-400">
+            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
               {files.length} items in current view &bull; Connected via GitSentinel Resilient Engine
             </div>
           </div>
@@ -215,10 +215,10 @@ export function RepoSourceExplorer({
           <button
             onClick={() => loadDirectory(currentDirectory, false)}
             disabled={loadingFiles}
-            className="rounded-xl border border-[#172338] bg-[#090d15] px-2.5 py-1.5 text-xs font-mono text-slate-400 hover:text-white hover:border-cyan-500/40 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#090d15] px-2.5 py-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-blue-500/40 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
             title="Refresh File List"
           >
-            <RefreshCw className={`h-3 w-3 ${loadingFiles ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`h-3 w-3 ${loadingFiles ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}`} />
             <span>Reload</span>
           </button>
 
@@ -235,7 +235,7 @@ export function RepoSourceExplorer({
                 window.dispatchEvent(new CustomEvent('cyberops:ask-ai', { detail }));
                 window.dispatchEvent(new CustomEvent('open-cyber-chat', { detail: { open: true } }));
               }}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-zinc-100 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-zinc-100 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-900 active:scale-95 transition-all cursor-pointer"
               title="Direct to GitSentinel AI with highlighted code"
             >
               <div className="flex items-center justify-center text-slate-700 dark:text-zinc-300">
@@ -262,7 +262,7 @@ export function RepoSourceExplorer({
             <button
               onClick={handleReviewActiveFile}
               disabled={reviewing}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-3 py-1.5 text-xs font-mono font-bold text-black shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-mono font-bold shadow-xs hover:scale-105 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
             >
               {reviewing ? (
                 <>
@@ -281,10 +281,10 @@ export function RepoSourceExplorer({
           {activeFileContent && (
             <button
               onClick={handleCopyCode}
-              className="rounded-xl border border-[#172338] bg-[#090d15] px-2.5 py-1.5 text-xs font-mono text-slate-300 hover:text-white hover:border-cyan-500/40 transition-colors flex items-center gap-1 cursor-pointer"
+              className="rounded-xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#090d15] px-2.5 py-1.5 text-xs font-mono text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-blue-500/40 transition-colors flex items-center gap-1 cursor-pointer"
               title="Copy code"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           )}
@@ -294,14 +294,14 @@ export function RepoSourceExplorer({
       {/* Main Grid: Sidebar File Tree + Code Viewer */}
       <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[520px]">
         {/* Left Sidebar: File Tree */}
-        <div className="lg:col-span-4 border-r border-[#172338] bg-[#06090e]/70 p-3 space-y-2 overflow-y-auto max-h-[650px] flex flex-col justify-between">
+        <div className="lg:col-span-4 border-r border-slate-200 dark:border-[#172338] bg-slate-50/70 dark:bg-[#06090e]/70 p-3 space-y-2 overflow-y-auto max-h-[650px] flex flex-col justify-between">
           <div>
             {/* Breadcrumb Navigation */}
-            <div className="flex items-center flex-wrap gap-1 text-[11px] font-mono pb-2 border-b border-[#172338] text-slate-400">
+            <div className="flex items-center flex-wrap gap-1 text-[11px] font-mono pb-2 border-b border-slate-200 dark:border-[#172338] text-slate-500 dark:text-slate-400">
               <button
                 onClick={() => loadDirectory('', false)}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#0f172a] hover:text-cyan-300 cursor-pointer transition-colors ${
-                  !currentDirectory ? 'text-cyan-400 font-bold' : ''
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-slate-200 dark:hover:bg-[#0f172a] hover:text-blue-600 dark:hover:text-blue-300 cursor-pointer transition-colors ${
+                  !currentDirectory ? 'text-blue-600 dark:text-blue-400 font-bold' : ''
                 }`}
                 title="Go to root"
               >
@@ -314,11 +314,11 @@ export function RepoSourceExplorer({
                 const isLast = index === breadcrumbParts.length - 1;
                 return (
                   <React.Fragment key={stepPath}>
-                    <span className="text-slate-600">/</span>
+                    <span className="text-slate-400 dark:text-slate-600">/</span>
                     <button
                       onClick={() => loadDirectory(stepPath, false)}
-                      className={`px-1 py-0.5 rounded hover:bg-[#0f172a] hover:text-cyan-300 cursor-pointer transition-colors ${
-                        isLast ? 'text-cyan-400 font-bold' : ''
+                      className={`px-1 py-0.5 rounded hover:bg-slate-200 dark:hover:bg-[#0f172a] hover:text-blue-600 dark:hover:text-blue-300 cursor-pointer transition-colors ${
+                        isLast ? 'text-blue-600 dark:text-blue-400 font-bold' : ''
                       }`}
                     >
                       {part}
@@ -332,16 +332,16 @@ export function RepoSourceExplorer({
             {currentDirectory && (
               <button
                 onClick={handleNavigateUp}
-                className="w-full mt-2 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-400 hover:text-white hover:bg-[#0f172a] border border-dashed border-[#172338] transition-all cursor-pointer"
+                className="w-full mt-2 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#0f172a] border border-dashed border-slate-300 dark:border-[#172338] transition-all cursor-pointer"
               >
-                <CornerLeftUp className="h-3.5 w-3.5 text-cyan-400" />
+                <CornerLeftUp className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 <span>.. (Up to parent directory)</span>
               </button>
             )}
 
             {/* Loading Indicator */}
             {loadingFiles && (
-              <div className="flex items-center gap-2 p-4 text-xs font-mono text-cyan-400 animate-pulse">
+              <div className="flex items-center gap-2 p-4 text-xs font-mono text-blue-600 dark:text-blue-400 animate-pulse">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 <span>Fetching folder contents...</span>
               </div>
@@ -353,7 +353,7 @@ export function RepoSourceExplorer({
                 <div className="text-xs font-mono text-slate-500">No files found in this directory.</div>
                 <button
                   onClick={() => loadDirectory('', true)}
-                  className="text-[11px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                  className="text-[11px] font-mono text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                 >
                   Return to repository root
                 </button>
@@ -375,17 +375,17 @@ export function RepoSourceExplorer({
                     onClick={() => handleItemClick(file)}
                     className={`w-full flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-mono transition-all text-left cursor-pointer ${
                       isSelected
-                        ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(0,240,255,0.15)] font-bold'
+                        ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/40 shadow-xs font-bold'
                         : isDir
-                        ? 'text-amber-300 hover:bg-[#0f172a] hover:text-amber-200 border border-transparent'
-                        : 'text-slate-400 hover:bg-[#0f172a] hover:text-white border border-transparent'
+                        ? 'text-amber-700 dark:text-amber-300 hover:bg-slate-200/60 dark:hover:bg-[#0f172a] hover:text-amber-800 dark:hover:text-amber-200 border border-transparent'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-[#0f172a] hover:text-slate-900 dark:hover:text-white border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       {isDir ? (
-                        <Folder className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <Folder className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
                       ) : (
-                        <FileCode className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                        <FileCode className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                       )}
                       <span className="truncate">{file.name}</span>
                     </div>
@@ -393,15 +393,15 @@ export function RepoSourceExplorer({
                     <div className="flex items-center gap-1.5 shrink-0">
                       {hasIssue && (
                         <span
-                          className="flex h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_6px_#f43f5e]"
+                          className="flex h-2 w-2 rounded-full bg-rose-500 shadow-xs"
                           title="Security Finding Detected"
                         />
                       )}
                       {isDir ? (
-                        <span className="text-[10px] text-amber-400/60 font-semibold uppercase">dir</span>
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400/60 font-semibold uppercase">dir</span>
                       ) : (
                         <ChevronRight
-                          className={`h-3 w-3 ${isSelected ? 'text-cyan-400' : 'text-slate-600'}`}
+                          className={`h-3 w-3 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-600'}`}
                         />
                       )}
                     </div>
@@ -412,7 +412,7 @@ export function RepoSourceExplorer({
           </div>
 
           {/* Directory Summary Footer */}
-          <div className="pt-2 border-t border-[#172338] text-[10px] font-mono text-slate-500 flex items-center justify-between">
+          <div className="pt-2 border-t border-slate-200 dark:border-[#172338] text-[10px] font-mono text-slate-500 dark:text-slate-500 flex items-center justify-between">
             <span>{files.filter((f) => f.type === 'dir').length} folders</span>
             <span>{files.filter((f) => f.type === 'file').length} files</span>
           </div>
@@ -420,19 +420,19 @@ export function RepoSourceExplorer({
 
         {/* Right Area: Code Display & Inline Findings */}
         <div
-          className="lg:col-span-8 flex flex-col bg-[#0b1019] overflow-hidden"
+          className="lg:col-span-8 flex flex-col bg-white dark:bg-[#0b1019] overflow-hidden"
           data-filepath={activeFilePath || ''}
           data-repofullname={repoFullName}
         >
           {/* Active File Header */}
-          <div className="flex items-center justify-between border-b border-[#172338] bg-[#070b12] px-4 py-2.5 text-xs font-mono">
-            <div className="flex items-center gap-2 text-slate-300">
-              <FileCode className="h-3.5 w-3.5 text-cyan-400" />
-              <span className="font-bold text-white truncate max-w-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#070b12] px-4 py-2.5 text-xs font-mono">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+              <FileCode className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              <span className="font-bold text-slate-900 dark:text-white truncate max-w-sm">
                 {activeFilePath || 'Select a file to inspect'}
               </span>
               {activeFileIssues.length > 0 && (
-                <span className="rounded bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5 text-[10px] text-rose-400 font-bold shrink-0">
+                <span className="rounded bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-1.5 py-0.5 text-[10px] text-rose-700 dark:text-rose-400 font-bold shrink-0">
                   {activeFileIssues.length} Vulnerability Flagged
                 </span>
               )}
@@ -445,34 +445,34 @@ export function RepoSourceExplorer({
 
           {/* AI Review Drawer Banner */}
           {fileReview && (
-            <div className="border-b border-cyan-500/30 bg-[#06090e] p-4 text-xs font-sans space-y-2 animate-fade-in">
-              <div className="flex items-center justify-between font-mono text-[11px] pb-2 border-b border-[#172338]">
+            <div className="border-b border-blue-200 dark:border-blue-500/30 bg-blue-50/40 dark:bg-[#06090e] p-4 text-xs font-sans space-y-2 animate-fade-in">
+              <div className="flex items-center justify-between font-mono text-[11px] pb-2 border-b border-blue-100 dark:border-[#172338]">
                 <div className="flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-cyan-400" />
-                  <span className="font-bold text-cyan-300">GitSentinel AI Code Review</span>
-                  <span className="rounded bg-cyan-500/10 border border-cyan-500/30 px-1.5 py-0.5 text-[10px] text-cyan-300 font-bold">
+                  <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="font-bold text-blue-800 dark:text-blue-300">GitSentinel AI Code Review</span>
+                  <span className="rounded bg-blue-100 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-1.5 py-0.5 text-[10px] text-blue-700 dark:text-blue-300 font-bold">
                     {fileReview.tier || fileReview.provider?.toUpperCase()}
                   </span>
                 </div>
                 <button
                   onClick={() => setFileReview(null)}
-                  className="text-slate-500 hover:text-white transition-colors cursor-pointer"
+                  className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   ✕ Close Review
                 </button>
               </div>
 
-              <div className="max-h-64 overflow-y-auto whitespace-pre-wrap text-slate-200 font-sans text-xs leading-relaxed select-text pr-2">
+              <div className="max-h-64 overflow-y-auto whitespace-pre-wrap text-slate-800 dark:text-slate-200 font-sans text-xs leading-relaxed select-text pr-2">
                 {fileReview.markdown}
               </div>
             </div>
           )}
 
           {/* Code Viewer Body */}
-          <div className="flex-1 overflow-auto bg-[#04060a] p-4 font-mono text-xs max-h-[600px]">
+          <div className="flex-1 overflow-auto bg-slate-950 dark:bg-[#04060a] p-4 font-mono text-xs max-h-[600px]">
             {loadingContent && (
               <div className="flex items-center justify-center p-16 text-slate-400">
-                <Loader2 className="h-5 w-5 animate-spin text-cyan-400 mr-2" />
+                <Loader2 className="h-5 w-5 animate-spin text-blue-500 mr-2" />
                 <span>Loading source code...</span>
               </div>
             )}

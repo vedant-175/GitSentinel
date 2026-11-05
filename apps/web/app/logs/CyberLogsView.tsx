@@ -132,17 +132,17 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
   });
 
   return (
-    <div className="space-y-4 animate-fade-in text-slate-100 font-sans">
+    <div className="space-y-4 animate-fade-in text-slate-900 dark:text-slate-100 font-sans">
       {/* Tab Switcher & Subheader Status Line */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono px-1">
         <div className="flex items-center gap-2">
-          <div className="flex items-center p-1 rounded-xl bg-[#06090e] border border-[#172338]">
+          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-[#06090e] border border-slate-200 dark:border-[#172338]">
             <button
               onClick={() => setActiveTab('observability')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'observability'
-                  ? 'bg-cyan-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Activity className="h-3.5 w-3.5" />
@@ -150,10 +150,10 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('dlq')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'dlq'
-                  ? 'bg-rose-500 text-white shadow-[0_0_12px_rgba(244,63,94,0.4)]'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-rose-600 dark:bg-rose-500 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Flame className="h-3.5 w-3.5" />
@@ -161,13 +161,13 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
             </button>
           </div>
 
-          <span className="text-slate-600 hidden md:inline">&bull;</span>
-          <div className="hidden md:flex items-center gap-1.5 text-slate-400">
+          <span className="text-slate-400 dark:text-slate-600 hidden md:inline">&bull;</span>
+          <div className="hidden md:flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-emerald-400 font-semibold">
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
               Worker: {telemetry?.workerStatus?.toUpperCase() || 'PROBING'}
             </span>
           </div>
@@ -177,7 +177,7 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowDebugModal(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#06090e] border border-amber-500/30 text-amber-300 hover:bg-amber-500/10 text-[11px] font-bold transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-[#06090e] border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/10 text-[11px] font-bold transition-all cursor-pointer"
             title="SRE Debugging Guide for 90s slow reviews"
           >
             <HelpCircle className="h-3.5 w-3.5" />
@@ -186,72 +186,72 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
 
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
               autoRefresh
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-[#06090e] border-[#172338] text-slate-400'
+                ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                : 'bg-white dark:bg-[#06090e] border-slate-200 dark:border-[#172338] text-slate-600 dark:text-slate-400'
             }`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-slate-400 dark:bg-slate-500'}`} />
             <span>{autoRefresh ? '10s Auto-Poll' : 'Polling Paused'}</span>
           </button>
 
           <button
             onClick={fetchTelemetry}
-            className="p-1.5 rounded-lg bg-[#06090e] border border-[#172338] text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all"
+            className="p-1.5 rounded-lg bg-white dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all cursor-pointer shadow-xs"
             title="Refresh Telemetry Now"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loadingTelemetry ? 'animate-spin text-cyan-400' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${loadingTelemetry ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* SRE DEBUG MODAL */}
       {showDebugModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="max-w-2xl w-full rounded-2xl bg-[#0b1019] border border-[#172338] p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#172338]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs animate-fade-in">
+          <div className="max-w-2xl w-full rounded-2xl bg-white dark:bg-[#0b1019] border border-slate-200 dark:border-[#172338] p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#172338]">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-400" />
-                <h3 className="font-bold text-white text-base">Debugging a Review Taking &gt; 90s or Stuck</h3>
+                <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">Debugging a Review Taking &gt; 90s or Stuck</h3>
               </div>
               <button
                 onClick={() => setShowDebugModal(false)}
-                className="text-slate-400 hover:text-white font-mono text-sm px-2 py-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white font-mono text-sm px-2 py-1 cursor-pointer"
               >
                 &times;
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-300 font-mono leading-relaxed max-h-[70vh] overflow-y-auto pr-2">
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300">
+            <div className="space-y-3 text-xs text-slate-700 dark:text-slate-300 font-mono leading-relaxed max-h-[70vh] overflow-y-auto pr-2">
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-300">
                 <strong>Standard Review Budget:</strong> 30s to 45s. A review exceeding 90s violates SLA and triggers the Stale Job detection watchdog.
               </div>
 
-              <h4 className="font-bold text-cyan-400 text-sm">Diagnostic Step-by-Step Checklist:</h4>
-              <ol className="list-decimal list-inside space-y-2 text-slate-300">
+              <h4 className="font-bold text-blue-600 dark:text-blue-400 text-sm">Diagnostic Step-by-Step Checklist:</h4>
+              <ol className="list-decimal list-inside space-y-2 text-slate-700 dark:text-slate-300">
                 <li>
-                  <strong className="text-white">Isolate the culprit stage:</strong> Look at the 11-Stage Waterfall table below. Check if latency is concentrated in <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">queue_enqueue</code> (queue backlog), <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">llm_analysis</code> (model response stall), or <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">persistence</code> (DB deadlock).
+                  <strong className="text-slate-900 dark:text-white">Isolate the culprit stage:</strong> Look at the 11-Stage Waterfall table below. Check if latency is concentrated in <code className="text-blue-600 dark:text-blue-300 bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded">queue_enqueue</code> (queue backlog), <code className="text-blue-600 dark:text-blue-300 bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded">llm_analysis</code> (model response stall), or <code className="text-blue-600 dark:text-blue-300 bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded">persistence</code> (DB deadlock).
                 </li>
                 <li>
-                  <strong className="text-white">Check Correlation ID:</strong> Grab the <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">correlationId</code> from the trace table and grep worker logs:
-                  <pre className="mt-1 p-2 bg-[#06090e] rounded text-emerald-400 text-[11px] overflow-x-auto">
+                  <strong className="text-slate-900 dark:text-white">Check Correlation ID:</strong> Grab the <code className="text-blue-600 dark:text-blue-300 bg-slate-100 dark:bg-slate-900 px-1 py-0.5 rounded">correlationId</code> from the trace table and grep worker logs:
+                  <pre className="mt-1 p-2 bg-slate-900 dark:bg-[#06090e] rounded text-emerald-400 text-[11px] overflow-x-auto">
                     grep &apos;correlation_id&apos;: &apos;&lt;ID&gt;&apos; worker.log
                   </pre>
                 </li>
                 <li>
-                  <strong className="text-white">Inspect Lock Contention:</strong> Reviews use distributed locks in Redis. If a previous worker crashed, the lock expires after 180s. The reaper runs every 60s and reaps stale jobs automatically.
+                  <strong className="text-slate-900 dark:text-white">Inspect Lock Contention:</strong> Reviews use distributed locks in Redis. If a previous worker crashed, the lock expires after 180s. The reaper runs every 60s and reaps stale jobs automatically.
                 </li>
                 <li>
-                  <strong className="text-white">Review Stuck Reviews Table:</strong> Check the &quot;Stalled Reviews Alert&quot; section on this dashboard for reviews with &gt; 90s elapsed runtime.
+                  <strong className="text-slate-900 dark:text-white">Review Stuck Reviews Table:</strong> Check the &quot;Stalled Reviews Alert&quot; section on this dashboard for reviews with &gt; 90s elapsed runtime.
                 </li>
               </ol>
 
-              <div className="pt-2 border-t border-[#172338] flex justify-between items-center text-[11px]">
-                <span className="text-slate-400">Full runbook available in docs/DEBUGGING_SLOW_REVIEWS.md</span>
+              <div className="pt-2 border-t border-slate-200 dark:border-[#172338] flex justify-between items-center text-[11px]">
+                <span className="text-slate-500 dark:text-slate-400">Full runbook available in docs/DEBUGGING_SLOW_REVIEWS.md</span>
                 <button
                   onClick={() => setShowDebugModal(false)}
-                  className="px-3 py-1.5 bg-cyan-400 text-black font-bold rounded-lg hover:bg-cyan-300 transition-colors"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-xs cursor-pointer"
                 >
                   Understood
                 </button>
@@ -322,104 +322,104 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
           {/* TOP 4 TELEMETRY CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* 1. BullMQ Queue Depth */}
-            <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-3.5 shadow-md flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-3.5 shadow-xs dark:shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-300">
-                    <Layers className="h-4 w-4 text-cyan-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                    <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span>QUEUE DEPTH</span>
                   </div>
-                  <span className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-cyan-400">
+                  <span className="rounded bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:text-blue-400">
                     BullMQ
                   </span>
                 </div>
-                <div className="text-2xl font-black font-mono text-white">
+                <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                   {telemetry?.queueDepth?.waiting ?? 0}
-                  <span className="text-xs text-slate-400 font-normal ml-1">waiting</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">waiting</span>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-4 gap-1 font-mono text-center text-[10px] pt-2 border-t border-[#172338]">
-                <div className="rounded bg-[#06090e] p-1">
-                  <div className="text-slate-400">Active</div>
-                  <div className="font-bold text-cyan-400">{telemetry?.queueDepth?.active ?? 0}</div>
+              <div className="mt-3 grid grid-cols-4 gap-1 font-mono text-center text-[10px] pt-2 border-t border-slate-100 dark:border-[#172338]">
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1 border border-slate-100 dark:border-transparent">
+                  <div className="text-slate-500 dark:text-slate-400">Active</div>
+                  <div className="font-bold text-blue-600 dark:text-blue-400">{telemetry?.queueDepth?.active ?? 0}</div>
                 </div>
-                <div className="rounded bg-[#06090e] p-1">
-                  <div className="text-slate-400">Delay</div>
-                  <div className="font-bold text-amber-400">{telemetry?.queueDepth?.delayed ?? 0}</div>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1 border border-slate-100 dark:border-transparent">
+                  <div className="text-slate-500 dark:text-slate-400">Delay</div>
+                  <div className="font-bold text-amber-600 dark:text-amber-400">{telemetry?.queueDepth?.delayed ?? 0}</div>
                 </div>
-                <div className="rounded bg-[#06090e] p-1">
-                  <div className="text-slate-400">Failed</div>
-                  <div className="font-bold text-rose-400">{telemetry?.queueDepth?.failed ?? 0}</div>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1 border border-slate-100 dark:border-transparent">
+                  <div className="text-slate-500 dark:text-slate-400">Failed</div>
+                  <div className="font-bold text-rose-600 dark:text-rose-400">{telemetry?.queueDepth?.failed ?? 0}</div>
                 </div>
-                <div className="rounded bg-[#06090e] p-1">
-                  <div className="text-slate-400">Done</div>
-                  <div className="font-bold text-emerald-400">{telemetry?.queueDepth?.completed ?? 0}</div>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1 border border-slate-100 dark:border-transparent">
+                  <div className="text-slate-500 dark:text-slate-400">Done</div>
+                  <div className="font-bold text-emerald-600 dark:text-emerald-400">{telemetry?.queueDepth?.completed ?? 0}</div>
                 </div>
               </div>
             </div>
 
             {/* 2. Worker Health & Fleet */}
-            <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-3.5 shadow-md flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-3.5 shadow-xs dark:shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-300">
-                    <Server className="h-4 w-4 text-emerald-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                    <Server className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span>WORKER FLEET</span>
                   </div>
-                  <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-transparent px-1.5 py-0.5 rounded border border-emerald-200 dark:border-transparent">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     :3001
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black font-mono text-emerald-400">
+                  <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
                     {telemetry?.workerStatus === 'online' ? 'Healthy' : 'Probing'}
                   </span>
-                  <span className="text-xs font-mono text-slate-400">
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
                     {Math.floor((telemetry?.workerHealth?.uptimeSeconds ?? 0) / 60)}m uptime
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-[#172338]">
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">RSS:</span>
-                  <span className="font-bold text-white">{telemetry?.workerHealth?.memory?.rssMb ?? 0}MB</span>
+              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-slate-100 dark:border-[#172338]">
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">RSS:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{telemetry?.workerHealth?.memory?.rssMb ?? 0}MB</span>
                 </div>
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">Heap:</span>
-                  <span className="font-bold text-cyan-400">{telemetry?.workerHealth?.memory?.heapUsedMb ?? 0}MB</span>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">Heap:</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{telemetry?.workerHealth?.memory?.heapUsedMb ?? 0}MB</span>
                 </div>
               </div>
             </div>
 
             {/* 3. Stale-Job Detection */}
-            <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-3.5 shadow-md flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-3.5 shadow-xs dark:shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-300">
-                    <Clock className="h-4 w-4 text-amber-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     <span>STALE DETECTION</span>
                   </div>
-                  <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-400">
+                  <span className="rounded bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400">
                     Reaper 60s
                   </span>
                 </div>
-                <div className="text-2xl font-black font-mono text-white">
+                <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                   {telemetry?.staleJobs?.detectedTotal ?? 0}
-                  <span className="text-xs text-slate-400 font-normal ml-1">detected</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">detected</span>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-[#172338]">
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">Reaped:</span>
-                  <span className="font-bold text-emerald-400">{telemetry?.staleJobs?.reapedTotal ?? 0}</span>
+              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-slate-100 dark:border-[#172338]">
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">Reaped:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{telemetry?.staleJobs?.reapedTotal ?? 0}</span>
                 </div>
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">Stuck Now:</span>
-                  <span className={`font-bold ${stuckCount > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">Stuck Now:</span>
+                  <span className={`font-bold ${stuckCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
                     {stuckCount}
                   </span>
                 </div>
@@ -427,50 +427,50 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
             </div>
 
             {/* 4. LLM Latency & Cost */}
-            <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-3.5 shadow-md flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-3.5 shadow-xs dark:shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-300">
-                    <DollarSign className="h-4 w-4 text-purple-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                    <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     <span>LLM & COST</span>
                   </div>
-                  <span className="rounded bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-purple-400">
+                  <span className="rounded bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-purple-700 dark:text-purple-400">
                     Tokens
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black font-mono text-white">
+                  <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                     ${telemetry?.llmMetrics?.estimatedCostUsd?.toFixed(4) ?? '0.0000'}
                   </span>
-                  <span className="text-[10px] font-mono text-purple-300">
+                  <span className="text-[10px] font-mono text-purple-600 dark:text-purple-300">
                     {telemetry?.llmMetrics?.tokensConsumedTotal?.toLocaleString() ?? 0} tok
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-[#172338]">
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">LLM p50:</span>
-                  <span className="font-bold text-cyan-400">{telemetry?.llmMetrics?.latency?.p50 ?? 0}ms</span>
+              <div className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] pt-2 border-t border-slate-100 dark:border-[#172338]">
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">LLM p50:</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{telemetry?.llmMetrics?.latency?.p50 ?? 0}ms</span>
                 </div>
-                <div className="rounded bg-[#06090e] p-1.5 flex justify-between">
-                  <span className="text-slate-400">Failures:</span>
-                  <span className="font-bold text-rose-400">{telemetry?.llmMetrics?.llmFailuresTotal ?? 0}</span>
+                <div className="rounded bg-slate-50 dark:bg-[#06090e] p-1.5 flex justify-between border border-slate-100 dark:border-transparent">
+                  <span className="text-slate-500 dark:text-slate-400">Failures:</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400">{telemetry?.llmMetrics?.llmFailuresTotal ?? 0}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 11-STAGE REVIEW LIFECYCLE WATERFALL */}
-          <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-[#172338]">
+          <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-slate-100 dark:border-[#172338]">
               <div className="flex items-center gap-2">
-                <Gauge className="h-4 w-4 text-cyan-400" />
-                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                <Gauge className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                   Complete 11-Stage Review Lifecycle Latency Waterfall
                 </h3>
               </div>
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                 End-to-End Ingress &rarr; Execution &rarr; Completion
               </span>
             </div>
@@ -489,26 +489,26 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                 return (
                   <div
                     key={stageKey}
-                    className="rounded-xl bg-[#06090e] border border-[#172338] p-2.5 flex flex-col justify-between hover:border-cyan-500/40 transition-colors"
+                    className="rounded-xl bg-slate-50 dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] p-2.5 flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-500/40 transition-colors shadow-xs"
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-200 text-xs truncate">{stageInfo.name}</span>
-                        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-400">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs truncate">{stageInfo.name}</span>
+                        <span className="rounded bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-600 dark:text-slate-400">
                           #{idx + 1}
                         </span>
                       </div>
-                      <div className="text-[10px] text-slate-500 mt-0.5 truncate">{stageInfo.desc}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">{stageInfo.desc}</div>
                     </div>
 
-                    <div className="mt-2.5 pt-2 border-t border-[#172338]/80 flex items-center justify-between text-[11px]">
+                    <div className="mt-2.5 pt-2 border-t border-slate-200/80 dark:border-[#172338]/80 flex items-center justify-between text-[11px]">
                       <div>
                         <span className="text-slate-500 text-[10px]">p50 / p95: </span>
-                        <span className="font-bold text-cyan-400">{stats.p50Ms}ms</span>
-                        <span className="text-slate-500"> / </span>
-                        <span className="font-bold text-amber-400">{stats.p95Ms}ms</span>
+                        <span className="font-bold text-blue-600 dark:text-blue-400">{stats.p50Ms}ms</span>
+                        <span className="text-slate-400"> / </span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">{stats.p95Ms}ms</span>
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
                         {stats.count} {stats.count === 1 ? 'run' : 'runs'}
                       </div>
                     </div>
@@ -519,24 +519,24 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
           </div>
 
           {/* FAILURE METRICS & ERROR CATEGORIES BREAKDOWN */}
-          <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#172338]">
+          <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-[#172338]">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-rose-400" />
-                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                <AlertTriangle className="h-4 w-4 text-rose-500 dark:text-rose-400" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                   Failure Metrics & Error Taxonomy Breakdown
                 </h3>
               </div>
               <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="text-slate-400">
+                <span className="text-slate-500 dark:text-slate-400">
                   GitHub API Failures:{' '}
-                  <span className="text-rose-400 font-bold">
+                  <span className="text-rose-600 dark:text-rose-400 font-bold">
                     {telemetry?.failureMetrics?.githubFailuresTotal ?? 0}
                   </span>
                 </span>
-                <span className="text-slate-400">
+                <span className="text-slate-500 dark:text-slate-400">
                   Retries:{' '}
-                  <span className="text-amber-400 font-bold">
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">
                     {telemetry?.failureMetrics?.retriesTotal ?? 0}
                   </span>
                 </span>
@@ -550,12 +550,14 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                 return (
                   <div
                     key={category}
-                    className={`rounded-xl bg-[#06090e] border p-2 ${
-                      countNum > 0 ? 'border-rose-500/40 bg-rose-950/10' : 'border-[#172338]'
+                    className={`rounded-xl border p-2 shadow-xs ${
+                      countNum > 0
+                        ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/10'
+                        : 'border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e]'
                     }`}
                   >
-                    <div className="text-[10px] uppercase text-slate-400 truncate">{category.replace('_', ' ')}</div>
-                    <div className={`text-sm font-bold mt-1 ${countNum > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                    <div className="text-[10px] uppercase text-slate-500 dark:text-slate-400 truncate">{category.replace('_', ' ')}</div>
+                    <div className={`text-sm font-bold mt-1 ${countNum > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-500'}`}>
                       {countNum}
                     </div>
                   </div>
@@ -565,30 +567,30 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
           </div>
 
           {/* RECENT TRACES INSPECTOR */}
-          <div className="rounded-2xl border border-[#172338] bg-[#0b1019] p-4 shadow-md space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#172338]">
+          <div className="rounded-2xl border border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] p-4 shadow-xs dark:shadow-md space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-[#172338]">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-cyan-400" />
-                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                   Recent Review Lifecycle Traces &amp; Audit Trail
                 </h3>
               </div>
 
               {/* Search trace bar */}
               <div className="relative">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-slate-500" />
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   placeholder="Filter correlation ID, commit, PR..."
                   value={traceSearch}
                   onChange={(e) => setTraceSearch(e.target.value)}
-                  className="rounded-xl bg-[#06090e] border border-[#172338] pl-8 pr-3 py-1.5 text-xs font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 w-full sm:w-64"
+                  className="rounded-xl bg-slate-50 dark:bg-[#06090e] border border-slate-300 dark:border-[#172338] pl-8 pr-3 py-1.5 text-xs font-mono text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500/50 w-full sm:w-64"
                 />
               </div>
             </div>
 
             {filteredTraces.length === 0 ? (
-              <div className="text-center py-8 font-mono text-xs text-slate-500">
+              <div className="text-center py-8 font-mono text-xs text-slate-500 dark:text-slate-500">
                 No review lifecycle traces found matching filter.
               </div>
             ) : (
@@ -602,49 +604,49 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                   return (
                     <div
                       key={traceKey}
-                      className="rounded-xl bg-[#06090e] border border-[#172338] overflow-hidden transition-all"
+                      className="rounded-xl bg-slate-50 dark:bg-[#06090e] border border-slate-200 dark:border-[#172338] overflow-hidden transition-all shadow-xs"
                     >
                       {/* Summary Bar */}
                       <div
                         onClick={() => setSelectedTraceId(isExpanded ? null : traceKey)}
-                        className="p-3 flex flex-col md:flex-row md:items-center justify-between gap-2 cursor-pointer hover:bg-slate-900/50 transition-colors"
+                        className="p-3 flex flex-col md:flex-row md:items-center justify-between gap-2 cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-900/50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <span
                             className={`rounded px-2 py-0.5 text-[10px] font-mono font-bold ${
                               trace.status === 'completed'
-                                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                                ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
                                 : trace.status === 'failed'
-                                ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400'
-                                : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                                ? 'bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
+                                : 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-400'
                             }`}
                           >
                             {trace.status?.toUpperCase() || 'UNKNOWN'}
                           </span>
 
-                          <span className="font-mono text-xs text-white font-bold">
+                          <span className="font-mono text-xs text-slate-900 dark:text-white font-bold">
                             {trace.repoFullName} &bull; PR #{trace.prNumber}
                           </span>
 
-                          <span className="font-mono text-[11px] text-slate-500 hidden sm:inline">
+                          <span className="font-mono text-[11px] text-slate-500 dark:text-slate-500 hidden sm:inline">
                             Commit: {trace.commitSha?.substring(0, 7) || 'unknown'}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-3 font-mono text-xs">
-                          <div className="flex items-center gap-1.5 text-slate-400">
-                            <Clock className="h-3.5 w-3.5 text-cyan-400" />
-                            <span className="font-bold text-slate-200">{totalSeconds}s</span>
+                          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                            <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                            <span className="font-bold text-slate-800 dark:text-slate-200">{totalSeconds}s</span>
                           </div>
 
                           <div className="text-[10px] text-slate-500 hidden lg:inline">
                             Correlation:{' '}
-                            <span className="text-slate-300">
+                            <span className="text-slate-700 dark:text-slate-300">
                               {trace.correlationId?.substring(0, 14)}...
                             </span>
                           </div>
 
-                          <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300">
+                          <span className="rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[10px] text-slate-700 dark:text-slate-300">
                             {stageCount}/11 Stages
                           </span>
 
@@ -658,7 +660,7 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
 
                       {/* Expanded 11-Stage Drilldown */}
                       {isExpanded && (
-                        <div className="p-3 border-t border-[#172338] bg-[#0b1019] space-y-3 font-mono text-xs">
+                        <div className="p-3 border-t border-slate-200 dark:border-[#172338] bg-white dark:bg-[#0b1019] space-y-3 font-mono text-xs">
                           {/* Metadata Header */}
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pb-2 border-b border-[#172338]/60">
                             <div>
@@ -840,11 +842,11 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
           {/* QUARANTINE QUEUE LIST */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs font-mono">
-              <div className="flex items-center gap-1.5 text-white font-bold">
-                <Flame className="h-4 w-4 text-rose-400" />
+              <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-bold">
+                <Flame className="h-4 w-4 text-rose-500 dark:text-rose-400" />
                 <span>Quarantine Queue</span>
               </div>
-              <span className="rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 font-semibold">
+              <span className="rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-[10px] text-slate-700 dark:text-slate-300 font-semibold">
                 DLQ &bull; {failedCount} Items
               </span>
             </div>
@@ -859,35 +861,35 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                   return (
                     <div
                       key={fr.id}
-                      className="rounded-2xl bg-[#0b1019] border border-[#172338] border-l-4 border-l-rose-500 p-3.5 shadow-md flex flex-col justify-between space-y-2.5"
+                      className="rounded-2xl bg-white dark:bg-[#0b1019] border border-slate-200 dark:border-[#172338] border-l-4 border-l-rose-500 p-3.5 shadow-xs dark:shadow-md flex flex-col justify-between space-y-2.5"
                     >
                       <div>
                         <div className="flex items-center justify-between text-xs font-mono">
-                          <span className="font-bold text-white">
+                          <span className="font-bold text-slate-900 dark:text-white">
                             {fr.pullRequest ? `PR #${fr.pullRequest.githubPrNumber}` : `Job #${fr.id}`}
                           </span>
-                          <span className="rounded bg-rose-500/20 border border-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-400">
+                          <span className="rounded bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/30 px-2 py-0.5 text-[10px] font-bold text-rose-700 dark:text-rose-400">
                             FAILED
                           </span>
                         </div>
 
-                        <div className="font-mono text-xs text-slate-400 mt-1">
-                          <div className="text-slate-300 font-medium">
+                        <div className="font-mono text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          <div className="text-slate-700 dark:text-slate-300 font-medium">
                             {fr.pullRequest?.repository?.fullName || 'system-dispatcher'}
                           </div>
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500">
                             Commit: {fr.commitSha?.substring(0, 7) || 'HEAD'}
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1.5 mt-2 border-t border-[#172338]">
+                        <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1.5 mt-2 border-t border-slate-100 dark:border-[#172338]">
                           <span suppressHydrationWarning>{formatDateTime(fr.failedAt)}</span>
-                          <span className="text-rose-400 font-medium">Auto-retry Terminated</span>
+                          <span className="text-rose-600 dark:text-rose-400 font-medium">Auto-retry Terminated</span>
                         </div>
 
                         {/* Error Message */}
                         <div className="space-y-1 mt-2">
-                          <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-rose-400">
+                          <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
                             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{fr.errorMessage}</span>
                           </div>
@@ -895,13 +897,13 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
 
                         {/* Collapsible Stack Trace Snippet */}
                         {fr.errorStack && (
-                          <div className="rounded-xl border border-[#172338] bg-[#06090e] overflow-hidden mt-2.5">
+                          <div className="rounded-xl border border-slate-200 dark:border-[#172338] bg-slate-50 dark:bg-[#06090e] overflow-hidden mt-2.5">
                             <button
                               onClick={() => toggleSnippet(fr.id)}
-                              className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-mono text-slate-400 hover:text-white transition-colors"
+                              className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-mono text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                             >
                               <div className="flex items-center gap-1.5">
-                                <FileCode className="h-3 w-3 text-cyan-400" />
+                                <FileCode className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                                 <span>Stack Trace</span>
                               </div>
                               {isSnippetOpen ? (
@@ -912,7 +914,7 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                             </button>
 
                             {isSnippetOpen && (
-                              <pre className="p-3 text-[10px] font-mono text-rose-300/90 overflow-x-auto leading-relaxed border-t border-[#172338] bg-[#06090e]">
+                              <pre className="p-3 text-[10px] font-mono text-rose-700 dark:text-rose-300/90 overflow-x-auto leading-relaxed border-t border-slate-200 dark:border-[#172338] bg-rose-50/50 dark:bg-[#06090e]">
                                 {fr.errorStack}
                               </pre>
                             )}
@@ -921,11 +923,11 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="space-y-2 pt-2 border-t border-[#172338]">
+                      <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-[#172338]">
                         <button
                           onClick={() => handleRetry(fr.id)}
                           disabled={isRetrying || isRetried}
-                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-cyan-400 py-2.5 text-xs font-mono font-bold text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] hover:bg-cyan-300 transition-all cursor-pointer disabled:opacity-60"
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white py-2.5 text-xs font-mono font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
                         >
                           <RotateCcw className={`h-3.5 w-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
                           <span>
@@ -938,10 +940,10 @@ export function CyberLogsView({ dbFailedReviews }: Props) {
                 })}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-[#172338] bg-[#0b1019]/60 p-10 text-center text-slate-400 font-mono space-y-2">
-                <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Dead Letter Queue is Clean</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <div className="rounded-2xl border border-dashed border-slate-300 dark:border-[#172338] bg-slate-50 dark:bg-[#0b1019]/60 p-10 text-center text-slate-500 dark:text-slate-400 font-mono space-y-2">
+                <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Dead Letter Queue is Clean</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-500 max-w-sm mx-auto">
                   Zero failed review jobs. All BullMQ queue tasks and GitHub API calls have completed without unhandled exceptions.
                 </p>
               </div>

@@ -1,9 +1,23 @@
-import { describe, it } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { POST as chatHandler } from './route';
+import { setSessionOverride, setSessionInstallationIdsOverride } from '@/lib/auth-helpers';
 
 describe('Chat API & Markdown Response Formatting Test Suite', () => {
+  beforeEach(() => {
+    setSessionOverride(async () => ({
+      user: { id: 'usr-tester', login: 'tester', role: 'admin' },
+      expires: new Date(Date.now() + 3600000).toISOString(),
+    }));
+    setSessionInstallationIdsOverride(async () => [BigInt(1001)]);
+  });
+
+  afterEach(() => {
+    setSessionOverride(null);
+    setSessionInstallationIdsOverride(null);
+  });
+
   it('rejects empty or whitespace-only messages with 400', async () => {
     const req = new NextRequest('http://localhost:3000/api/chat', {
       method: 'POST',
